@@ -1,20 +1,39 @@
-# 🛠️ Script-List
+# Script List - A Collection of Practical Python and Shell Scripts
 
+[閱讀繁體中文版](README.zh-TW.md)
+
+[![GitHub](https://img.shields.io/badge/GitHub-Script--List-blue)](https://github.com/Youchenjiang/Script-List)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-> 🌍 [English](README.md) | [繁體中文](README.zh-TW.md)
+> A curated collection of practical Python and Shell scripts for everyday tasks. This is the sister project of [Method-List](https://github.com/Youchenjiang/Method-List), providing ready-to-use tools that complement the knowledge base.
 
-A curated collection of practical Python and Shell scripts for everyday tasks. This is the sister project of [Method-List](https://github.com/Youchenjiang/Method-List), providing ready-to-use tools that complement the knowledge base.
+## Introduction
 
-## 📖 Project Positioning
+Script List is a curated collection of practical scripts and automation tools. It serves as the companion project to Method-List:
 
 - **[Method-List](https://github.com/Youchenjiang/Method-List)**: 📚 Technical knowledge base (documentation)
 - **Script-List**: 🛠️ Practical script tools (executable programs)
 
 **Method-List teaches you "how to do it", Script-List gives you "tools to use directly".**
 
-## 📂 Project Structure
+## Table of Contents
+
+- [Script List - A Collection of Practical Python and Shell Scripts](#script-list---a-collection-of-practical-python-and-shell-scripts)
+  - [Introduction](#introduction)
+  - [Table of Contents](#table-of-contents)
+  - [Folder Structure](#folder-structure)
+  - [🚀 Quick Start](#-quick-start)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+  - [Usage Guidelines](#usage-guidelines)
+  - [🤝 Contributing](#-contributing)
+  - [📜 License](#-license)
+  - [🔗 Related Projects](#-related-projects)
+  - [👤 Author](#-author)
+  - [⭐ Show Your Support](#-show-your-support)
+
+## Folder Structure
 
 ```
 Script-List/
@@ -34,29 +53,34 @@ Script-List/
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/Youchenjiang/Script-List.git
 cd Script-List
 ```
 
 2. Navigate to the script you want to use:
+
 ```bash
 cd category/script-name
 ```
 
 3. Install dependencies (if required):
+
 ```bash
 pip install -r requirements.txt
 ```
 
 4. Run the script:
+
 ```bash
 python script.py
 ```
 
-##  Usage Guidelines
+## Usage Guidelines
 
 Each script includes:
+
 - **README.md**: Detailed documentation and usage instructions
 - **requirements.txt**: List of required Python packages
 - **examples/**: Sample inputs and outputs

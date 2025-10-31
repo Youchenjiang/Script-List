@@ -1,20 +1,39 @@
-# 🛠️ Script-List
+# Script List - 實用 Python 與 Shell 腳本工具集
 
+[Read English Version](README.md)
+
+[![GitHub](https://img.shields.io/badge/GitHub-Script--List-blue)](https://github.com/Youchenjiang/Script-List)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 
-> 🌍 [English](README.md) | [繁體中文](README.zh-TW.md)
+> 精選實用的 Python 與 Shell 腳本工具集,用於日常任務自動化。本專案是 [Method-List](https://github.com/Youchenjiang/Method-List) 的姊妹專案,提供可直接使用的工具來補充知識庫。
 
-精選實用的 Python 與 Shell 腳本工具集,用於日常任務自動化。本專案是 [Method-List](https://github.com/Youchenjiang/Method-List) 的姊妹專案,提供可直接使用的工具來補充知識庫。
+## 專案簡介
 
-## 📖 專案定位
+Script List 是一個精選的實用腳本與自動化工具集。作為 Method-List 的姊妹專案:
 
 - **[Method-List](https://github.com/Youchenjiang/Method-List)**: 📚 技術知識庫(文檔)
 - **Script-List**: 🛠️ 實用腳本工具(可執行程式)
 
 **Method-List 教你「怎麼做」,Script-List 提供「直接用的工具」。**
 
-## 📂 專案結構
+## 目錄
+
+- [Script List - 實用 Python 與 Shell 腳本工具集](#script-list---實用-python-與-shell-腳本工具集)
+  - [專案簡介](#專案簡介)
+  - [目錄](#目錄)
+  - [資料夾結構](#資料夾結構)
+  - [🚀 快速開始](#-快速開始)
+    - [環境需求](#環境需求)
+    - [安裝步驟](#安裝步驟)
+  - [使用指南](#使用指南)
+  - [🤝 參與貢獻](#-參與貢獻)
+  - [📜 授權條款](#-授權條款)
+  - [🔗 相關專案](#-相關專案)
+  - [👤 作者](#-作者)
+  - [⭐ 支持專案](#-支持專案)
+
+## 資料夾結構
 
 ```
 Script-List/
