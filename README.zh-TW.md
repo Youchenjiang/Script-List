@@ -37,11 +37,18 @@ Script List 是一個精選的實用腳本與自動化工具集。作為 Method-
 
 ```
 Script-List/
-├── README.md                    # 專案說明文檔(英文)
-├── README.zh-TW.md             # 專案說明文檔(繁體中文)
-├── LICENSE                      # MIT 授權
-└── .gitignore                  # Git 忽略規則
+├── README.md
+├── README.zh-TW.md
+├── LICENSE
+├── .gitignore
+└── image-downloader-pdf/    # 圖片下載與 PDF 轉換工具
 ```
+
+## 🛠️ 可用工具
+
+實用腳本工具:
+
+- **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - 批次下載網路圖片並自動合併為 PDF 文件。支援自動偵測與手動模式,具備智能排序功能。 → [詳細說明](image-downloader-pdf/README.md)
 
 ## 🚀 快速開始
 

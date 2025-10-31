@@ -37,11 +37,18 @@ Script List is a curated collection of practical scripts and automation tools. I
 
 ```
 Script-List/
-├── README.md                    # Project documentation (English)
-├── README.zh-TW.md             # Project documentation (Traditional Chinese)
-├── LICENSE                      # MIT License
-└── .gitignore                  # Git ignore rules
+├── README.md
+├── README.zh-TW.md
+├── LICENSE
+├── .gitignore
+└── image-downloader-pdf/    # Image downloader and PDF converter
 ```
+
+## 🛠️ Available Tools
+
+Practical script tools:
+
+- **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - Batch download web images and automatically merge them into a PDF document. Supports auto detection and manual mode with smart sorting. → [Details](image-downloader-pdf/README.md)
 
 ## 🚀 Quick Start
 
