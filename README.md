@@ -41,7 +41,8 @@ Script-List/
 ├── README.zh-TW.md
 ├── LICENSE
 ├── .gitignore
-└── image-downloader-pdf/    # Image downloader and PDF converter
+├── image-downloader-pdf/    # Image downloader and PDF converter
+└── text-converter-zh/       # Chinese text converter (Simplified ↔ Traditional)
 ```
 
 ## 🛠️ Available Tools
@@ -49,6 +50,7 @@ Script-List/
 Practical script tools:
 
 - **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - Batch download web images and automatically merge them into a PDF document. Supports auto detection and manual mode with smart sorting. → [Details](image-downloader-pdf/README.md)
+- **Text Converter (Simplified ↔ Traditional Chinese)** ([text-converter-zh/](text-converter-zh/)) - Selective Chinese text conversion toolkit with review-before-convert workflow. Check mode for preview and two-step conversion process with JSON configuration. → [Details](text-converter-zh/README.md)
 
 ## 🚀 Quick Start
 

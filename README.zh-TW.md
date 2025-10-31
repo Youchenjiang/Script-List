@@ -41,7 +41,8 @@ Script-List/
 ├── README.zh-TW.md
 ├── LICENSE
 ├── .gitignore
-└── image-downloader-pdf/    # 圖片下載與 PDF 轉換工具
+├── image-downloader-pdf/    # 圖片下載與 PDF 轉換工具
+└── text-converter-zh/       # 中文簡繁轉換工具
 ```
 
 ## 🛠️ 可用工具
@@ -49,6 +50,7 @@ Script-List/
 實用腳本工具:
 
 - **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - 批次下載網路圖片並自動合併為 PDF 文件。支援自動偵測與手動模式,具備智能排序功能。 → [詳細說明](image-downloader-pdf/README.md)
+- **文字轉換工具 (簡繁中文)** ([text-converter-zh/](text-converter-zh/)) - 可選擇性的中文簡繁轉換工具組,提供轉換前審核工作流程。包含檢查模式預覽與兩步驟 JSON 設定檔轉換流程。 → [詳細說明](text-converter-zh/README.md)
 
 ## 🚀 快速開始
 
