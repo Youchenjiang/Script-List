@@ -18,11 +18,9 @@ pip install openai
 python openai-chat.py
 ```
 
-3. 如果未設定 API 金鑰，腳本會提示您直接輸入。
+3. 如果未設定 API 金鑰，腳本會提示您直接在終端機輸入。
 
-**其他設定方式（選填）：**
-
-**方法 1：環境變數**
+**選填：使用環境變數**
 ```bash
 # Windows PowerShell
 $env:OPENAI_API_KEY="your-api-key"
@@ -31,16 +29,11 @@ $env:OPENAI_API_KEY="your-api-key"
 export OPENAI_API_KEY="your-api-key"
 ```
 
-**方法 2：命令列參數**
-```bash
-python openai-chat.py --api-key="your-api-key"
-```
+## 環境變數（選填）
 
-## 環境變數
-
-- `OPENAI_API_KEY`（必填）：OpenAI API 金鑰
-- `OPENAI_BASE_URL`（選填）：預設為 `https://api.chatanywhere.tech/v1`
-- `OPENAI_MODEL`（選填）：預設為 `gpt-4o-mini`
+- `OPENAI_API_KEY`：若已設定，腳本會直接使用，不會提示輸入
+- `OPENAI_BASE_URL`：預設為 `https://api.chatanywhere.tech/v1`
+- `OPENAI_MODEL`：預設為 `gpt-4o-mini`
 
 ## 注意
 請勿將真實金鑰提交到版本控制，正式環境務必改用環境變數或密鑰管理服務。

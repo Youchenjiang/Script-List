@@ -18,11 +18,9 @@ pip install openai
 python openai-chat.py
 ```
 
-3. If no API key is set, the script will prompt you to enter it directly.
+3. If no API key is set, the script will prompt you to enter it directly in the terminal.
 
-**Alternative setup methods (optional):**
-
-**Method 1: Environment variable**
+**Optional: Use environment variable**
 ```bash
 # Windows PowerShell
 $env:OPENAI_API_KEY="your-api-key"
@@ -31,16 +29,11 @@ $env:OPENAI_API_KEY="your-api-key"
 export OPENAI_API_KEY="your-api-key"
 ```
 
-**Method 2: Command-line argument**
-```bash
-python openai-chat.py --api-key="your-api-key"
-```
+## Environment Variables (Optional)
 
-## Environment Variables
-
-- `OPENAI_API_KEY` (required): OpenAI API key
-- `OPENAI_BASE_URL` (optional): Defaults to `https://api.chatanywhere.tech/v1`
-- `OPENAI_MODEL` (optional): Defaults to `gpt-4o-mini`
+- `OPENAI_API_KEY`: If set, the script will use it directly without prompting
+- `OPENAI_BASE_URL`: Defaults to `https://api.chatanywhere.tech/v1`
+- `OPENAI_MODEL`: Defaults to `gpt-4o-mini`
 
 ## Security
 Do not commit real API keys. Prefer environment variables or secret managers in production.
