@@ -43,7 +43,8 @@ Script-List/
 ├── .gitignore
 ├── image-downloader-pdf/       # 圖片下載與 PDF 轉換工具
 ├── text-converter-zh/          # 中文簡繁轉換工具
-└── password-security-checker/  # 密碼外洩與強度檢查工具
+├── password-security-checker/  # 密碼外洩與強度檢查工具
+└── openai-chat-cli/            # 極簡 OpenAI 對話工具（內建 Execute Copilot 提示詞）
 ```
 
 ## 🛠️ 可用工具
@@ -53,6 +54,7 @@ Script-List/
 - **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - 批次下載網路圖片並自動合併為 PDF 文件。支援自動偵測與手動模式,具備智能排序功能。 → [詳細說明](image-downloader-pdf/README.md)
 - **文字轉換工具 (簡繁中文)** ([text-converter-zh/](text-converter-zh/)) - 可選擇性的中文簡繁轉換工具組,提供轉換前審核工作流程。包含檢查模式預覽與兩步驟 JSON 設定檔轉換流程。 → [詳細說明](text-converter-zh/README.md)
 - **密碼安全檢查工具** ([password-security-checker/](password-security-checker/)) - PowerShell 工具,使用 HIBP API 檢查密碼是否在資料外洩事件中曝光。包含暴力破解時間估算與隱私保護的 k-匿名查詢。 → [詳細說明](password-security-checker/README.md)
+- **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - 單檔命令列腳本，將提問附上 Execute Copilot 提示詞後回傳繁體中文建議。 → [詳細說明](openai-chat-cli/README.md)
 
 ## 🚀 快速開始
 

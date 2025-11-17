@@ -43,7 +43,8 @@ Script-List/
 ├── .gitignore
 ├── image-downloader-pdf/       # Image downloader and PDF converter
 ├── text-converter-zh/          # Chinese text converter (Simplified ↔ Traditional)
-└── password-security-checker/  # Password breach and strength checker
+├── password-security-checker/  # Password breach and strength checker
+└── openai-chat-cli/            # Minimal OpenAI Chat CLI (Execute Copilot prompt)
 ```
 
 ## 🛠️ Available Tools
@@ -53,6 +54,7 @@ Practical script tools:
 - **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - Batch download web images and automatically merge them into a PDF document. Supports auto detection and manual mode with smart sorting. → [Details](image-downloader-pdf/README.md)
 - **Text Converter (Simplified ↔ Traditional Chinese)** ([text-converter-zh/](text-converter-zh/)) - Selective Chinese text conversion toolkit with review-before-convert workflow. Check mode for preview and two-step conversion process with JSON configuration. → [Details](text-converter-zh/README.md)
 - **Password Security Checker** ([password-security-checker/](password-security-checker/)) - PowerShell tool to check if passwords have been exposed in data breaches using HIBP API. Includes brute-force time estimation and privacy-preserving k-anonymity query. → [Details](password-security-checker/README.md)
+- **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - Minimal CLI that asks a question, sends it with the Execute Copilot prompt, and prints the Traditional Chinese reply. → [Details](openai-chat-cli/README.md)
 
 ## 🚀 Quick Start
 
