@@ -6,3 +6,6 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+# Android APK files (may contain sensitive credentials)
+*.apk
