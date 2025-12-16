@@ -1,0 +1,5 @@
+# 忽略合併後的 PDF 檔案
+merged.pdf
+
+# 忽略所有 PDF 輸出檔案
+*.pdf
