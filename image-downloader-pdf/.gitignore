@@ -1,0 +1,13 @@
+# 忽略圖片檔案
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.webp
+
+# 忽略 PDF 檔案
+*.pdf
+
+# 忽略下載的圖片資料夾
+downloaded_images/
