@@ -9,3 +9,6 @@ venv.bak/
 
 # Android APK files (may contain sensitive credentials)
 *.apk
+
+# Python caches
+__pycache__/
