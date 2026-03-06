@@ -44,8 +44,7 @@ Script-List/
 ├── image-downloader-pdf/       # Image downloader and PDF converter
 ├── text-converter-zh/          # Chinese text converter (Simplified ↔ Traditional)
 ├── password-security-checker/  # Password breach and strength checker
-├── ppt-to-pdf/                 # PowerPoint to PDF batch converter
-└── openai-chat-cli/            # Minimal OpenAI Chat CLI (Execute Copilot prompt)
+└── openai-chat-cli/            # OpenAI Chat CLI with custom personas
 ```
 
 ## 🛠️ Available Tools
@@ -55,8 +54,7 @@ Practical script tools:
 - **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - Batch download web images and automatically merge them into a PDF document. Supports auto detection and manual mode with smart sorting. → [Details](image-downloader-pdf/README.md)
 - **Text Converter (Simplified ↔ Traditional Chinese)** ([text-converter-zh/](text-converter-zh/)) - Selective Chinese text conversion toolkit with review-before-convert workflow. Check mode for preview and two-step conversion process with JSON configuration. → [Details](text-converter-zh/README.md)
 - **Password Security Checker** ([password-security-checker/](password-security-checker/)) - PowerShell tool to check if passwords have been exposed in data breaches using HIBP API. Includes brute-force time estimation and privacy-preserving k-anonymity query. → [Details](password-security-checker/README.md)
-- **PPT to PDF Converter** ([ppt-to-pdf/](ppt-to-pdf/)) - Batch convert PowerPoint files to PDF. Features smart skipping of existing/temp files and interactive safety prompts. → [Details](ppt-to-pdf/README.md)
-- **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - Minimal single-file CLI with Execute Copilot prompt. Prompts for API key if not set, then provides structured Traditional Chinese responses. → [Details](openai-chat-cli/README.md)
+- **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - Command-line interface for OpenAI Chat API with customizable conversation styles. Features include Zhuge Liang persona, multi-language support, and conversation history management. → [Details](openai-chat-cli/README.md)
 
 ## 🚀 Quick Start
 
