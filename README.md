@@ -46,7 +46,7 @@ Script-List/
 ├── password-security-checker/  # Password breach and strength checker
 ├── openai-chat-cli/            # OpenAI Chat CLI with custom personas
 ├── image-text-verifier/        # Questionnaire image to CSV verification and fixing tool
-└── mhtml-to-pdf/               # MHTML to A4 PDF converter (Google Slides fix)
+└── mhtml-to-pdf/               # MHTML to PDF converter (Google Slides 16:9 / A4)
 ```
 
 ## 🛠️ Available Tools
@@ -58,7 +58,7 @@ Practical script tools:
 - **Password Security Checker** ([password-security-checker/](password-security-checker/)) - PowerShell tool to check if passwords have been exposed in data breaches using HIBP API. Includes brute-force time estimation and privacy-preserving k-anonymity query. → [Details](password-security-checker/README.md)
 - **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - Command-line interface for OpenAI Chat API with customizable conversation styles. Features include Zhuge Liang persona, multi-language support, and conversation history management. → [Details](openai-chat-cli/README.md)
 - **Image-Text Verifier** ([image-text-verifier/](image-text-verifier/)) - A specialized tool for extracting answers from scanned questionnaire images and automatically verifying/fixing them against an existing CSV dataset with targeted risk management. → [Details](image-text-verifier/README.md)
-- **MHTML to PDF Converter** ([mhtml-to-pdf/](mhtml-to-pdf/)) - A specialized tool to convert MHTML files (typically exported from Google Slides) into high-quality A4 PDF documents with proper layout and background graphics. → [Details](mhtml-to-pdf/README.md)
+- **MHTML to PDF Converter** ([mhtml-to-pdf/](mhtml-to-pdf/)) - Convert Google Slides MHTML exports into zero-whitespace 16:9 PDFs (or A4 landscape). Features a GUI file picker, offline browser mode, and automatic background image preservation. → [Details](mhtml-to-pdf/README.md)
 
 ## 🚀 Quick Start
 
