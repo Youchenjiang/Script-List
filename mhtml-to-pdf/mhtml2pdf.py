@@ -57,7 +57,7 @@ FIX_CSS = """
 }
 """
 
-async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_after_load_ms=1000):
+async def convert_mhtml_to_pdf(input_path, output_path):
     """
     Automates a Chromium browser to open an MHTML file, inject corrective CSS,
     and export it as a high-quality A4 PDF.
@@ -84,7 +84,7 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
         
         try:
             # Using domcontentloaded for MHTML stability
-            await page.goto(file_url, wait_until="domcontentloaded", timeout=timeout_ms)
+            await page.goto(file_url, wait_until="domcontentloaded", timeout=30000)
             print("      - Page content loaded.", flush=True)
             
             # Count slides for progress indication
@@ -101,12 +101,11 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
             except Exception:
                 pass
 
-            if wait_after_load_ms > 0:
-                print(f"      - Buffering for {wait_after_load_ms}ms to settle images...", flush=True)
-                await page.wait_for_timeout(wait_after_load_ms)
+                print(f"      - Buffering for 1000ms to settle images...", flush=True)
+                await page.wait_for_timeout(1000)
 
         except Exception as e:
-            print(f"Error: Failed to load MHTML within {timeout_ms}ms: {e}", flush=True)
+            print(f"Error: Failed to load MHTML within 30000ms: {e}", flush=True)
             await browser.close()
             return
 
@@ -143,9 +142,7 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
 @click.command()
 @click.argument('input_file', type=click.Path(exists=True))
 @click.option('--output', '-o', help='Path to output PDF file. Defaults to same name as input.')
-@click.option('--timeout', '-t', default=30000, help='Max timeout in milliseconds (default: 30000).')
-@click.option('--wait-after-load', '-w', default=1000, help='Wait time after load in milliseconds (default: 1000).')
-def main(input_file, output, timeout, wait_after_load):
+def main(input_file, output):
     """
     Convert MHTML (Google Slides export) to A4 PDF with proper layout fixes.
     """
@@ -157,7 +154,7 @@ def main(input_file, output, timeout, wait_after_load):
         output = os.path.splitext(input_file)[0] + ".pdf"
     
     try:
-        asyncio.run(convert_mhtml_to_pdf(input_file, output, timeout, wait_after_load))
+        asyncio.run(convert_mhtml_to_pdf(input_file, output))
     except Exception as e:
         print(f"An error occurred: {e}", flush=True)
         sys.exit(1)
