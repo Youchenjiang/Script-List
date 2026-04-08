@@ -54,7 +54,7 @@ def get_fix_css():
 }}
 """
 
-async def convert_mhtml_to_pdf(input_path, output_path, paper="A4"):
+async def convert_mhtml_to_pdf(input_path, output_path, paper="16:9"):
     """
     Automates a Chromium browser to open an MHTML file, inject corrective CSS,
     and export it as a high-quality PDF.
@@ -146,7 +146,7 @@ async def convert_mhtml_to_pdf(input_path, output_path, paper="A4"):
 @click.command()
 @click.argument('input_file', type=click.Path(exists=True), required=False)
 @click.option('--output', '-o', help='Path to output PDF file. Defaults to same name as input.')
-@click.option('--paper', '-p', type=click.Choice(['A4', '16:9'], case_sensitive=False), default='A4', help='Paper format (A4 or 16:9).')
+@click.option('--paper', '-p', type=click.Choice(['A4', '16:9'], case_sensitive=False), default='16:9', help='Paper format: 16:9 (default, zero whitespace) or A4.')
 def main(input_file, output, paper):
     """
     Convert MHTML (Google Slides export) to PDF with proper layout fixes.
