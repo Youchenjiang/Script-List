@@ -144,13 +144,31 @@ async def convert_mhtml_to_pdf(input_path, output_path, paper="A4"):
             await browser.close()
 
 @click.command()
-@click.argument('input_file', type=click.Path(exists=True))
+@click.argument('input_file', type=click.Path(exists=True), required=False)
 @click.option('--output', '-o', help='Path to output PDF file. Defaults to same name as input.')
 @click.option('--paper', '-p', type=click.Choice(['A4', '16:9'], case_sensitive=False), default='A4', help='Paper format (A4 or 16:9).')
 def main(input_file, output, paper):
     """
     Convert MHTML (Google Slides export) to PDF with proper layout fixes.
+    If no input file is provided, a file selection dialog will open.
     """
+    if not input_file:
+        import tkinter as tk
+        from tkinter import filedialog
+        
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes('-topmost', True)
+        
+        input_file = filedialog.askopenfilename(
+            title="Select Google Slides MHTML File",
+            filetypes=[("MHTML files", "*.mhtml"), ("All files", "*.*")]
+        )
+        
+        if not input_file:
+            print("No file selected. Exiting.", flush=True)
+            sys.exit(0)
+
     if not input_file.lower().endswith('.mhtml'):
         print("Error: Input file must be an .mhtml file.", flush=True)
         sys.exit(1)
