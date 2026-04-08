@@ -79,8 +79,11 @@ async def convert_mhtml_to_pdf(input_path, output_path):
         
         print(f"Loading {input_path}...")
         try:
-            # wait_until="networkidle" ensures all resources (background images) are loaded
-            await page.goto(file_url, wait_until="networkidle", timeout=60000)
+            # Using wait_until="load" instead of "networkidle" as MHTML resources 
+            # are embedded, and networkidle can hang on tracking pixels or failed fetches.
+            await page.goto(file_url, wait_until="load", timeout=60000)
+            # Short sleep to ensure background images are rendered from the archive
+            await asyncio.sleep(2) 
         except Exception as e:
             print(f"Failed to load MHTML: {e}")
             await browser.close()
