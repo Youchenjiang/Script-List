@@ -70,21 +70,20 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
             print("Error: Chromium not found. Please run 'playwright install chromium'.", flush=True)
             return
 
-        print("[2/6] Preparing browser context...", flush=True)
-        # JavaScript MUST be enabled for add_style_tag() to detect completion
-        context = await browser.new_context(java_script_enabled=True)
+        print("[2/6] Preparing browser context (Offline Mode)...", flush=True)
+        # offline=True blocks internet but allows local/archive resource resolution
+        # java_script_enabled=True is required for add_style_tag to signal completion
+        context = await browser.new_context(
+            java_script_enabled=True,
+            offline=True
+        )
         page = await context.new_page()
 
-        # Block external network requests to prevent hanging while allowing local MHTML parts
         file_url = Path(input_path).resolve().as_uri()
-        await page.route("**", lambda route: 
-            route.continue_() if route.request.url.startswith("file://") or route.request.url.startswith("data:") 
-            else route.abort()
-        )
-
         print(f"[3/6] Loading MHTML file: {input_path}...", flush=True)
+        
         try:
-            # Using domcontentloaded is the most stable for MHTML
+            # Using domcontentloaded for MHTML stability
             await page.goto(file_url, wait_until="domcontentloaded", timeout=timeout_ms)
             print("      - Page content loaded.", flush=True)
             
@@ -112,23 +111,30 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
             return
 
         print("[5/6] Injecting layout correction CSS...", flush=True)
-        # This will now complete correctly because JS is enabled
-        await page.add_style_tag(content=FIX_CSS)
+        try:
+            # With offline=True and JS enabled, this should complete correctly.
+            # Adding a 10s timeout to this specific step just in case.
+            await page.add_style_tag(content=FIX_CSS, timeout=10000)
+        except Exception as e:
+            print(f"      - Warning: CSS injection timed out but proceeding: {e}", flush=True)
 
         print(f"[6/6] Generating PDF (A4 Landscape): {output_path}...", flush=True)
         print("      - This may take a moment for large presentations...", flush=True)
-        await page.pdf(
-            path=output_path,
-            format="A4",
-            landscape=True,
-            print_background=True,
-            prefer_css_page_size=True,
-            display_header_footer=False,
-            margin={"top": "0", "right": "0", "bottom": "0", "left": "0"}
-        )
+        try:
+            await page.pdf(
+                path=output_path,
+                format="A4",
+                landscape=True,
+                print_background=True,
+                prefer_css_page_size=True,
+                display_header_footer=False,
+                margin={"top": "0", "right": "0", "bottom": "0", "left": "0"}
+            )
+            print("\n[✔] Successfully exported PDF!", flush=True)
+        except Exception as e:
+            print(f"Error during PDF generation: {e}", flush=True)
 
         await browser.close()
-        print("\n[✔] Successfully exported PDF!", flush=True)
 
 @click.command()
 @click.argument('input_file', type=click.Path(exists=True))
