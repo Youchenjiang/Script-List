@@ -1,6 +1,7 @@
 import os
 import sys
 import asyncio
+from pathlib import Path
 from playwright.async_api import async_playwright
 import click
 
@@ -56,7 +57,7 @@ FIX_CSS = """
 }
 """
 
-async def convert_mhtml_to_pdf(input_path, output_path):
+async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_after_load_ms=1000):
     """
     Automates a Chromium browser to open an MHTML file, inject corrective CSS,
     and export it as a high-quality A4 PDF.
@@ -69,23 +70,31 @@ async def convert_mhtml_to_pdf(input_path, output_path):
             print("Error: Chromium not found. Please run 'playwright install chromium'.")
             return
 
-        context = await browser.new_context()
+        # Disable JavaScript to prevent hanging on tracking pixels or long-running scripts
+        context = await browser.new_context(java_script_enabled=False)
         page = await context.new_page()
 
         # Load the MHTML file
-        # Convert path to absolute file URI for the browser
-        abs_path = os.path.abspath(input_path)
-        file_url = f"file:///{abs_path.replace(os.sep, '/')}"
+        # Use Path.as_uri() for robust handling of spaces and special characters
+        file_url = Path(input_path).resolve().as_uri()
         
         print(f"Loading {input_path}...")
         try:
-            # Using wait_until="load" instead of "networkidle" as MHTML resources 
-            # are embedded, and networkidle can hang on tracking pixels or failed fetches.
-            await page.goto(file_url, wait_until="load", timeout=60000)
-            # Short sleep to ensure background images are rendered from the archive
-            await asyncio.sleep(2) 
+            # wait_until="domcontentloaded" is faster and more reliable for MHTML
+            await page.goto(file_url, wait_until="domcontentloaded", timeout=timeout_ms)
+            
+            # Ensure slides are actually present before proceeding
+            try:
+                await page.wait_for_selector(".slide-content", timeout=timeout_ms)
+            except Exception:
+                print("Warning: '.slide-content' selector not found. The file might not be a standard Google Slides export.")
+
+            # Optional buffer to let the browser stabilize
+            if wait_after_load_ms > 0:
+                await page.wait_for_timeout(wait_after_load_ms)
+
         except Exception as e:
-            print(f"Failed to load MHTML: {e}")
+            print(f"Failed to load MHTML within {timeout_ms}ms: {e}")
             await browser.close()
             return
 
@@ -99,6 +108,7 @@ async def convert_mhtml_to_pdf(input_path, output_path):
             format="A4",
             landscape=True,
             print_background=True,
+            prefer_css_page_size=True,
             display_header_footer=False,
             margin={"top": "0", "right": "0", "bottom": "0", "left": "0"}
         )
@@ -109,7 +119,9 @@ async def convert_mhtml_to_pdf(input_path, output_path):
 @click.command()
 @click.argument('input_file', type=click.Path(exists=True))
 @click.option('--output', '-o', help='Path to output PDF file. Defaults to same name as input.')
-def main(input_file, output):
+@click.option('--timeout', '-t', default=30000, help='Max timeout in milliseconds (default: 30000).')
+@click.option('--wait-after-load', '-w', default=1000, help='Wait time after load in milliseconds (default: 1000).')
+def main(input_file, output, timeout, wait_after_load):
     """
     Convert MHTML (Google Slides export) to A4 PDF with proper layout fixes.
     
@@ -126,10 +138,7 @@ def main(input_file, output):
         output = os.path.splitext(input_file)[0] + ".pdf"
     
     try:
-        asyncio.run(convert_mhtml_to_pdf(input_file, output))
-    except ImportError:
-        print("Error: Missing dependencies. Run: pip install -r requirements.txt")
-        sys.exit(1)
+        asyncio.run(convert_mhtml_to_pdf(input_file, output, timeout, wait_after_load))
     except Exception as e:
         print(f"An error occurred: {e}")
         sys.exit(1)
