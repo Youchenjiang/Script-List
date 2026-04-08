@@ -112,11 +112,15 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
 
         print("[5/6] Injecting layout correction CSS...", flush=True)
         try:
-            # With offline=True and JS enabled, this should complete correctly.
-            # Adding a 10s timeout to this specific step just in case.
-            await page.add_style_tag(content=FIX_CSS, timeout=10000)
+            # Injecting CSS via evaluate avoids Playwright's internal add_style_tag 
+            # waiting mechanisms that hang on MHTML/offline modes.
+            await page.evaluate(f'''
+                const style = document.createElement('style');
+                style.textContent = `{FIX_CSS}`;
+                document.head.appendChild(style);
+            ''')
         except Exception as e:
-            print(f"      - Warning: CSS injection timed out but proceeding: {e}", flush=True)
+            print(f"      - Warning: CSS injection failed: {e}", flush=True)
 
         print(f"[6/6] Generating PDF (A4 Landscape): {output_path}...", flush=True)
         print("      - This may take a moment for large presentations...", flush=True)
