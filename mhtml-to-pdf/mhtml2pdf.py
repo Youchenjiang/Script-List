@@ -6,7 +6,6 @@ from playwright.async_api import async_playwright
 import click
 
 # CSS to fix Google Slides MHTML layout issues for A4 printing
-# Based on working solution from cursor_mhtml.md
 FIX_CSS = """
 @media print {
     @page { 
@@ -63,46 +62,54 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
     and export it as a high-quality A4 PDF.
     """
     async with async_playwright() as p:
-        # Launch browser headless
+        print("[1/6] Launching browser...")
         try:
             browser = await p.chromium.launch()
         except Exception:
             print("Error: Chromium not found. Please run 'playwright install chromium'.")
             return
 
-        # Disable JavaScript to prevent hanging on tracking pixels or long-running scripts
+        print("[2/6] Preparing browser context (JS disabled)...")
         context = await browser.new_context(java_script_enabled=False)
         page = await context.new_page()
 
-        # Load the MHTML file
-        # Use Path.as_uri() for robust handling of spaces and special characters
         file_url = Path(input_path).resolve().as_uri()
+        print(f"[3/6] Loading MHTML file: {input_path}...")
         
-        print(f"Loading {input_path}...")
         try:
-            # wait_until="domcontentloaded" is faster and more reliable for MHTML
+            # wait_until="domcontentloaded" is faster for MHTML archives
             await page.goto(file_url, wait_until="domcontentloaded", timeout=timeout_ms)
+            print("      - Page content loaded.")
             
-            # Ensure slides are actually present before proceeding
-            try:
-                await page.wait_for_selector(".slide-content", timeout=timeout_ms)
-            except Exception:
-                print("Warning: '.slide-content' selector not found. The file might not be a standard Google Slides export.")
+            # Count slides for progress indication
+            slide_count = await page.locator(".slide").count()
+            if slide_count > 0:
+                print(f"      - Detected {slide_count} slides.")
+            else:
+                # Fallback check if .slide isn't used
+                slide_count = await page.locator(".slide-content").count()
+                print(f"      - Detected {slide_count} slide containers.")
 
-            # Optional buffer to let the browser stabilize
+            print("[4/6] Waiting for slide rendering...")
+            try:
+                await page.wait_for_selector(".slide-content", timeout=5000)
+            except Exception:
+                pass # Continue anyway if selector isn't found
+
             if wait_after_load_ms > 0:
+                print(f"      - Buffering for {wait_after_load_ms}ms to settle images...")
                 await page.wait_for_timeout(wait_after_load_ms)
 
         except Exception as e:
-            print(f"Failed to load MHTML within {timeout_ms}ms: {e}")
+            print(f"Error: Failed to load MHTML within {timeout_ms}ms: {e}")
             await browser.close()
             return
 
-        # Inject corrective CSS to fix the layout and backgrounds
+        print("[5/6] Injecting layout correction CSS...")
         await page.add_style_tag(content=FIX_CSS)
 
-        # Print to PDF with specific settings for A4 Landscape
-        print(f"Exporting to {output_path}...")
+        print(f"[6/6] Generating PDF (A4 Landscape): {output_path}...")
+        print("      - This may take a moment for large presentations...")
         await page.pdf(
             path=output_path,
             format="A4",
@@ -114,7 +121,7 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
         )
 
         await browser.close()
-        print("Successfully exported PDF!")
+        print("\n[✔] Successfully exported PDF!")
 
 @click.command()
 @click.argument('input_file', type=click.Path(exists=True))
@@ -124,11 +131,6 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
 def main(input_file, output, timeout, wait_after_load):
     """
     Convert MHTML (Google Slides export) to A4 PDF with proper layout fixes.
-    
-    This tool solves common issues:
-    1. Disappearing background images.
-    2. Multiple slides clipped or merged on one page.
-    3. Alignment and white-space issues on A4 paper.
     """
     if not input_file.lower().endswith('.mhtml'):
         print("Error: Input file must be an .mhtml file.")
