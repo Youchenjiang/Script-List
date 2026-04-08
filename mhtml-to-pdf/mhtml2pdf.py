@@ -5,16 +5,11 @@ from pathlib import Path
 from playwright.async_api import async_playwright
 import click
 
-def get_fix_css(paper_mode):
-    """Generates the CSS to fix layout depending on the target paper mode."""
-    if paper_mode.lower() == '16:9':
-        page_size_css = "@page { size: 13.333in 7.5in; margin: 0; }"
-    else:
-        page_size_css = "@page { size: A4 landscape; margin: 0; }"
-
+def get_fix_css():
+    """Generates the CSS to securely fix layout sizes."""
     return f"""
 @media print {{
-    {page_size_css}
+    @page {{ margin: 0; }}
 
     html, body {{
         margin: 0 !important;
@@ -113,7 +108,7 @@ async def convert_mhtml_to_pdf(input_path, output_path, paper="A4"):
             try:
                 # Injecting CSS via evaluate avoids Playwright's internal add_style_tag 
                 # waiting mechanisms that hang on MHTML/offline modes.
-                css_content = get_fix_css(paper)
+                css_content = get_fix_css()
                 await page.evaluate(f'''
                     const style = document.createElement('style');
                     style.textContent = `{css_content}`;
@@ -128,14 +123,17 @@ async def convert_mhtml_to_pdf(input_path, output_path, paper="A4"):
                 pdf_kwargs = {
                     "path": output_path,
                     "print_background": True,
-                    "prefer_css_page_size": True,
                     "display_header_footer": False,
                     "margin": {"top": "0", "right": "0", "bottom": "0", "left": "0"}
                 }
                 
-                if paper.lower() == 'a4':
+                if paper.lower() == '16:9':
+                    pdf_kwargs["width"] = "960px"
+                    pdf_kwargs["height"] = "540px"
+                else:  # A4
                     pdf_kwargs["format"] = "A4"
                     pdf_kwargs["landscape"] = True
+                    pdf_kwargs["scale"] = 1.168
 
                 await page.pdf(**pdf_kwargs)
                 print("\n[✔] Successfully exported PDF!", flush=True)
