@@ -45,7 +45,8 @@ Script-List/
 ├── text-converter-zh/          # 中文簡繁轉換工具
 ├── password-security-checker/  # 密碼外洩與強度檢查工具
 ├── openai-chat-cli/            # OpenAI 對話工具，支援自訂人設
-└── image-text-verifier/        # 問卷影像辨識與 CSV 校對修正工具
+├── image-text-verifier/        # 問卷影像辨識與 CSV 校對修正工具
+└── mhtml-to-pdf/               # MHTML 轉 A4 PDF 工具 (Google 簡報修復)
 ```
 
 ## 🛠️ 可用工具
@@ -57,6 +58,7 @@ Script-List/
 - **密碼安全檢查工具** ([password-security-checker/](password-security-checker/)) - PowerShell 工具,使用 HIBP API 檢查密碼是否在資料外洩事件中曝光。包含暴力破解時間估算與隱私保護的 k-匿名查詢。 → [詳細說明](password-security-checker/README.md)
 - **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - OpenAI 對話 API 的命令列介面,支援自訂對話風格。功能包括諸葛亮人設、多語言支援與對話歷史管理。 → [詳細說明](openai-chat-cli/README.md)
 - **問卷影像辨識與校對工具** ([image-text-verifier/](image-text-verifier/)) - 用於將實體問卷掃描圖自動辨識提取答案，並與現有 CSV 資料自動比對、偵測風險與修正的工具。 → [詳細說明](image-text-verifier/README.zh-TW.md)
+- **MHTML 轉 PDF 轉檔工具** ([mhtml-to-pdf/](mhtml-to-pdf/)) - 專門用於將 MHTML 檔案（通常為 Google 簡報匯出）轉換為高品質 A4 PDF 文件的工具，解決底圖消失與分頁異常問題。 → [詳細說明](mhtml-to-pdf/README.md)
 
 ## 🚀 快速開始
 
