@@ -6,6 +6,7 @@ from playwright.async_api import async_playwright
 import click
 
 # CSS to fix Google Slides MHTML layout issues for A4 printing
+# Based on working solution from cursor_mhtml.md
 FIX_CSS = """
 @media print {
     @page { 
@@ -62,54 +63,60 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
     and export it as a high-quality A4 PDF.
     """
     async with async_playwright() as p:
-        print("[1/6] Launching browser...")
+        print("[1/6] Launching browser...", flush=True)
         try:
             browser = await p.chromium.launch()
         except Exception:
-            print("Error: Chromium not found. Please run 'playwright install chromium'.")
+            print("Error: Chromium not found. Please run 'playwright install chromium'.", flush=True)
             return
 
-        print("[2/6] Preparing browser context (JS disabled)...")
-        context = await browser.new_context(java_script_enabled=False)
+        print("[2/6] Preparing browser context...", flush=True)
+        # JavaScript MUST be enabled for add_style_tag() to detect completion
+        context = await browser.new_context(java_script_enabled=True)
         page = await context.new_page()
 
+        # Block external network requests to prevent hanging while allowing local MHTML parts
         file_url = Path(input_path).resolve().as_uri()
-        print(f"[3/6] Loading MHTML file: {input_path}...")
-        
+        await page.route("**", lambda route: 
+            route.continue_() if route.request.url.startswith("file://") or route.request.url.startswith("data:") 
+            else route.abort()
+        )
+
+        print(f"[3/6] Loading MHTML file: {input_path}...", flush=True)
         try:
-            # wait_until="domcontentloaded" is faster for MHTML archives
+            # Using domcontentloaded is the most stable for MHTML
             await page.goto(file_url, wait_until="domcontentloaded", timeout=timeout_ms)
-            print("      - Page content loaded.")
+            print("      - Page content loaded.", flush=True)
             
             # Count slides for progress indication
             slide_count = await page.locator(".slide").count()
-            if slide_count > 0:
-                print(f"      - Detected {slide_count} slides.")
-            else:
-                # Fallback check if .slide isn't used
+            if slide_count == 0:
                 slide_count = await page.locator(".slide-content").count()
-                print(f"      - Detected {slide_count} slide containers.")
+            
+            if slide_count > 0:
+                print(f"      - Detected {slide_count} slides.", flush=True)
 
-            print("[4/6] Waiting for slide rendering...")
+            print("[4/6] Waiting for slide rendering...", flush=True)
             try:
                 await page.wait_for_selector(".slide-content", timeout=5000)
             except Exception:
-                pass # Continue anyway if selector isn't found
+                pass
 
             if wait_after_load_ms > 0:
-                print(f"      - Buffering for {wait_after_load_ms}ms to settle images...")
+                print(f"      - Buffering for {wait_after_load_ms}ms to settle images...", flush=True)
                 await page.wait_for_timeout(wait_after_load_ms)
 
         except Exception as e:
-            print(f"Error: Failed to load MHTML within {timeout_ms}ms: {e}")
+            print(f"Error: Failed to load MHTML within {timeout_ms}ms: {e}", flush=True)
             await browser.close()
             return
 
-        print("[5/6] Injecting layout correction CSS...")
+        print("[5/6] Injecting layout correction CSS...", flush=True)
+        # This will now complete correctly because JS is enabled
         await page.add_style_tag(content=FIX_CSS)
 
-        print(f"[6/6] Generating PDF (A4 Landscape): {output_path}...")
-        print("      - This may take a moment for large presentations...")
+        print(f"[6/6] Generating PDF (A4 Landscape): {output_path}...", flush=True)
+        print("      - This may take a moment for large presentations...", flush=True)
         await page.pdf(
             path=output_path,
             format="A4",
@@ -121,7 +128,7 @@ async def convert_mhtml_to_pdf(input_path, output_path, timeout_ms=30000, wait_a
         )
 
         await browser.close()
-        print("\n[✔] Successfully exported PDF!")
+        print("\n[✔] Successfully exported PDF!", flush=True)
 
 @click.command()
 @click.argument('input_file', type=click.Path(exists=True))
@@ -133,7 +140,7 @@ def main(input_file, output, timeout, wait_after_load):
     Convert MHTML (Google Slides export) to A4 PDF with proper layout fixes.
     """
     if not input_file.lower().endswith('.mhtml'):
-        print("Error: Input file must be an .mhtml file.")
+        print("Error: Input file must be an .mhtml file.", flush=True)
         sys.exit(1)
         
     if not output:
@@ -142,7 +149,7 @@ def main(input_file, output, timeout, wait_after_load):
     try:
         asyncio.run(convert_mhtml_to_pdf(input_file, output, timeout, wait_after_load))
     except Exception as e:
-        print(f"An error occurred: {e}")
+        print(f"An error occurred: {e}", flush=True)
         sys.exit(1)
 
 if __name__ == "__main__":
