@@ -85,11 +85,11 @@ class VNCTyperApp:
     # ── UI construction ──────────────────────────────────────────────────────
 
     def _build_ui(self) -> None:
-        self._build_header()
-        self._build_text_area()
-        self._build_settings()
-        self._build_status_bar()
-        self._build_send_button()
+        self._build_header()          # top  – fixed
+        self._build_send_button()     # bottom – fixed, pack BEFORE text area
+        self._build_status_bar()      # bottom – fixed, pack BEFORE text area
+        self._build_settings()        # bottom – fixed, pack BEFORE text area
+        self._build_text_area()       # middle – expands to fill remaining space
 
         # Global hotkey: Ctrl+Enter → Send
         self.root.bind("<Control-Return>", lambda _e: self._on_send_clicked())
@@ -125,7 +125,7 @@ class VNCTyperApp:
         ).pack(fill="x", padx=14, pady=(12, 2))
 
         outer = tk.Frame(self.root, bg=C["border"], padx=1, pady=1)
-        outer.pack(fill="both", expand=True, padx=14)
+        outer.pack(fill="both", expand=True, padx=14)   # fills the middle
 
         self.text_area = tk.Text(
             outer,
@@ -153,7 +153,37 @@ class VNCTyperApp:
 
     def _build_settings(self) -> None:
         frame = tk.Frame(self.root, bg=C["bg"])
-        frame.pack(fill="x", padx=14, pady=(8, 0))
+        frame.pack(fill="x", padx=14, pady=(0, 6), side="bottom")
+
+        # ── Row 2: backend selector ──────────────────────────────────────────
+        row2 = tk.Frame(frame, bg=C["bg"])
+        row2.pack(fill="x", pady=(4, 0))
+
+        tk.Label(row2, text="Backend:", bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 9)).pack(side="left")
+
+        self._backend_var = tk.StringVar(value="keyboard")
+        options = [
+            ("keyboard",  "keyboard  ✓ recommended"),
+            ("pyautogui", "pyautogui  (fallback)"),
+        ]
+        for val, label in options:
+            state = "normal"
+            if val == "keyboard" and not KEYBOARD_OK:
+                label += "  [not installed]"
+                state = "disabled"
+            if val == "pyautogui" and not PYAUTOGUI_OK:
+                label += "  [not installed]"
+                state = "disabled"
+            tk.Radiobutton(
+                row2, text=label,
+                variable=self._backend_var, value=val,
+                state=state,
+                bg=C["bg"], fg=C["muted"],
+                selectcolor=C["bg"],
+                activebackground=C["bg"], activeforeground=C["text"],
+                font=("Segoe UI", 9),
+            ).pack(side="left", padx=(6, 0))
 
         # ── Row 1: delay / interval / clear ─────────────────────────────────
         row1 = tk.Frame(frame, bg=C["bg"])
@@ -190,36 +220,6 @@ class VNCTyperApp:
             font=("Segoe UI", 9), relief="flat", padx=12, cursor="hand2",
         ).pack(side="right")
 
-        # ── Row 2: backend selector ──────────────────────────────────────────
-        row2 = tk.Frame(frame, bg=C["bg"])
-        row2.pack(fill="x", pady=(6, 0))
-
-        tk.Label(row2, text="Backend:", bg=C["bg"], fg=C["muted"],
-                 font=("Segoe UI", 9)).pack(side="left")
-
-        self._backend_var = tk.StringVar(value="keyboard")
-        options = [
-            ("keyboard",  "keyboard  ✓ recommended"),
-            ("pyautogui", "pyautogui  (fallback)"),
-        ]
-        for val, label in options:
-            state = "normal"
-            if val == "keyboard" and not KEYBOARD_OK:
-                label += "  [not installed]"
-                state = "disabled"
-            if val == "pyautogui" and not PYAUTOGUI_OK:
-                label += "  [not installed]"
-                state = "disabled"
-            tk.Radiobutton(
-                row2, text=label,
-                variable=self._backend_var, value=val,
-                state=state,
-                bg=C["bg"], fg=C["muted"],
-                selectcolor=C["bg"],
-                activebackground=C["bg"], activeforeground=C["text"],
-                font=("Segoe UI", 9),
-            ).pack(side="left", padx=(6, 0))
-
     def _build_status_bar(self) -> None:
         self._status_var = tk.StringVar(
             value="Ready — paste text above, then click 'Send to VNC'."
@@ -230,7 +230,7 @@ class VNCTyperApp:
             bg=C["bg"], fg=C["muted"],
             font=("Segoe UI", 9), anchor="w",
         )
-        self._status_label.pack(fill="x", padx=14, pady=(10, 2))
+        self._status_label.pack(fill="x", padx=14, pady=(6, 2), side="bottom")
 
         style = ttk.Style()
         style.theme_use("clam")
@@ -247,7 +247,7 @@ class VNCTyperApp:
             mode="determinate",
             style="VNC.Horizontal.TProgressbar",
         )
-        self._progress.pack(fill="x", padx=14, pady=(0, 0))
+        self._progress.pack(fill="x", padx=14, pady=(0, 2), side="bottom")
 
     def _build_send_button(self) -> None:
         self._send_btn = tk.Button(
@@ -259,7 +259,7 @@ class VNCTyperApp:
             font=("Segoe UI", 12, "bold"),
             relief="flat", pady=14, cursor="hand2",
         )
-        self._send_btn.pack(fill="x", padx=14, pady=(10, 14))
+        self._send_btn.pack(fill="x", padx=14, pady=(10, 14), side="bottom")
 
     # ── Callbacks ────────────────────────────────────────────────────────────
 
