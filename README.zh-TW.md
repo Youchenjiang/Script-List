@@ -46,7 +46,8 @@ Script-List/
 ├── password-security-checker/  # 密碼外洩與強度檢查工具
 ├── openai-chat-cli/            # OpenAI 對話工具，支援自訂人設
 ├── image-text-verifier/        # 問卷影像辨識與 CSV 校對修正工具
-└── mhtml-to-pdf/               # MHTML 轉 PDF 工具 (Google 簡報 16:9 / A4)
+├── mhtml-to-pdf/               # MHTML 轉 PDF 工具 (Google 簡報 16:9 / A4)
+└── vnc-auto-typer/             # VNC 剪貼簿替代工具 – 模擬鍵盤輸入
 ```
 
 ## 🛠️ 可用工具
@@ -59,6 +60,7 @@ Script-List/
 - **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - OpenAI 對話 API 的命令列介面,支援自訂對話風格。功能包括諸葛亮人設、多語言支援與對話歷史管理。 → [詳細說明](openai-chat-cli/README.md)
 - **問卷影像辨識與校對工具** ([image-text-verifier/](image-text-verifier/)) - 用於將實體問卷掃描圖自動辨識提取答案，並與現有 CSV 資料自動比對、偵測風險與修正的工具。 → [詳細說明](image-text-verifier/README.zh-TW.md)
 - **MHTML 轉 PDF 轉檔工具** ([mhtml-to-pdf/](mhtml-to-pdf/)) - 將 Google 簡報匯出的 MHTML 檔案轉換為零留白 16:9 PDF（或 A4 橫式）。支援 GUI 檔案選擇器、離線瀏覽器模式，自動保留背景圖片。 → [詳細說明](mhtml-to-pdf/README.md)
+- **VNC 自動打字工具** ([vnc-auto-typer/](vnc-auto-typer/)) - 當 VNC 剪貼簿貼上功能無法使用時，從剪貼簿、文字檔或命令列參數讀取文字，以逐字模擬鍵盤輸入的方式輸入 VNC 視窗，支援倒數計時與可調整的按鍵間隔。 → [詳細說明](vnc-auto-typer/README.zh-TW.md)
 
 ## 🚀 快速開始
 

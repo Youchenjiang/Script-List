@@ -46,7 +46,8 @@ Script-List/
 ├── password-security-checker/  # Password breach and strength checker
 ├── openai-chat-cli/            # OpenAI Chat CLI with custom personas
 ├── image-text-verifier/        # Questionnaire image to CSV verification and fixing tool
-└── mhtml-to-pdf/               # MHTML to PDF converter (Google Slides 16:9 / A4)
+├── mhtml-to-pdf/               # MHTML to PDF converter (Google Slides 16:9 / A4)
+└── vnc-auto-typer/             # VNC clipboard workaround – simulates keyboard input
 ```
 
 ## 🛠️ Available Tools
@@ -59,6 +60,7 @@ Practical script tools:
 - **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - Command-line interface for OpenAI Chat API with customizable conversation styles. Features include Zhuge Liang persona, multi-language support, and conversation history management. → [Details](openai-chat-cli/README.md)
 - **Image-Text Verifier** ([image-text-verifier/](image-text-verifier/)) - A specialized tool for extracting answers from scanned questionnaire images and automatically verifying/fixing them against an existing CSV dataset with targeted risk management. → [Details](image-text-verifier/README.md)
 - **MHTML to PDF Converter** ([mhtml-to-pdf/](mhtml-to-pdf/)) - Convert Google Slides MHTML exports into zero-whitespace 16:9 PDFs (or A4 landscape). Features a GUI file picker, offline browser mode, and automatic background image preservation. → [Details](mhtml-to-pdf/README.md)
+- **VNC Auto Typer** ([vnc-auto-typer/](vnc-auto-typer/)) - Simulate keyboard input into a VNC window when clipboard paste is unavailable. Reads from clipboard, file, or inline text and types character-by-character with a configurable interval and countdown. → [Details](vnc-auto-typer/README.md)
 
 ## 🚀 Quick Start
 
