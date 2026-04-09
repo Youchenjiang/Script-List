@@ -3,15 +3,17 @@ VNC Auto Typer
 ==============
 A tool to simulate keyboard input into a VNC window when clipboard paste
 is unavailable. Reads text from the local clipboard (or a file) and types
-it character-by-character using pyautogui, giving you time to focus the
-target VNC window before typing begins.
+it character-by-character into the focused window, giving you time to
+switch to the VNC window before typing begins.
+
+Default backend: ``keyboard`` — handles special characters (quotes, colons,
+hyphens, etc.) correctly. Use ``--backend pyautogui`` only as a fallback.
 """
 
 import argparse
 import sys
 import time
 
-import pyautogui
 import pyperclip
 
 
@@ -25,7 +27,7 @@ def countdown(seconds: int) -> None:
     print("\r✅ Typing started!                                    ")
 
 
-def type_text(text: str, interval: float, use_xdotool: bool) -> None:
+def type_text(text: str, interval: float, use_xdotool: bool, backend: str) -> None:
     """
     Type *text* character-by-character.
 
@@ -33,9 +35,16 @@ def type_text(text: str, interval: float, use_xdotool: bool) -> None:
     ----------
     text        : The string to type.
     interval    : Seconds between each keystroke.
-    use_xdotool : (placeholder) If True, emit xdotool commands instead of
-                  pyautogui – useful when running this script *inside* a Linux
-                  VM that has xdotool available.
+    use_xdotool : If True, emit xdotool shell commands to stdout instead of
+                  using a local keyboard backend. Useful when this script is
+                  run inside a Linux VM that has xdotool installed.
+    backend     : 'keyboard' (default) or 'pyautogui'.
+                  - 'keyboard'  uses the ``keyboard`` library which sends raw
+                    character events and handles special chars (', :, -, etc.)
+                    correctly even through VNC.
+                  - 'pyautogui' uses pyautogui.write() which maps chars to
+                    virtual key codes; may produce garbled output for special
+                    characters in VNC sessions.
     """
     if use_xdotool:
         # Emit xdotool shell commands to stdout so the caller can pipe them.
@@ -47,19 +56,36 @@ def type_text(text: str, interval: float, use_xdotool: bool) -> None:
             print(f"xdotool type --clearmodifiers --delay {int(interval * 1000)} '{safe}'")
         return
 
-    pyautogui.FAILSAFE = True          # Move mouse to top-left corner to abort
-    pyautogui.write(text, interval=interval)
+    if backend == "keyboard":
+        try:
+            import keyboard as kb
+        except ImportError:
+            print(
+                "❌  'keyboard' library not found. Install it with:\n"
+                "    pip install keyboard\n"
+                "Or use --backend pyautogui as a fallback.",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+        # keyboard.write() sends actual character events — special chars work.
+        kb.write(text, delay=interval)
+    else:
+        # pyautogui fallback
+        import pyautogui
+        pyautogui.FAILSAFE = True          # Move mouse to top-left corner to abort
+        pyautogui.write(text, interval=interval)
 
 
 # ─── CLI ────────────────────────────────────────────────────────────────────
 
-def build_parser() -> argparse.ArgumentParser:
+def build_parser() -> argparse.ArgumentParser:  # noqa: PLR0915
     parser = argparse.ArgumentParser(
         prog="vnc_auto_typer",
         description=(
             "Simulate keyboard input into a VNC window when clipboard paste "
             "is unavailable. By default the text is read from your local "
-            "clipboard."
+            "clipboard. The default backend is 'keyboard' which handles special "
+            "characters (quotes, colons, hyphens …) correctly through VNC."
         ),
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
@@ -76,6 +102,9 @@ Examples
 
   # Slow typing (0.05 s/char) to avoid dropped characters on laggy connections:
   python vnc_auto_typer.py --interval 0.05
+
+  # Use pyautogui if the keyboard library is unavailable:
+  python vnc_auto_typer.py --backend pyautogui
 
   # Output xdotool commands instead (run inside the Linux VM):
   python vnc_auto_typer.py --xdotool | bash
@@ -115,14 +144,23 @@ Examples
     parser.add_argument(
         "--xdotool",
         action="store_true",
-        help="Instead of using pyautogui, print xdotool commands to stdout. "
-             "Useful when this script is run inside a Linux VM that has "
-             "xdotool installed (pipe the output to bash).",
+        help="Instead of using a local keyboard backend, print xdotool type "
+             "commands to stdout. Useful when this script is run inside a Linux "
+             "VM that has xdotool installed (pipe the output to bash).",
     )
     parser.add_argument(
         "--no-countdown",
         action="store_true",
         help="Skip the countdown entirely. Typing begins immediately.",
+    )
+    parser.add_argument(
+        "--backend",
+        choices=["keyboard", "pyautogui"],
+        default="keyboard",
+        help="Keyboard backend to use. 'keyboard' (default) handles special "
+             "characters correctly through VNC. 'pyautogui' maps chars to "
+             "virtual key codes and may garble quotes/colons/hyphens in a VNC "
+             "session.",
     )
 
     return parser
@@ -168,6 +206,7 @@ def main() -> None:
 
     # ── Countdown ────────────────────────────────────────────────────────────
     if not args.no_countdown and not args.xdotool:
+        print(f"⚙️  Backend  : {args.backend}")
         print(f"⚙️  Interval : {args.interval} s/char")
         countdown(args.delay)
     elif args.xdotool:
@@ -175,7 +214,7 @@ def main() -> None:
 
     # ── Type ─────────────────────────────────────────────────────────────────
     try:
-        type_text(text, interval=args.interval, use_xdotool=args.xdotool)
+        type_text(text, interval=args.interval, use_xdotool=args.xdotool, backend=args.backend)
     except KeyboardInterrupt:
         print("\n⛔ Aborted by user (Ctrl+C / mouse to top-left corner).")
         sys.exit(130)
