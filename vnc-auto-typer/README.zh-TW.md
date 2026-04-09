@@ -1,95 +1,115 @@
 # VNC Auto Typer
 
-當 VNC 剪貼簿貼上功能無法使用時（例如 CDX 等受限平台），透過模擬鍵盤輸入的方式，將文字「打」進 VNC 視窗中的輕量 Python 工具。
+當 VNC 剪貼簿貼上功能無法使用時（例如 CDX 等受限平台），透過模擬鍵盤輸入的方式，將文字「打」進 VNC 視窗中的工具。
+
+[Read English Version](README.md)
 
 ## 描述
 
-透過網頁版 VNC 客戶端（如 noVNC）連線至遠端虛擬機時，從主機複製貼上文字的功能往往被封鎖。  
-本工具可從**本機剪貼簿**、**文字檔**，或**命令列參數**讀取文字，並使用 `pyautogui` 以逐字模擬鍵盤輸入的方式，將內容輸入到已聚焦的 VNC 視窗中。
+透過網頁版 VNC 客戶端（如 noVNC）連線至遠端虛擬機時，從主機複製貼上文字的功能往往被封鎖。本專案提供**兩個工具**來解決此問題：
 
-另提供 `--xdotool` 模式：不直接控制鍵盤，而是將 `xdotool type` 指令輸出到 stdout，可在 VM **內部**透過 `bash` 管道執行。
+| 工具 | 適合情境 |
+|---|---|
+| `vnc_typer_gui.py` | **重複使用** — 常駐的置頂視窗；貼上文字後一鍵發送 |
+| `vnc_auto_typer.py` | **單次 / 腳本使用** — 命令列工具，支援參數或剪貼簿輸入 |
 
 ## 環境需求
 
-- Python 3.8+
-- 剪貼簿管理工具（使用預設剪貼簿模式時需要）：
-  - **Windows / macOS**：內建剪貼簿存取，無需額外設定。
-  - **Linux**：需安裝 `xclip` 或 `xsel`（`sudo apt install xclip`）。
-- `xdotool`（選用，Linux 限定，用於 `--xdotool` 模式）：`sudo apt install xdotool`
+- **Python 3.8+**
+- **tkinter** — GUI 工具使用；Windows 和 macOS 的 Python 已內建。
+  Linux 上需安裝：`sudo apt install python3-tk`
 
 ## 安裝
 
-1. 安裝所需 Python 套件：
-   ```bash
-   pip install -r requirements.txt
-   ```
+一次安裝所有依賴：
 
-## 使用方法
+```bash
+pip install -r requirements.txt
+```
 
-### 預設模式（剪貼簿 → pyautogui 模擬輸入）
+### 各套件說明
 
-1. 在**主機**上複製要貼入 VNC 視窗的文字。
-2. 確認 VNC 視窗已顯示在螢幕上。
-3. 執行腳本（倒數 3 秒內請點擊 VNC 視窗內部）：
+| 套件 | 用途 | 備注 |
+|---|---|---|
+| `keyboard` | **主要鍵盤後端** | 傳送原始字元事件，可正確處理 `'`、`:`、`-` 等特殊字元。部分系統需要管理員/root 權限。 |
+| `pyautogui` | 備用鍵盤後端 | 將字元映射為虛擬按鍵碼，在 VNC 環境下特殊字元可能顯示錯誤。 |
+| `pyperclip` | 剪貼簿讀取 | 供 `vnc_auto_typer.py` 預設（剪貼簿）模式使用。Linux 上需安裝 `xclip` 或 `xsel`。 |
+
+---
+
+## GUI 工具 — `vnc_typer_gui.py` *（建議使用）*
+
+常駐的置頂視窗，可在操作 VNC 時保持可見。
+
+### 使用方式
+
+```bash
+python vnc_typer_gui.py
+```
+
+### 操作流程
+
+1. 視窗出現在螢幕右上角並持續置於最上層。
+2. 將要輸入到 VNC 的文字**貼入**文字區域。
+3. 點擊 **「Send to VNC」**（或按 **Ctrl+Enter**）— 倒數計時開始。
+4. **切換到 VNC 視窗**，點擊游標應出現的位置。
+5. 文字自動輸入完成。
+6. GUI 重置 — 從第 2 步重複操作下一段文字。
+7. **關閉視窗**即可結束程式。
+
+### GUI 設定說明
+
+| 控制項 | 預設值 | 說明 |
+|---|---|---|
+| Delay (s) | `5` | 開始打字前的倒數秒數。 |
+| Interval (s/char) | `0.04` | 每次按鍵的間隔秒數，網路慢時可調高。 |
+| Backend | `keyboard` | 選擇 `keyboard`（建議）或 `pyautogui`（備用）。 |
+| Always on top | ✅ 開啟 | 讓視窗保持在所有其他視窗之上。 |
+| Abort 按鈕 | — | 倒數或輸入中出現；點擊立即取消。 |
+
+---
+
+## CLI 工具 — `vnc_auto_typer.py`
+
+適合單次使用或腳本整合。
+
+### 預設模式（剪貼簿 → 輸入）
+
+1. 在主機上複製文字。
+2. 確認 VNC 視窗可見。
+3. 執行腳本：
 
 ```bash
 python vnc_auto_typer.py
 ```
 
-### 直接輸入字串
+### 其他輸入模式
 
 ```bash
+# 從檔案輸入
+python vnc_auto_typer.py -f path/to/script.sh
+
+# 直接輸入字串
 python vnc_auto_typer.py -t "echo hello world"
 ```
 
-### 從文字檔輸入
-
-```bash
-python vnc_auto_typer.py -f path/to/script.sh
-```
-
-### 參數說明
+### 所有 CLI 參數
 
 | 參數 | 預設值 | 說明 |
 |---|---|---|
-| `-t`, `--text` TEXT | — | 直接輸入要打的文字（與 `--file` 互斥）。 |
-| `-f`, `--file` FILE | — | 要輸入的純文字檔路徑（與 `--text` 互斥）。 |
-| `-d`, `--delay` 秒數 | `3` | 開始打字前的倒數秒數（用來點擊 VNC 視窗）。 |
-| `-i`, `--interval` 秒數 | `0.03` | 每次按鍵的間隔秒數，網路較慢時可調高。 |
-| `--xdotool` | 關閉 | 改為輸出 `xdotool type` 指令到 stdout，而非使用 pyautogui。 |
+| `-t`, `--text` TEXT | — | 直接輸入文字（與 `--file` 互斥）。 |
+| `-f`, `--file` FILE | — | 純文字檔路徑（與 `--text` 互斥）。 |
+| `-d`, `--delay` 秒數 | `3` | 開始打字前的倒數秒數。 |
+| `-i`, `--interval` 秒數 | `0.03` | 每次按鍵的間隔秒數。 |
+| `--backend` | `keyboard` | `keyboard`（建議）或 `pyautogui`（備用）。 |
+| `--xdotool` | 關閉 | 將 `xdotool type` 指令輸出到 stdout 而非本機輸入。 |
 | `--no-countdown` | 關閉 | 跳過倒數，立即開始輸入。 |
 
-### 使用範例
-
-```bash
-# 輸入剪貼簿內容，預設 3 秒倒數
-python vnc_auto_typer.py
-
-# 自訂 5 秒倒數（更多時間切換視窗）
-python vnc_auto_typer.py --delay 5
-
-# 網速較慢時放慢打字速度（每次按鍵間隔 0.1 秒）
-python vnc_auto_typer.py --interval 0.1
-
-# 從 Shell 腳本檔輸入
-python vnc_auto_typer.py -f setup.sh --interval 0.05
-
-# 立即輸入單行指令（不倒數）
-python vnc_auto_typer.py -t "sudo apt update" --no-countdown
-
-# 在 VM 內部用 xdotool 執行
-python vnc_auto_typer.py -f commands.sh --xdotool | bash
-```
-
-## 工作原理
-
-1. 從剪貼簿（`pyperclip`）、檔案或命令列參數讀取文字。
-2. 顯示倒數計時，讓你有時間點擊 VNC 視窗內部。
-3. 呼叫 `pyautogui.write()` 模擬逐一按鍵輸入，間隔可自訂。
-4. 預設啟用 `pyautogui` 的**安全機制**——將滑鼠移至螢幕**左上角**即可立即中止（或按 `Ctrl+C`）。
+---
 
 ## 使用技巧
 
-- **字元被漏掉**：調高 `--interval`（例如 `0.05` 或 `0.1`）。
-- **特殊字元輸入不正確**：`pyautogui.write()` 僅支援可打印 ASCII 字元。如需輸入 Unicode 或特殊按鍵，請在 Linux 環境使用 `--xdotool` 模式。
-- **隨時中止**：將滑鼠移至螢幕**左上角**（pyautogui 安全機制）或按 `Ctrl+C`。
+- **字元被漏掉**：調高 `--interval`（試試 `0.07`–`0.1`）。
+- **隨時中止**：GUI 中點擊 **Abort** 按鈕，或在終端機按 `Ctrl+C`。`pyautogui` 後端還支援將滑鼠移至**螢幕左上角**來中止。
+- **特殊字元亂碼**：確認使用 `keyboard` 後端（預設）。`pyautogui` 使用虛擬按鍵碼，VNC 可能映射錯誤。
+- **Linux `keyboard` 權限錯誤**：改用 `sudo python vnc_typer_gui.py` 執行。

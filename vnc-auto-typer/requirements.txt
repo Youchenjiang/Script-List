@@ -1,2 +1,18 @@
+# ── Required: typing backend (install at least one) ───────────────────────
+#
+# keyboard   ← RECOMMENDED — sends raw character events; handles special
+#              characters (quotes, colons, hyphens …) correctly through VNC.
+#              Requires administrator/root privileges on some systems.
+#
+# pyautogui  ← FALLBACK — maps characters to virtual key codes; may garble
+#              special characters when typing into a VNC window.
+#
+keyboard
 pyautogui
+
+# ── Required: clipboard support (default input mode) ──────────────────────
 pyperclip
+
+# ── Built-in (no install needed) ─────────────────────────────────────────
+# tkinter    ← used by vnc_typer_gui.py; ships with Python on Windows/macOS.
+#              On Linux: sudo apt install python3-tk
