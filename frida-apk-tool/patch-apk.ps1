@@ -59,7 +59,13 @@ $OutputName = $ApkName.Replace(".apk", ".objection.apk")
 $OutputPath = Join-Path $OutputDir $OutputName
 
 Write-Host "Patching..."
-objection patchapk --source $ApkPath --output $OutputPath
+objection patchapk --source $ApkPath
+
+# Objection outputs to current dir with .objection.apk suffix
+$GeneratedFile = $ApkName.Replace(".apk", ".objection.apk")
+if (Test-Path $GeneratedFile) {
+    Move-Item -Path $GeneratedFile -Destination $OutputPath -Force
+}
 
 if ($?) {
     Write-Host "Success! Patched APK saved to: $OutputPath"
