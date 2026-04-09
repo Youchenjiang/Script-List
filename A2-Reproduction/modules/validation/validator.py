@@ -16,50 +16,110 @@ class TaskValidator:
 
     def validate(self, state: AgentState) -> Dict:
         """
-        Checks if the last action had the desired effect.
+        Dynamically generates and executes a Python Oracle to verify the last action.
         """
         print("--- Validator Node ---")
         last_action = state['history'][-1]
         
-        # In a real implementation, we would pass the Before/After screenshots
-        # to the Vision Model.
-        
+        # 1. Ask LLM to generate a Python assertion script
         prompt = ChatPromptTemplate.from_messages([
-            ("system", "You are an Android UI Validator. Check if the action was successful."),
-            ("user", """
-            Action: {action}
+            ("system", """You are an Android Verification Oracle. 
+            Your job is to write a short PYTHON script to verify if an action succeeded.
             
-            Did this action likely succeed based on the logs?
+            Available Read-Only Tools (Mocked for now):
+            - check_file_exists(path) -> bool
+            - read_file_content(path) -> str
+            - get_current_activity() -> str
+            - grep_logcat(pattern) -> bool
             
-            Output JSON:
-            {{
-                "success": boolean,
-                "reason": "string"
-            }}
-            """)
+            Input:
+            - Action: The action that was just executed.
+            
+            Output:
+            - Python code that uses `assert` statements.
+            - If the assertion passes, the action succeeded.
+            - If it fails (AssertionError), the action failed.
+            
+            Example:
+            Action: create_file('/sdcard/test.txt')
+            Code: 
+            ```python
+            assert check_file_exists('/sdcard/test.txt'), "File was not created"
+            ```
+            
+            IMPORTANT:
+            - Return ONLY the python code block.
+            - Do not include explanatory text outside the block.
+            """),
+            ("user", f"Action: {last_action}")
         ])
         
         try:
-            chain = prompt | self.llm | JsonOutputParser()
-            result = chain.invoke({"action": last_action})
+            chain = prompt | self.llm
+            result = chain.invoke({})
             
-            if result.get('success', False):
-                return {
-                    "status": "executing", # Go back to executor for next step
-                    "current_step_index": state['current_step_index'] + 1
-                }
-            else:
-                # If failed, we might want to retry or replan
-                return {
-                    "status": "planning", # Go back to planner
-                    "retry_count": state['retry_count'] + 1,
-                    "history": state['history'] + [f"Validation failed: {result.get('reason')}"]
-                }
-                
-        except Exception as e:
-            print(f"Validation error: {e}")
-            # Fallback: assume success to keep moving in this demo
+            # Extract code from markdown
+            code = result.content
+            if "```python" in code:
+                code = code.split("```python")[1].split("```")[0].strip()
+            elif "```" in code:
+                code = code.split("```")[1].split("```")[0].strip()
+            
+            print(f"Generated Oracle Code:\n{code}")
+            
+            # 2. Execute the Oracle (Sandboxed/Mocked)
+            self._execute_oracle(code)
+            
+            print("Oracle Verification passed.")
             return {
-                "status": "executing",
-                "current_step_index": state['current_step_index'] + 1
+                "status": "executing", 
+                "current_step_index": state['current_step_index'] + 1,
+                "history": state['history'] + [f"Verification PASSED: {last_action}"]
             }
+            
+        except AssertionError as e:
+            print(f"Oracle Verification FAILED: {e}")
+            return {
+                "status": "planning", 
+                "retry_count": state['retry_count'] + 1,
+                "history": state['history'] + [f"Verification FAILED: {e}"]
+            }
+        except Exception as e:
+            print(f"Validator Error: {e}")
+            # In prototype, we might want to fail safe or retry
+            return {
+                "status": "planning",
+                "retry_count": state['retry_count'] + 1,
+                "history": state['history'] + [f"Validator Error: {e}"]
+            }
+
+    def _execute_oracle(self, code: str):
+        """
+        Executes the generated validation code with mocked tools.
+        """
+        # specialized mock tools for the oracle
+        def check_file_exists(path):
+            # Mock: Always return True for now to simulate success, 
+            # or logic based on path for testing
+            if "fail" in path: return False
+            return True
+            
+        def read_file_content(path):
+            return "mock content"
+            
+        def get_current_activity():
+            return "com.example.MainActivity"
+            
+        def grep_logcat(pattern):
+            # Mock: simulate log finding
+            return True
+
+        # Safe execution dictionary
+        local_scope = {
+            "check_file_exists": check_file_exists,
+            "read_file_content": read_file_content,
+            "get_current_activity": get_current_activity,
+            "grep_logcat": grep_logcat
+        }
+        
+        exec(code, {}, local_scope)

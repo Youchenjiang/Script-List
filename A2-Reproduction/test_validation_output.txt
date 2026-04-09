@@ -1,0 +1,43 @@
+Testing Validation Graph...
+Invoking graph...
+--- Planner Node ---
+--- Node: planner ---
+{'current_step_index': 0,
+ 'history': ['Plan generated.'],
+ 'plan': ["adb_shell('cat /data/data/com.example/app_files/MainActivity.java' "
+          "| grep 'API_KEY')"],
+ 'status': 'executing'}
+
+
+--- Executor Node ---
+Executing step 1/1: adb_shell('cat /data/data/com.example/app_files/MainActivity.java' | grep 'API_KEY')
+--- Node: executor ---
+{'history': ['Plan generated.',
+             "Executed: adb_shell('cat "
+             "/data/data/com.example/app_files/MainActivity.java' | grep "
+             "'API_KEY')"],
+ 'status': 'validating'}
+
+
+--- Validator Node ---
+Generated Oracle Code:
+assert grep_logcat('API_KEY'), "API_KEY was not found in MainActivity.java"
+Oracle Verification passed.
+--- Node: validator ---
+{'current_step_index': 1,
+ 'history': ['Plan generated.',
+             "Executed: adb_shell('cat "
+             "/data/data/com.example/app_files/MainActivity.java' | grep "
+             "'API_KEY')",
+             "Verification PASSED: Executed: adb_shell('cat "
+             "/data/data/com.example/app_files/MainActivity.java' | grep "
+             "'API_KEY')"],
+ 'status': 'executing'}
+
+
+--- Executor Node ---
+--- Node: executor ---
+{'status': 'done'}
+
+
+

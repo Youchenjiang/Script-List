@@ -119,6 +119,7 @@ def main():
     finding = run_discovery(args.apk)
     
     if finding and args.mode == "full":
+        # Only run validation if a vulnerability was actually found
         run_validation(finding)
     elif args.mode == "full" and not finding:
         print("Skipping validation as no vulnerability was found.")

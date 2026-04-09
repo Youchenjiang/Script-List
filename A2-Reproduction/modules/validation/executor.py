@@ -21,6 +21,13 @@ class TaskExecutor:
             return {"status": "done"}
             
         current_step = plan[idx]
+        if "execute_python_code" in current_step:
+            print(f"Executing Python Code (Mock): {current_step}")
+            return {
+                "status": "validating",
+                "history": state['history'] + [f"Executed Python: {current_step}"]
+            }
+
         print(f"Executing step {idx + 1}/{len(plan)}: {current_step}")
         
         # TODO: Parse 'current_step' (which is a string like "click(100, 200)")
