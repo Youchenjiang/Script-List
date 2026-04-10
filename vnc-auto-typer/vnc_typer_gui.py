@@ -113,22 +113,32 @@ def _smart_write(text: str, interval: float) -> None:
     - Printable ASCII symbols: uses _KEY_MAP and sends canonical key names.
     - Letters/Digits: sends physical key events.
     - Unicode (Chinese/Emojis): falls back to _kb.write(char).
+
+    Note: We avoid manual _kb.press('shift') calls here because laggy VNC
+    environments often miss the 'release' event, leading to stuck modifiers
+    and all-uppercase output. Instead, we use "shift+key" strings which
+    the keyboard library handles with better internal timing.
     """
+    # ── Initial cleanup ──
+    # Force release common modifiers to avoid inherited stuck states
+    for mod in ['shift', 'ctrl', 'alt', 'windows']:
+        try:
+            _kb.release(mod)
+        except Exception:
+            pass
+
     for char in text:
         try:
             if char in _KEY_MAP:
                 shift, key = _KEY_MAP[char]
                 if shift:
-                    _kb.press('shift')
-                    _kb.press_and_release(key)
-                    _kb.release('shift')
+                    # Using the hotkey string format is more robust than manual press/release
+                    _kb.press_and_release(f"shift+{key}")
                 else:
                     _kb.press_and_release(key)
             elif char.isascii() and (char.isalpha() or char.isdigit()):
                 if char.isupper():
-                    _kb.press('shift')
-                    _kb.press_and_release(char.lower())
-                    _kb.release('shift')
+                    _kb.press_and_release(f"shift+{char.lower()}")
                 else:
                     _kb.press_and_release(char)
             else:

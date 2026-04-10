@@ -66,21 +66,24 @@ def _smart_write(kb, text: str, interval: float) -> None:
     - Letters/Digits: sends physical key events.
     - Unicode (Chinese/Emojis): falls back to kb.write(char).
     """
+    # ── Initial cleanup ──
+    for mod in ['shift', 'ctrl', 'alt', 'windows']:
+        try:
+            kb.release(mod)
+        except Exception:
+            pass
+
     for char in text:
         try:
             if char in _KEY_MAP:
                 shift, key = _KEY_MAP[char]
                 if shift:
-                    kb.press('shift')
-                    kb.press_and_release(key)
-                    kb.release('shift')
+                    kb.press_and_release(f"shift+{key}")
                 else:
                     kb.press_and_release(key)
             elif char.isascii() and (char.isalpha() or char.isdigit()):
                 if char.isupper():
-                    kb.press('shift')
-                    kb.press_and_release(char.lower())
-                    kb.release('shift')
+                    kb.press_and_release(f"shift+{char.lower()}")
                 else:
                     kb.press_and_release(char)
             else:
