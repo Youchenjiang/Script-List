@@ -62,6 +62,7 @@ class VNCTyperApp:
         self.root = root
         self._typing = False
         self._abort_event = threading.Event()
+        self._topmost_var = tk.BooleanVar(value=True)
 
         self._configure_root()
         self._build_ui()
@@ -73,30 +74,43 @@ class VNCTyperApp:
         self.root.title("VNC Auto Typer")
         self.root.configure(bg=C["bg"])
         self.root.resizable(True, True)
-        self.root.minsize(420, 480)
-        self.root.geometry("480x560")
+        self.root.minsize(420, 500)
+        self.root.geometry("480x580")
         # Place window in top-right corner
         self.root.update_idletasks()
         sw = self.root.winfo_screenwidth()
         self.root.geometry(f"+{sw - 500}+30")
 
-        self._topmost_var = tk.BooleanVar(value=True)
-
     # ── UI construction ──────────────────────────────────────────────────────
+    #
+    # Layout (stable two-panel split):
+    #
+    #   root
+    #   ├─ header_frame       ← always-on-top bar          (fixed height, top)
+    #   ├─ top_frame          ← label + text area           (expands, top)
+    #   │   ├─ label
+    #   │   └─ text area
+    #   └─ bottom_frame       ← settings + status + button (fixed height, bottom)
+    #       ├─ settings rows
+    #       ├─ progress bar
+    #       ├─ status label
+    #       └─ send button
+    #
+    # Separating the expanding area from the fixed-height controls prevents
+    # the status label text changes from shifting the textarea label position.
 
     def _build_ui(self) -> None:
-        self._build_header()          # top  – fixed
-        self._build_send_button()     # bottom – fixed, pack BEFORE text area
-        self._build_status_bar()      # bottom – fixed, pack BEFORE text area
-        self._build_settings()        # bottom – fixed, pack BEFORE text area
-        self._build_text_area()       # middle – expands to fill remaining space
-
+        self._build_header()
+        self._build_top_panel()
+        self._build_bottom_panel()
         # Global hotkey: Ctrl+Enter → Send
         self.root.bind("<Control-Return>", lambda _e: self._on_send_clicked())
 
+    # ── Header ───────────────────────────────────────────────────────────────
+
     def _build_header(self) -> None:
         header = tk.Frame(self.root, bg=C["surface"], pady=10)
-        header.pack(fill="x")
+        header.pack(fill="x", side="top")
 
         tk.Label(
             header,
@@ -116,16 +130,22 @@ class VNCTyperApp:
             font=("Segoe UI", 9), borderwidth=0,
         ).pack(side="right", padx=14)
 
-    def _build_text_area(self) -> None:
+    # ── Top panel (label + text area) ────────────────────────────────────────
+
+    def _build_top_panel(self) -> None:
+        """Label + text area container that expands to fill remaining space."""
+        top = tk.Frame(self.root, bg=C["bg"])
+        top.pack(fill="both", expand=True, side="top")
+
         tk.Label(
-            self.root,
+            top,
             text="Paste text to type into VNC:",
             bg=C["bg"], fg=C["muted"],
             font=("Segoe UI", 9), anchor="w",
-        ).pack(fill="x", padx=14, pady=(12, 2))
+        ).pack(fill="x", padx=14, pady=(10, 2))
 
-        outer = tk.Frame(self.root, bg=C["border"], padx=1, pady=1)
-        outer.pack(fill="both", expand=True, padx=14)   # fills the middle
+        outer = tk.Frame(top, bg=C["border"], padx=1, pady=1)
+        outer.pack(fill="both", expand=True, padx=14, pady=(0, 8))
 
         self.text_area = tk.Text(
             outer,
@@ -138,11 +158,8 @@ class VNCTyperApp:
 
         vsb = tk.Scrollbar(outer, orient="vertical",   command=self.text_area.yview)
         hsb = tk.Scrollbar(outer, orient="horizontal", command=self.text_area.xview)
-        self.text_area.configure(
-            yscrollcommand=vsb.set,
-            xscrollcommand=hsb.set,
-        )
-        vsb.pack(side="right", fill="y")
+        self.text_area.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
+        vsb.pack(side="right",  fill="y")
         hsb.pack(side="bottom", fill="x")
         self.text_area.pack(fill="both", expand=True)
 
@@ -151,39 +168,20 @@ class VNCTyperApp:
             self.text_area.tag_add("sel", "1.0", "end"), "break"
         ))
 
-    def _build_settings(self) -> None:
-        frame = tk.Frame(self.root, bg=C["bg"])
-        frame.pack(fill="x", padx=14, pady=(0, 6), side="bottom")
+    # ── Bottom panel (settings + status + button) ────────────────────────────
 
-        # ── Row 2: backend selector ──────────────────────────────────────────
-        row2 = tk.Frame(frame, bg=C["bg"])
-        row2.pack(fill="x", pady=(4, 0))
+    def _build_bottom_panel(self) -> None:
+        """Fixed-height control strip at the bottom of the window."""
+        bottom = tk.Frame(self.root, bg=C["bg"])
+        bottom.pack(fill="x", side="bottom")
 
-        tk.Label(row2, text="Backend:", bg=C["bg"], fg=C["muted"],
-                 font=("Segoe UI", 9)).pack(side="left")
+        self._build_settings(bottom)
+        self._build_status_bar(bottom)
+        self._build_send_button(bottom)
 
-        self._backend_var = tk.StringVar(value="keyboard")
-        options = [
-            ("keyboard",  "keyboard  ✓ recommended"),
-            ("pyautogui", "pyautogui  (fallback)"),
-        ]
-        for val, label in options:
-            state = "normal"
-            if val == "keyboard" and not KEYBOARD_OK:
-                label += "  [not installed]"
-                state = "disabled"
-            if val == "pyautogui" and not PYAUTOGUI_OK:
-                label += "  [not installed]"
-                state = "disabled"
-            tk.Radiobutton(
-                row2, text=label,
-                variable=self._backend_var, value=val,
-                state=state,
-                bg=C["bg"], fg=C["muted"],
-                selectcolor=C["bg"],
-                activebackground=C["bg"], activeforeground=C["text"],
-                font=("Segoe UI", 9),
-            ).pack(side="left", padx=(6, 0))
+    def _build_settings(self, parent: tk.Frame) -> None:
+        frame = tk.Frame(parent, bg=C["bg"])
+        frame.pack(fill="x", padx=14, pady=(4, 2))
 
         # ── Row 1: delay / interval / clear ─────────────────────────────────
         row1 = tk.Frame(frame, bg=C["bg"])
@@ -220,17 +218,52 @@ class VNCTyperApp:
             font=("Segoe UI", 9), relief="flat", padx=12, cursor="hand2",
         ).pack(side="right")
 
-    def _build_status_bar(self) -> None:
+        # ── Row 2: backend selector ──────────────────────────────────────────
+        row2 = tk.Frame(frame, bg=C["bg"])
+        row2.pack(fill="x", pady=(4, 0))
+
+        tk.Label(row2, text="Backend:", bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 9)).pack(side="left")
+
+        self._backend_var = tk.StringVar(value="keyboard")
+        options = [
+            ("keyboard",  "keyboard  ✓ recommended"),
+            ("pyautogui", "pyautogui  (fallback)"),
+        ]
+        for val, label in options:
+            state = "normal"
+            if val == "keyboard" and not KEYBOARD_OK:
+                label += "  [not installed]"
+                state = "disabled"
+            if val == "pyautogui" and not PYAUTOGUI_OK:
+                label += "  [not installed]"
+                state = "disabled"
+            tk.Radiobutton(
+                row2, text=label,
+                variable=self._backend_var, value=val,
+                state=state,
+                bg=C["bg"], fg=C["muted"],
+                selectcolor=C["bg"],
+                activebackground=C["bg"], activeforeground=C["text"],
+                font=("Segoe UI", 9),
+            ).pack(side="left", padx=(6, 0))
+
+    def _build_status_bar(self, parent: tk.Frame) -> None:
         self._status_var = tk.StringVar(
             value="Ready — paste text above, then click 'Send to VNC'."
         )
+        # Fixed-height container so text changes don't shift other elements
+        status_frame = tk.Frame(parent, bg=C["bg"], height=20)
+        status_frame.pack(fill="x", padx=14, pady=(6, 2))
+        status_frame.pack_propagate(False)   # <-- prevents resize on text change
+
         self._status_label = tk.Label(
-            self.root,
+            status_frame,
             textvariable=self._status_var,
             bg=C["bg"], fg=C["muted"],
             font=("Segoe UI", 9), anchor="w",
         )
-        self._status_label.pack(fill="x", padx=14, pady=(6, 2), side="bottom")
+        self._status_label.pack(fill="x")
 
         style = ttk.Style()
         style.theme_use("clam")
@@ -243,15 +276,15 @@ class VNCTyperApp:
             darkcolor=C["accent"],
         )
         self._progress = ttk.Progressbar(
-            self.root, orient="horizontal",
+            parent, orient="horizontal",
             mode="determinate",
             style="VNC.Horizontal.TProgressbar",
         )
-        self._progress.pack(fill="x", padx=14, pady=(0, 2), side="bottom")
+        self._progress.pack(fill="x", padx=14, pady=(0, 4))
 
-    def _build_send_button(self) -> None:
+    def _build_send_button(self, parent: tk.Frame) -> None:
         self._send_btn = tk.Button(
-            self.root,
+            parent,
             text="⏎  Send to VNC   (Ctrl+Enter)",
             command=self._on_send_clicked,
             bg=C["accent"], fg="white",
@@ -259,7 +292,7 @@ class VNCTyperApp:
             font=("Segoe UI", 12, "bold"),
             relief="flat", pady=14, cursor="hand2",
         )
-        self._send_btn.pack(fill="x", padx=14, pady=(10, 14), side="bottom")
+        self._send_btn.pack(fill="x", padx=14, pady=(0, 14))
 
     # ── Callbacks ────────────────────────────────────────────────────────────
 
@@ -277,7 +310,7 @@ class VNCTyperApp:
             return
 
         text = self.text_area.get("1.0", "end-1c")
-        if not text:
+        if not text.strip():
             self._set_status("⚠️  Nothing to type — paste text first.", C["warning"])
             return
 
