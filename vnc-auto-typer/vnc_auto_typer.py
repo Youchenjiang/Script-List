@@ -31,51 +31,63 @@ def countdown(seconds: int) -> None:
 #
 # keyboard.write() sends characters as Unicode injection events
 # (KEYEVENTF_UNICODE on Windows).  VNC clients often do NOT forward these
-# synthetic events to the guest OS.  Using press_and_release() with explicit
-# key names sends proper scan-code events that VNC reliably forwards.
+# synthetic events to the guest OS.  Using press_and_release() with canonical
+# key names sends proper scan-code events that VNC reliably forwards and
+# avoids ambiguity in the keyboard library's hotkey parser.
 #
 # Format: char -> (shift_required, key_name)
 
 _KEY_MAP: dict = {
-    '-':  (False, 'minus'),   '=':  (False, '='),
-    '[':  (False, '['),       ']':  (False, ']'),
-    '\\': (False, '\\'),      ';':  (False, ';'),
-    "'":  (False, "'"),       ',':  (False, ','),
-    '.':  (False, '.'),       '/':  (False, '/'),
-    '`':  (False, '`'),       ' ':  (False, 'space'),
-    '\t': (False, 'tab'),     '\n': (False, 'enter'),
-    '!':  (True,  '1'),       '@':  (True,  '2'),
-    '#':  (True,  '3'),       '$':  (True,  '4'),
-    '%':  (True,  '5'),       '^':  (True,  '6'),
-    '&':  (True,  '7'),       '*':  (True,  '8'),
-    '(':  (True,  '9'),       ')':  (True,  '0'),
-    '_':  (True,  'minus'),   '+':  (True,  '='),
-    '{':  (True,  '['),       '}':  (True,  ']'),
-    '|':  (True,  '\\'),      ':':  (True,  ';'),
-    '"':  (True,  "'"),       '<':  (True,  ','),
-    '>':  (True,  '.'),       '?':  (True,  '/'),
-    '~':  (True,  '`'),
+    '-':  (False, 'minus'),   '=':  (False, 'equal'),
+    '[':  (False, 'left bracket'),       ']':  (False, 'right bracket'),
+    '\\': (False, 'backslash'),      ';':  (False, 'semicolon'),
+    "'":  (False, 'quote'),       ',':  (False, 'comma'),
+    '.':  (False, 'period'),      '/':  (False, 'slash'),
+    '`':  (False, 'grave'),       ' ':  (False, 'space'),
+    '\t': (False, 'tab'),         '\n': (False, 'enter'),
+    '!':  (True,  '1'),           '@':  (True,  '2'),
+    '#':  (True,  '3'),           '$':  (True,  '4'),
+    '%':  (True,  '5'),           '^':  (True,  '6'),
+    '&':  (True,  '7'),           '*':  (True,  '8'),
+    '(':  (True,  '9'),           ')':  (True,  '0'),
+    '_':  (True,  'minus'),       '+':  (True,  'equal'),
+    '{':  (True,  'left bracket'),       '}':  (True,  'right bracket'),
+    '|':  (True,  'backslash'),      ':':  (True,  'semicolon'),
+    '"':  (True,  'quote'),       '<':  (True,  'comma'),
+    '>':  (True,  'period'),      '?':  (True,  'slash'),
+    '~':  (True,  'grave'),
 }
 
 
 def _smart_write(kb, text: str, interval: float) -> None:
     """Type *text* using physical press+release events via the keyboard library.
 
-    Unlike ``keyboard.write()`` (Unicode injection), this sends proper scan-code
-    events for every character so VNC reliably forwards them to the guest OS.
-    Special characters are looked up in ``_KEY_MAP``; uppercase letters get a
-    Shift modifier; everything else is pressed by its literal character name.
+    - Printable ASCII symbols: uses _KEY_MAP and sends canonical key names.
+    - Letters/Digits: sends physical key events.
+    - Unicode (Chinese/Emojis): falls back to kb.write(char).
     """
     for char in text:
-        if char in _KEY_MAP:
-            shift, key = _KEY_MAP[char]
-            combo = f"shift+{key}" if shift else key
-            kb.press_and_release(combo)
-        elif char.isupper():
-            kb.press_and_release(f"shift+{char.lower()}")
-        elif char.isascii() and char.isprintable():
-            kb.press_and_release(char)
-        # silently skip non-ASCII / non-printable characters
+        try:
+            if char in _KEY_MAP:
+                shift, key = _KEY_MAP[char]
+                if shift:
+                    kb.press('shift')
+                    kb.press_and_release(key)
+                    kb.release('shift')
+                else:
+                    kb.press_and_release(key)
+            elif char.isascii() and (char.isalpha() or char.isdigit()):
+                if char.isupper():
+                    kb.press('shift')
+                    kb.press_and_release(char.lower())
+                    kb.release('shift')
+                else:
+                    kb.press_and_release(char)
+            else:
+                kb.write(char)
+        except Exception:
+            pass
+
         if interval:
             time.sleep(interval)
 

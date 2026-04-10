@@ -60,21 +60,25 @@ C = {
 # guest OS.  Characters that need Shift or a non-printable scan code (e.g. '-',
 # ':', '"') must be sent as physical key press+release events instead.
 #
+# To prevent the "Can only normalize non-empty string names" error, we use
+# canonical key names (e.g., 'quote' instead of "'") which avoids ambiguity
+# in the keyboard library's hotkey parser.
+#
 # Format: char -> (shift_required, key_name_for_keyboard_library)
 
 _KEY_MAP: dict[str, tuple[bool, str]] = {
     # Unshifted punctuation
     '-':  (False, 'minus'),
-    '=':  (False, '='),
-    '[':  (False, '['),
-    ']':  (False, ']'),
-    '\\': (False, '\\'),
-    ';':  (False, ';'),
-    "'":  (False, "'"),
-    ',':  (False, ','),
-    '.':  (False, '.'),
-    '/':  (False, '/'),
-    '`':  (False, '`'),
+    '=':  (False, 'equal'),
+    '[':  (False, 'left bracket'),
+    ']':  (False, 'right bracket'),
+    '\\': (False, 'backslash'),
+    ';':  (False, 'semicolon'),
+    "'":  (False, 'quote'),
+    ',':  (False, 'comma'),
+    '.':  (False, 'period'),
+    '/':  (False, 'slash'),
+    '`':  (False, 'grave'),
     ' ':  (False, 'space'),
     '\t': (False, 'tab'),
     '\n': (False, 'enter'),
@@ -90,43 +94,53 @@ _KEY_MAP: dict[str, tuple[bool, str]] = {
     '(':  (True,  '9'),
     ')':  (True,  '0'),
     '_':  (True,  'minus'),
-    '+':  (True,  '='),
-    '{':  (True,  '['),
-    '}':  (True,  ']'),
-    '|':  (True,  '\\'),
-    ':':  (True,  ';'),
-    '"':  (True,  "'"),
-    '<':  (True,  ','),
-    '>':  (True,  '.'),
-    '?':  (True,  '/'),
-    '~':  (True,  '`'),
+    '+':  (True,  'equal'),
+    '{':  (True,  'left bracket'),
+    '}':  (True,  'right bracket'),
+    '|':  (True,  'backslash'),
+    ':':  (True,  'semicolon'),
+    '"':  (True,  'quote'),
+    '<':  (True,  'comma'),
+    '>':  (True,  'period'),
+    '?':  (True,  'slash'),
+    '~':  (True,  'grave'),
 }
 
 
 def _smart_write(text: str, interval: float) -> None:
-    """Type *text* using physical press+release events for every character.
+    """Type *text* using physical press+release events for compatibility.
 
-    Unlike ``keyboard.write()`` (which uses Unicode injection that VNC may
-    ignore), this function uses ``keyboard.press_and_release()`` for all
-    characters so VNC receives proper scan-code events.
-
-    - Printable ASCII letters/digits: press the key directly.
-    - Uppercase letters: Shift + lowercase.
-    - Punctuation / symbols: look up in ``_KEY_MAP`` for the correct key +
-      optional Shift modifier.
+    - Printable ASCII symbols: uses _KEY_MAP and sends canonical key names.
+    - Letters/Digits: sends physical key events.
+    - Unicode (Chinese/Emojis): falls back to _kb.write(char).
     """
     for char in text:
-        if char in _KEY_MAP:
-            shift, key = _KEY_MAP[char]
-            combo = f"shift+{key}" if shift else key
-            _kb.press_and_release(combo)
-        elif char.isupper():
-            _kb.press_and_release(f"shift+{char.lower()}")
-        elif char.isascii() and char.isprintable():
-            _kb.press_and_release(char)
-        # silently skip non-ASCII / non-printable characters
+        try:
+            if char in _KEY_MAP:
+                shift, key = _KEY_MAP[char]
+                if shift:
+                    _kb.press('shift')
+                    _kb.press_and_release(key)
+                    _kb.release('shift')
+                else:
+                    _kb.press_and_release(key)
+            elif char.isascii() and (char.isalpha() or char.isdigit()):
+                if char.isupper():
+                    _kb.press('shift')
+                    _kb.press_and_release(char.lower())
+                    _kb.release('shift')
+                else:
+                    _kb.press_and_release(char)
+            else:
+                # Fallback for Chinese / Non-ASCII / Everything else
+                _kb.write(char)
+        except Exception:
+            # Best effort typing
+            pass
+
         if interval:
             time.sleep(interval)
+
 
 
 # ── App ──────────────────────────────────────────────────────────────────────
