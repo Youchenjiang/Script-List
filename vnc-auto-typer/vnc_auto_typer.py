@@ -27,6 +27,59 @@ def countdown(seconds: int) -> None:
     print("\r✅ Typing started!                                    ")
 
 
+# ── Special-character key map ────────────────────────────────────────────────
+#
+# keyboard.write() sends characters as Unicode injection events
+# (KEYEVENTF_UNICODE on Windows).  VNC clients often do NOT forward these
+# synthetic events to the guest OS.  Using press_and_release() with explicit
+# key names sends proper scan-code events that VNC reliably forwards.
+#
+# Format: char -> (shift_required, key_name)
+
+_KEY_MAP: dict = {
+    '-':  (False, 'minus'),   '=':  (False, '='),
+    '[':  (False, '['),       ']':  (False, ']'),
+    '\\': (False, '\\'),      ';':  (False, ';'),
+    "'":  (False, "'"),       ',':  (False, ','),
+    '.':  (False, '.'),       '/':  (False, '/'),
+    '`':  (False, '`'),       ' ':  (False, 'space'),
+    '\t': (False, 'tab'),     '\n': (False, 'enter'),
+    '!':  (True,  '1'),       '@':  (True,  '2'),
+    '#':  (True,  '3'),       '$':  (True,  '4'),
+    '%':  (True,  '5'),       '^':  (True,  '6'),
+    '&':  (True,  '7'),       '*':  (True,  '8'),
+    '(':  (True,  '9'),       ')':  (True,  '0'),
+    '_':  (True,  'minus'),   '+':  (True,  '='),
+    '{':  (True,  '['),       '}':  (True,  ']'),
+    '|':  (True,  '\\'),      ':':  (True,  ';'),
+    '"':  (True,  "'"),       '<':  (True,  ','),
+    '>':  (True,  '.'),       '?':  (True,  '/'),
+    '~':  (True,  '`'),
+}
+
+
+def _smart_write(kb, text: str, interval: float) -> None:
+    """Type *text* using physical press+release events via the keyboard library.
+
+    Unlike ``keyboard.write()`` (Unicode injection), this sends proper scan-code
+    events for every character so VNC reliably forwards them to the guest OS.
+    Special characters are looked up in ``_KEY_MAP``; uppercase letters get a
+    Shift modifier; everything else is pressed by its literal character name.
+    """
+    for char in text:
+        if char in _KEY_MAP:
+            shift, key = _KEY_MAP[char]
+            combo = f"shift+{key}" if shift else key
+            kb.press_and_release(combo)
+        elif char.isupper():
+            kb.press_and_release(f"shift+{char.lower()}")
+        elif char.isascii() and char.isprintable():
+            kb.press_and_release(char)
+        # silently skip non-ASCII / non-printable characters
+        if interval:
+            time.sleep(interval)
+
+
 def type_text(text: str, interval: float, use_xdotool: bool, backend: str) -> None:
     """
     Type *text* character-by-character.
@@ -39,19 +92,14 @@ def type_text(text: str, interval: float, use_xdotool: bool, backend: str) -> No
                   using a local keyboard backend. Useful when this script is
                   run inside a Linux VM that has xdotool installed.
     backend     : 'keyboard' (default) or 'pyautogui'.
-                  - 'keyboard'  uses the ``keyboard`` library which sends raw
-                    character events and handles special chars (', :, -, etc.)
-                    correctly even through VNC.
-                  - 'pyautogui' uses pyautogui.write() which maps chars to
-                    virtual key codes; may produce garbled output for special
+                  - 'keyboard'  uses press_and_release() for every character so
+                    VNC receives proper scan-code events.  Works correctly with
+                    hyphens, colons, quotes, and all other punctuation.
+                  - 'pyautogui' uses pyautogui.write() which may garble special
                     characters in VNC sessions.
     """
     if use_xdotool:
-        # Emit xdotool shell commands to stdout so the caller can pipe them.
-        # Useful for: python vnc_auto_typer.py | bash
         for char in text:
-            # xdotool type handles most printable ASCII.
-            # Escape single-quotes for the shell.
             safe = char.replace("'", "'\\''")
             print(f"xdotool type --clearmodifiers --delay {int(interval * 1000)} '{safe}'")
         return
@@ -66,14 +114,13 @@ def type_text(text: str, interval: float, use_xdotool: bool, backend: str) -> No
                 "Or use --backend pyautogui as a fallback.",
                 file=sys.stderr,
             )
-            sys.exit(1)
-        # keyboard.write() sends actual character events — special chars work.
-        kb.write(text, delay=interval)
+            import sys; sys.exit(1)
+        _smart_write(kb, text, interval)
     else:
-        # pyautogui fallback
         import pyautogui
-        pyautogui.FAILSAFE = True          # Move mouse to top-left corner to abort
+        pyautogui.FAILSAFE = True
         pyautogui.write(text, interval=interval)
+
 
 
 # ─── CLI ────────────────────────────────────────────────────────────────────
