@@ -53,6 +53,82 @@ C = {
 }
 
 
+# ── Special-character key map (for keyboard backend) ─────────────────────────
+#
+# keyboard.write() sends characters as Unicode injection events (KEYEVENTF_UNICODE
+# on Windows).  VNC clients often do NOT forward these synthetic events to the
+# guest OS.  Characters that need Shift or a non-printable scan code (e.g. '-',
+# ':', '"') must be sent as physical key press+release events instead.
+#
+# Format: char -> (shift_required, key_name_for_keyboard_library)
+
+_KEY_MAP: dict[str, tuple[bool, str]] = {
+    # Unshifted punctuation
+    '-':  (False, 'minus'),
+    '=':  (False, '='),
+    '[':  (False, '['),
+    ']':  (False, ']'),
+    '\\': (False, '\\'),
+    ';':  (False, ';'),
+    "'":  (False, "'"),
+    ',':  (False, ','),
+    '.':  (False, '.'),
+    '/':  (False, '/'),
+    '`':  (False, '`'),
+    ' ':  (False, 'space'),
+    '\t': (False, 'tab'),
+    '\n': (False, 'enter'),
+    # Shifted punctuation / symbols
+    '!':  (True,  '1'),
+    '@':  (True,  '2'),
+    '#':  (True,  '3'),
+    '$':  (True,  '4'),
+    '%':  (True,  '5'),
+    '^':  (True,  '6'),
+    '&':  (True,  '7'),
+    '*':  (True,  '8'),
+    '(':  (True,  '9'),
+    ')':  (True,  '0'),
+    '_':  (True,  'minus'),
+    '+':  (True,  '='),
+    '{':  (True,  '['),
+    '}':  (True,  ']'),
+    '|':  (True,  '\\'),
+    ':':  (True,  ';'),
+    '"':  (True,  "'"),
+    '<':  (True,  ','),
+    '>':  (True,  '.'),
+    '?':  (True,  '/'),
+    '~':  (True,  '`'),
+}
+
+
+def _smart_write(text: str, interval: float) -> None:
+    """Type *text* using physical press+release events for every character.
+
+    Unlike ``keyboard.write()`` (which uses Unicode injection that VNC may
+    ignore), this function uses ``keyboard.press_and_release()`` for all
+    characters so VNC receives proper scan-code events.
+
+    - Printable ASCII letters/digits: press the key directly.
+    - Uppercase letters: Shift + lowercase.
+    - Punctuation / symbols: look up in ``_KEY_MAP`` for the correct key +
+      optional Shift modifier.
+    """
+    for char in text:
+        if char in _KEY_MAP:
+            shift, key = _KEY_MAP[char]
+            combo = f"shift+{key}" if shift else key
+            _kb.press_and_release(combo)
+        elif char.isupper():
+            _kb.press_and_release(f"shift+{char.lower()}")
+        elif char.isascii() and char.isprintable():
+            _kb.press_and_release(char)
+        # silently skip non-ASCII / non-printable characters
+        if interval:
+            time.sleep(interval)
+
+
 # ── App ──────────────────────────────────────────────────────────────────────
 
 class VNCTyperApp:
@@ -76,12 +152,15 @@ class VNCTyperApp:
         self.root.resizable(True, True)
         self.root.minsize(420, 500)
         self.root.geometry("480x580")
-        # Use grid for the root so row sizes are governed by rowconfigure(weight)
-        # and are immune to dynamic content changes in other rows.
-        self.root.grid_rowconfigure(1, weight=1)   # top panel expands
-        self.root.grid_rowconfigure(0, weight=0)   # header – fixed
-        self.root.grid_rowconfigure(2, weight=0)   # bottom panel – fixed
+
+        # Use grid for the root window.  rowconfigure(weight) locks row sizes
+        # so that dynamic content changes (button text, status, progress bar)
+        # in one row can never shift elements in another row.
         self.root.grid_columnconfigure(0, weight=1)
+        self.root.grid_rowconfigure(0, weight=0)   # header  – fixed
+        self.root.grid_rowconfigure(1, weight=1)   # top     – expands
+        self.root.grid_rowconfigure(2, weight=0)   # bottom  – fixed
+
         # Place window in top-right corner
         self.root.update_idletasks()
         sw = self.root.winfo_screenwidth()
@@ -89,34 +168,25 @@ class VNCTyperApp:
 
     # ── UI construction ──────────────────────────────────────────────────────
     #
-    # Layout (stable two-panel split):
+    # Root grid layout:
+    #   row 0  weight=0  header_frame   ← always-on-top bar   (fixed)
+    #   row 1  weight=1  top_frame      ← label + text area   (expands)
+    #   row 2  weight=0  bottom_frame   ← controls            (fixed)
     #
-    #   root
-    #   ├─ header_frame       ← always-on-top bar          (fixed height, top)
-    #   ├─ top_frame          ← label + text area           (expands, top)
-    #   │   ├─ label
-    #   │   └─ text area
-    #   └─ bottom_frame       ← settings + status + button (fixed height, bottom)
-    #       ├─ settings rows
-    #       ├─ progress bar
-    #       ├─ status label
-    #       └─ send button
-    #
-    # Separating the expanding area from the fixed-height controls prevents
-    # the status label text changes from shifting the textarea label position.
+    # Internal layouts inside each frame still use pack for brevity.
 
     def _build_ui(self) -> None:
-        self._build_header()         # grid row 0 (weight=0)
-        self._build_top_panel()      # grid row 1 (weight=1 – expands)
-        self._build_bottom_panel()   # grid row 2 (weight=0)
+        self._build_header()        # grid row 0
+        self._build_top_panel()     # grid row 1  (weight=1, expands)
+        self._build_bottom_panel()  # grid row 2
         # Global hotkey: Ctrl+Enter → Send
         self.root.bind("<Control-Return>", lambda _e: self._on_send_clicked())
 
-    # ── Header ───────────────────────────────────────────────────────────────
+    # ── Header  (row 0) ──────────────────────────────────────────────────────
 
     def _build_header(self) -> None:
         header = tk.Frame(self.root, bg=C["surface"], pady=10)
-        header.grid(row=0, column=0, sticky="ew")   # row 0, fixed height
+        header.grid(row=0, column=0, sticky="ew")
 
         tk.Label(
             header,
@@ -136,14 +206,13 @@ class VNCTyperApp:
             font=("Segoe UI", 9), borderwidth=0,
         ).pack(side="right", padx=14)
 
-    # ── Top panel (label + text area) ────────────────────────────────────────
+    # ── Top panel – label + text area  (row 1) ───────────────────────────────
 
     def _build_top_panel(self) -> None:
-        """Label + text area – grid row 1 (weight=1) so it expands vertically."""
         top = tk.Frame(self.root, bg=C["bg"])
-        top.grid(row=1, column=0, sticky="nsew")    # row 1, expands
-        top.grid_rowconfigure(1, weight=1)          # textarea sub-row expands
+        top.grid(row=1, column=0, sticky="nsew")
         top.grid_columnconfigure(0, weight=1)
+        top.grid_rowconfigure(1, weight=1)   # textarea row is the only expander
 
         tk.Label(
             top,
@@ -176,12 +245,11 @@ class VNCTyperApp:
             self.text_area.tag_add("sel", "1.0", "end"), "break"
         ))
 
-    # ── Bottom panel (settings + status + button) ────────────────────────────
+    # ── Bottom panel – controls  (row 2) ─────────────────────────────────────
 
     def _build_bottom_panel(self) -> None:
-        """Fixed-height control strip – grid row 2 (weight=0)."""
         bottom = tk.Frame(self.root, bg=C["bg"])
-        bottom.grid(row=2, column=0, sticky="ew")   # row 2, fixed height
+        bottom.grid(row=2, column=0, sticky="ew")
 
         self._build_settings(bottom)
         self._build_status_bar(bottom)
@@ -191,7 +259,7 @@ class VNCTyperApp:
         frame = tk.Frame(parent, bg=C["bg"])
         frame.pack(fill="x", padx=14, pady=(4, 2))
 
-        # ── Row 1: delay / interval / clear ─────────────────────────────────
+        # Row 1: delay / interval / clear
         row1 = tk.Frame(frame, bg=C["bg"])
         row1.pack(fill="x")
 
@@ -226,7 +294,7 @@ class VNCTyperApp:
             font=("Segoe UI", 9), relief="flat", padx=12, cursor="hand2",
         ).pack(side="right")
 
-        # ── Row 2: backend selector ──────────────────────────────────────────
+        # Row 2: backend selector
         row2 = tk.Frame(frame, bg=C["bg"])
         row2.pack(fill="x", pady=(4, 0))
 
@@ -234,11 +302,8 @@ class VNCTyperApp:
                  font=("Segoe UI", 9)).pack(side="left")
 
         self._backend_var = tk.StringVar(value="keyboard")
-        options = [
-            ("keyboard",  "keyboard  ✓ recommended"),
-            ("pyautogui", "pyautogui  (fallback)"),
-        ]
-        for val, label in options:
+        for val, label in [("keyboard", "keyboard  ✓ recommended"),
+                            ("pyautogui", "pyautogui  (fallback)")]:
             state = "normal"
             if val == "keyboard" and not KEYBOARD_OK:
                 label += "  [not installed]"
@@ -260,13 +325,14 @@ class VNCTyperApp:
         self._status_var = tk.StringVar(
             value="Ready — paste text above, then click 'Send to VNC'."
         )
-        # Fixed-height container so text changes don't shift other elements
-        status_frame = tk.Frame(parent, bg=C["bg"], height=20)
-        status_frame.pack(fill="x", padx=14, pady=(6, 2))
-        status_frame.pack_propagate(False)   # <-- prevents resize on text change
+        # Fixed-height wrapper: pack_propagate(False) means the label's text
+        # can change without altering this frame's height and reflowing the grid.
+        status_wrap = tk.Frame(parent, bg=C["bg"], height=22)
+        status_wrap.pack(fill="x", padx=14, pady=(6, 2))
+        status_wrap.pack_propagate(False)
 
         self._status_label = tk.Label(
-            status_frame,
+            status_wrap,
             textvariable=self._status_var,
             bg=C["bg"], fg=C["muted"],
             font=("Segoe UI", 9), anchor="w",
@@ -366,7 +432,7 @@ class VNCTyperApp:
 
         try:
             if backend == "keyboard":
-                _kb.write(text, delay=interval)
+                _smart_write(text, interval)
             else:
                 _pag.FAILSAFE = True
                 _pag.write(text, interval=interval)
