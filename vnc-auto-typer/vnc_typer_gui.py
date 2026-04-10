@@ -101,8 +101,11 @@ class VNCTyperApp:
 
     def _build_ui(self) -> None:
         self._build_header()
-        self._build_top_panel()
-        self._build_bottom_panel()
+        # Pack bottom_panel BEFORE top_panel.  With tkinter's pack geometry
+        # manager the expanding widget (expand=True) must be packed last;
+        # anything packed after it receives zero remaining space.
+        self._build_bottom_panel()   # fixed height – claimed first
+        self._build_top_panel()      # expands to fill whatever is left
         # Global hotkey: Ctrl+Enter → Send
         self.root.bind("<Control-Return>", lambda _e: self._on_send_clicked())
 
