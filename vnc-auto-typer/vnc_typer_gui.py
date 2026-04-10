@@ -76,6 +76,12 @@ class VNCTyperApp:
         self.root.resizable(True, True)
         self.root.minsize(420, 500)
         self.root.geometry("480x580")
+        # Use grid for the root so row sizes are governed by rowconfigure(weight)
+        # and are immune to dynamic content changes in other rows.
+        self.root.grid_rowconfigure(1, weight=1)   # top panel expands
+        self.root.grid_rowconfigure(0, weight=0)   # header – fixed
+        self.root.grid_rowconfigure(2, weight=0)   # bottom panel – fixed
+        self.root.grid_columnconfigure(0, weight=1)
         # Place window in top-right corner
         self.root.update_idletasks()
         sw = self.root.winfo_screenwidth()
@@ -100,12 +106,9 @@ class VNCTyperApp:
     # the status label text changes from shifting the textarea label position.
 
     def _build_ui(self) -> None:
-        self._build_header()
-        # Pack bottom_panel BEFORE top_panel.  With tkinter's pack geometry
-        # manager the expanding widget (expand=True) must be packed last;
-        # anything packed after it receives zero remaining space.
-        self._build_bottom_panel()   # fixed height – claimed first
-        self._build_top_panel()      # expands to fill whatever is left
+        self._build_header()         # grid row 0 (weight=0)
+        self._build_top_panel()      # grid row 1 (weight=1 – expands)
+        self._build_bottom_panel()   # grid row 2 (weight=0)
         # Global hotkey: Ctrl+Enter → Send
         self.root.bind("<Control-Return>", lambda _e: self._on_send_clicked())
 
@@ -113,7 +116,7 @@ class VNCTyperApp:
 
     def _build_header(self) -> None:
         header = tk.Frame(self.root, bg=C["surface"], pady=10)
-        header.pack(fill="x", side="top")
+        header.grid(row=0, column=0, sticky="ew")   # row 0, fixed height
 
         tk.Label(
             header,
@@ -136,19 +139,21 @@ class VNCTyperApp:
     # ── Top panel (label + text area) ────────────────────────────────────────
 
     def _build_top_panel(self) -> None:
-        """Label + text area container that expands to fill remaining space."""
+        """Label + text area – grid row 1 (weight=1) so it expands vertically."""
         top = tk.Frame(self.root, bg=C["bg"])
-        top.pack(fill="both", expand=True, side="top")
+        top.grid(row=1, column=0, sticky="nsew")    # row 1, expands
+        top.grid_rowconfigure(1, weight=1)          # textarea sub-row expands
+        top.grid_columnconfigure(0, weight=1)
 
         tk.Label(
             top,
             text="Paste text to type into VNC:",
             bg=C["bg"], fg=C["muted"],
             font=("Segoe UI", 9), anchor="w",
-        ).pack(fill="x", padx=14, pady=(10, 2))
+        ).grid(row=0, column=0, sticky="ew", padx=14, pady=(10, 2))
 
         outer = tk.Frame(top, bg=C["border"], padx=1, pady=1)
-        outer.pack(fill="both", expand=True, padx=14, pady=(0, 8))
+        outer.grid(row=1, column=0, sticky="nsew", padx=14, pady=(0, 8))
 
         self.text_area = tk.Text(
             outer,
@@ -174,9 +179,9 @@ class VNCTyperApp:
     # ── Bottom panel (settings + status + button) ────────────────────────────
 
     def _build_bottom_panel(self) -> None:
-        """Fixed-height control strip at the bottom of the window."""
+        """Fixed-height control strip – grid row 2 (weight=0)."""
         bottom = tk.Frame(self.root, bg=C["bg"])
-        bottom.pack(fill="x", side="bottom")
+        bottom.grid(row=2, column=0, sticky="ew")   # row 2, fixed height
 
         self._build_settings(bottom)
         self._build_status_bar(bottom)
