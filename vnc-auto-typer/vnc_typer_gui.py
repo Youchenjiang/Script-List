@@ -44,31 +44,17 @@ C = {
 }
 
 
-def _smart_write(text: str, interval: float, backend: str) -> None:
-    """Type *text* using highly-compatible library-level functions.
-
-    Instead of manual scan-code mapping (which is fragile across layouts and VNC),
-    we use the library's standard `write` function which correctly handles
-    ASCII, Shift states, and Unicode (Chinese) on most systems.
+def _smart_write(char: str, interval: float, backend: str) -> None:
+    """Type a single *char* using library-level functions.
+    Standard high-level 'write' handled layout/shift logic correctly.
     """
-    # ── Initial cleanup ──
-    # Force release modifiers to clear any existing stuck states.
-    if backend == "keyboard" and KEYBOARD_OK:
-        for mod in ['shift', 'ctrl', 'alt', 'windows']:
-            try:
-                _kb.release(mod)
-            except Exception:
-                pass
-
-    # ── Typing ──
     if backend == "keyboard":
-        # keyboard.write is the most robust implementation in the library.
-        # It handles layout mapping and Unicode fallback internally.
-        _kb.write(text, delay=interval)
+        _kb.write(char)
     else:
-        # pyautogui fallback – also highly compatible for ASCII.
-        _pag.FAILSAFE = True
-        _pag.write(text, interval=interval)
+        _pag.write(char)
+
+    if interval:
+        time.sleep(interval)
 
 
 # ── GUI Application ──────────────────────────────────────────────────────────
@@ -97,7 +83,7 @@ class VNCTyperApp:
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_rowconfigure(2, weight=0)
 
-        # Bottom-right corner placement
+        # Placement
         self.root.update_idletasks()
         sw, sh = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
         self.root.geometry(f"+{sw - 500}+{sh - 680}")
@@ -210,17 +196,40 @@ class VNCTyperApp:
                         self._interval_var.get(), self._backend_var.get()), daemon=True).start()
 
     def _type_worker(self, text: str, delay: int, interval: float, backend: str) -> None:
+        # Initial cleanup
+        if backend == "keyboard" and KEYBOARD_OK:
+            for mod in ['shift', 'ctrl', 'alt', 'windows']:
+                try: _kb.release(mod)
+                except: pass
+
+        # Countdown
         for rem in range(delay, 0, -1):
             if self._abort_event.is_set(): self._finish("⛔ Aborted", C["danger"]); return
             self._set_ui(f"⏳ Switch to VNC… {rem}s", C["warning"], (delay-rem)/delay*100)
             time.sleep(1)
+
         if self._abort_event.is_set(): self._finish("⛔ Aborted", C["danger"]); return
         self._set_ui("⌨️ Typing…", C["text"], 100)
+
+        # Interrupted typing loop
         try:
-            _smart_write(text, interval, backend)
+            for i, char in enumerate(text):
+                if self._abort_event.is_set():
+                    self._finish("⛔ Aborted", C["danger"])
+                    return
+                _smart_write(char, interval, backend)
+                # Update progress during typing
+                self._set_progress((i + 1) / len(text) * 100)
+
             self._finish("✅ Done!", C["success"])
         except Exception as e:
             self._finish(f"❌ Error: {e}", C["danger"])
+
+    def _set_ui(self, msg: str, color: str, prog: float) -> None:
+        self.root.after(0, lambda: (self._status_var.set(msg), self._status_label.config(fg=color), self._progress.config(value=prog)))
+
+    def _set_progress(self, val: float) -> None:
+        self.root.after(0, lambda: self._progress.config(value=val))
 
     def _set_ui(self, msg: str, color: str, prog: float) -> None:
         self.root.after(0, lambda: (self._status_var.set(msg), self._status_label.config(fg=color), self._progress.config(value=prog)))
