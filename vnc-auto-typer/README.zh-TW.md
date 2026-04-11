@@ -16,16 +16,22 @@
 
 ---
 
-## 🚀 免安裝執行檔 (Windows)
+## 🚀 自行打包免安裝執行檔 (Lite)
+為了保持專案倉庫的輕量化，我們不直接分發二進位檔案。您可以透過 PyInstaller 自行產出僅約 **13MB 的 Lite 版本**：
 
-如果您不想安裝 Python 或任何依賴，可以直接使用預先打包的免安裝版：
-
-1. 找到 `dist/VNCAutoTyper_Lite.exe`。
-2. 執行它（建議**以管理員身分執行**，以確保 `keyboard` 引擎能穩定模擬按鍵）。
-3. 依照 GUI 說明操作即可。
+1. **環境準備**：確保已安裝 Python 以及 `requirements.txt` 中的必要套件。
+2. **安裝 PyInstaller**：
+   ```bash
+   pip install pyinstaller
+   ```
+3. **執行瘦身編譯指令**：
+   ```bash
+   pyinstaller --onefile --windowed --name VNCAutoTyper_Lite --collect-all keyboard --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module numpy --exclude-module cv2 --exclude-module matplotlib --exclude-module scipy --exclude-module pandas --exclude-module mkl vnc_typer_gui.py
+   ```
+4. 打包完成後，執行檔將位於 `dist/` 資料夾中的 `VNCAutoTyper_Lite.exe`。
 
 > [!TIP]
-> **防毒軟體提醒**：使用 PyInstaller 封裝的執行檔有時會被 Windows Defender 誤報為不安全（False Positive）。請點選「仍要執行」即可。
+> **為什麼要用這串指令？** 標準的 PyInstaller 打包可能會因為拉進環境中的 OpenCV 或 NumPy 等重量級套件而超過 300MB。透過 `--exclude-module` 指令排除掉程式沒用到的模組，可以獲得最精簡的體積。
 
 ---
 

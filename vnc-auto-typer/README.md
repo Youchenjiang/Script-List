@@ -16,16 +16,23 @@ When connecting to a remote virtual machine via a web-based VNC client (e.g. noV
 
 ---
 
-## 🚀 Standalone Executable (Windows)
+## 🚀 Building the Standalone EXE (Lite)
 
-If you don't want to install Python or dependencies, you can use the pre-built portable version:
+To keep the repository lightweight, we do not distribute the binary directly. You can build your own **13MB "Lite" version** using PyInstaller:
 
-1. Locate `dist/VNCAutoTyper_Lite.exe`.
-2. Run it (may require "Run as Administrator" for the `keyboard` engine to hook system events).
-3. Follow the GUI instructions.
+1. **Prerequisites**: Ensure you have Python and the requirements installed.
+2. **Install PyInstaller**:
+   ```bash
+   pip install pyinstaller
+   ```
+3. **Run the Slim Build Command**:
+   ```bash
+   pyinstaller --onefile --windowed --name VNCAutoTyper_Lite --collect-all keyboard --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module numpy --exclude-module cv2 --exclude-module matplotlib --exclude-module scipy --exclude-module pandas --exclude-module mkl vnc_typer_gui.py
+   ```
+4. The output will be located in the `dist/` folder as `VNCAutoTyper_Lite.exe`.
 
 > [!TIP]
-> **Anti-virus Note**: Standalone EXEs created by PyInstaller are sometimes flagged as false positives. You may need to click "Run anyway" in Windows Defender.
+> **Why this command?** Standard PyInstaller builds can exceed 300MB if they pull in libraries like OpenCV or NumPy from your environment. The `--exclude-module` flags ensure you get the smallest possible file.
 
 ---
 
