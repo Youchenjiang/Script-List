@@ -6,110 +6,84 @@
 
 ## 描述
 
-透過網頁版 VNC 客戶端（如 noVNC）連線至遠端虛擬機時，從主機複製貼上文字的功能往往被封鎖。本專案提供**兩個工具**來解決此問題：
+透過網頁版 VNC 客戶端（如 noVNC 或 CDX）連線至遠端虛擬機時，從主機複製貼上文字的功能往往被封鎖。本專案讓你可以將文字貼入本機視窗，並自動將其透過物理按鍵事件模擬「打」進遠端連線中。
 
 | 工具 | 適合情境 |
 |---|---|
-| `vnc_typer_gui.py` | **重複使用** — 常駐的置頂視窗；貼上文字後一鍵發送 |
-| `vnc_auto_typer.py` | **單次 / 腳本使用** — 命令列工具，支援參數或剪貼簿輸入 |
+| `vnc_typer_gui.py` | **重複使用** — 常駐的置頂 GUI 視窗。 |
+| `vnc_auto_typer.py` | **單次 / 腳本使用** — 命令列工具，支援參數或剪貼簿輸入。 |
+| **免安裝執行檔** | **快速啟動** — 單一檔案 `VNCAutoTyper_Lite.exe`。 |
 
-## 環境需求
+---
+
+## 🚀 免安裝執行檔 (Windows)
+
+如果您不想安裝 Python 或任何依賴，可以直接使用預先打包的免安裝版：
+
+1. 找到 `dist/VNCAutoTyper_Lite.exe`。
+2. 執行它（建議**以管理員身分執行**，以確保 `keyboard` 引擎能穩定模擬按鍵）。
+3. 依照 GUI 說明操作即可。
+
+> [!TIP]
+> **防毒軟體提醒**：使用 PyInstaller 封裝的執行檔有時會被 Windows Defender 誤報為不安全（False Positive）。請點選「仍要執行」即可。
+
+---
+
+## 環境需求 (腳本版)
 
 - **Python 3.8+**
-- **tkinter** — GUI 工具使用；Windows 和 macOS 的 Python 已內建。
-  Linux 上需安裝：`sudo apt install python3-tk`
-
-## 安裝
-
-一次安裝所有依賴：
-
-```bash
-pip install -r requirements.txt
-```
-
-### 各套件說明
-
-| 套件 | 用途 | 備注 |
-|---|---|---|
-| `keyboard` | **主要鍵盤後端** | 傳送原始字元事件，可正確處理 `'`、`:`、`-` 等特殊字元。部分系統需要管理員/root 權限。 |
-| `pyautogui` | 備用鍵盤後端 | 將字元映射為虛擬按鍵碼，在 VNC 環境下特殊字元可能顯示錯誤。 |
-| `pyperclip` | 剪貼簿讀取 | 供 `vnc_auto_typer.py` 預設（剪貼簿）模式使用。Linux 上需安裝 `xclip` 或 `xsel`。 |
+- **依賴套件**: `pip install keyboard pyperclip`
+- **權限說明**: `keyboard` 函式庫需要**管理員權限** (Windows) 或 **root/sudo** (Linux) 才能跨越 VNC 隧道正確模擬物理按鍵。
 
 ---
 
 ## GUI 工具 — `vnc_typer_gui.py` *（建議使用）*
 
-常駐的置頂視窗，可在操作 VNC 時保持可見。
+一個常駐且精簡的視窗，可讓你在操作 VNC 時保持置頂。
+
+### 功能亮點
+- **永遠置頂 (Always on Top)**：確保操作時視窗不會消失在瀏覽器後方。
+- **即時中止 (Abort)**：打字中可隨時點擊中止，精確到每一個字元。
+- **即時進度條**：直觀顯示打字進度。
+- **廣泛支援**：支援中文與特殊字元輸入。
 
 ### 使用方式
-
 ```bash
 python vnc_typer_gui.py
 ```
 
-### 操作流程
-
-1. 視窗出現在螢幕右上角並持續置於最上層。
-2. 將要輸入到 VNC 的文字**貼入**文字區域。
-3. 點擊 **「Send to VNC」**（或按 **Ctrl+Enter**）— 倒數計時開始。
-4. **切換到 VNC 視窗**，點擊游標應出現的位置。
-5. 文字自動輸入完成。
-6. GUI 重置 — 從第 2 步重複操作下一段文字。
-7. **關閉視窗**即可結束程式。
-
-### GUI 設定說明
-
-| 控制項 | 預設值 | 說明 |
-|---|---|---|
-| Delay (s) | `5` | 開始打字前的倒數秒數。 |
-| Interval (s/char) | `0.04` | 每次按鍵的間隔秒數，網路慢時可調高。 |
-| Backend | `keyboard` | 選擇 `keyboard`（建議）或 `pyautogui`（備用）。 |
-| Always on top | ✅ 開啟 | 讓視窗保持在所有其他視窗之上。 |
-| Abort 按鈕 | — | 倒數或輸入中出現；點擊立即取消。 |
+1. 將文字**貼入**文字區域。
+2. 點擊 **「Send to VNC」**（或按 **Ctrl+Enter**）— 倒數開始。
+3. **切換到您的 VNC 視窗** 並點擊一下輸入框。
+4. 程式會自動開始輸入文字。
 
 ---
 
 ## CLI 工具 — `vnc_auto_typer.py`
 
-適合單次使用或腳本整合。
-
-### 預設模式（剪貼簿 → 輸入）
-
-1. 在主機上複製文字。
-2. 確認 VNC 視窗可見。
-3. 執行腳本：
+適合命令列操作或腳本整合。
 
 ```bash
+# 從剪貼簿輸入 (預設)
 python vnc_auto_typer.py
-```
 
-### 其他輸入模式
-
-```bash
 # 從檔案輸入
-python vnc_auto_typer.py -f path/to/script.sh
+python vnc_auto_typer.py -f script.sh
 
-# 直接輸入字串
+# 輸入特定字串
 python vnc_auto_typer.py -t "echo hello world"
 ```
 
-### 所有 CLI 參數
+---
 
-| 參數 | 預設值 | 說明 |
-|---|---|---|
-| `-t`, `--text` TEXT | — | 直接輸入文字（與 `--file` 互斥）。 |
-| `-f`, `--file` FILE | — | 純文字檔路徑（與 `--text` 互斥）。 |
-| `-d`, `--delay` 秒數 | `3` | 開始打字前的倒數秒數。 |
-| `-i`, `--interval` 秒數 | `0.03` | 每次按鍵的間隔秒數。 |
-| `--backend` | `keyboard` | `keyboard`（建議）或 `pyautogui`（備用）。 |
-| `--xdotool` | 關閉 | 將 `xdotool type` 指令輸出到 stdout 而非本機輸入。 |
-| `--no-countdown` | 關閉 | 跳過倒數，立即開始輸入。 |
+## 常見問題排除
+
+- **字元被漏掉**：調高 **Interval (s/char)** 設定（如 `0.06` 或 `0.08`），以補償 VNC 網路延遲。
+- **大寫卡死 (Shift Stuck)**：若發生打字變全大寫的情況，程式現在會在每次打字前自動重置所有組合鍵狀態（清理 Shift/Ctrl/Alt）。
+- **特殊字元亂碼**：我們採用 Canonical Key Map 與 `keyboard.write()` 以換取對 VNC 隧道的最大相容性。
+- **Linux 權限錯誤**：請改用 `sudo python vnc_typer_gui.py` 執行。
 
 ---
 
-## 使用技巧
-
-- **字元被漏掉**：調高 `--interval`（試試 `0.07`–`0.1`）。
-- **隨時中止**：GUI 中點擊 **Abort** 按鈕，或在終端機按 `Ctrl+C`。`pyautogui` 後端還支援將滑鼠移至**螢幕左上角**來中止。
-- **特殊字元亂碼**：確認使用 `keyboard` 後端（預設）。`pyautogui` 使用虛擬按鍵碼，VNC 可能映射錯誤。
-- **Linux `keyboard` 權限錯誤**：改用 `sudo python vnc_typer_gui.py` 執行。
+## 授權條款
+MIT License
