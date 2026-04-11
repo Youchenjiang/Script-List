@@ -20,12 +20,6 @@ try:
 except ImportError:
     KEYBOARD_OK = False
 
-try:
-    import pyautogui as _pag
-    PYAUTOGUI_OK = True
-except ImportError:
-    PYAUTOGUI_OK = False
-
 
 # ── Colour palette ───────────────────────────────────────────────────────────
 
@@ -44,14 +38,12 @@ C = {
 }
 
 
-def _smart_write(char: str, interval: float, backend: str) -> None:
-    """Type a single *char* using library-level functions.
-    Standard high-level 'write' handled layout/shift logic correctly.
+def _smart_write(char: str, interval: float) -> None:
+    """Type a single *char* using the keyboard library's robust 'write' function.
+    Handles layout/shift logic correctly for both ASCII and Unicode.
     """
-    if backend == "keyboard":
+    if KEYBOARD_OK:
         _kb.write(char)
-    else:
-        _pag.write(char)
 
     if interval:
         time.sleep(interval)
@@ -149,15 +141,6 @@ class VNCTyperApp:
         tk.Button(row1, text="Clear", command=self._clear_text, bg=C["surface"], fg=C["muted"],
                   font=("Segoe UI", 9), relief="flat", padx=12, cursor="hand2").pack(side="right")
 
-        # Row 2: Backend
-        row2 = tk.Frame(settings, bg=C["bg"])
-        row2.pack(fill="x", pady=(4, 0))
-        tk.Label(row2, text="Backend:", bg=C["bg"], fg=C["muted"], font=("Segoe UI", 9)).pack(side="left")
-        self._backend_var = tk.StringVar(value="keyboard")
-        for val, label in [("keyboard", "keyboard ✓"), ("pyautogui", "pyautogui")]:
-            tk.Radiobutton(row2, text=label, variable=self._backend_var, value=val, bg=C["bg"],
-                           fg=C["muted"], selectcolor=C["bg"], font=("Segoe UI", 9)).pack(side="left", padx=(6, 0))
-
         # Status & Progress
         status_wrap = tk.Frame(bottom, bg=C["bg"], height=22)
         status_wrap.pack(fill="x", padx=14, pady=(6, 2))
@@ -193,11 +176,11 @@ class VNCTyperApp:
         self._typing = True
         self._send_btn.config(text="⛔  Abort", bg=C["danger"])
         threading.Thread(target=self._type_worker, args=(text, self._delay_var.get(),
-                        self._interval_var.get(), self._backend_var.get()), daemon=True).start()
+                        self._interval_var.get()), daemon=True).start()
 
-    def _type_worker(self, text: str, delay: int, interval: float, backend: str) -> None:
+    def _type_worker(self, text: str, delay: int, interval: float) -> None:
         # Initial cleanup
-        if backend == "keyboard" and KEYBOARD_OK:
+        if KEYBOARD_OK:
             for mod in ['shift', 'ctrl', 'alt', 'windows']:
                 try: _kb.release(mod)
                 except: pass
@@ -217,7 +200,7 @@ class VNCTyperApp:
                 if self._abort_event.is_set():
                     self._finish("⛔ Aborted", C["danger"])
                     return
-                _smart_write(char, interval, backend)
+                _smart_write(char, interval)
                 # Update progress during typing
                 self._set_progress((i + 1) / len(text) * 100)
 
@@ -231,9 +214,6 @@ class VNCTyperApp:
     def _set_progress(self, val: float) -> None:
         self.root.after(0, lambda: self._progress.config(value=val))
 
-    def _set_ui(self, msg: str, color: str, prog: float) -> None:
-        self.root.after(0, lambda: (self._status_var.set(msg), self._status_label.config(fg=color), self._progress.config(value=prog)))
-
     def _finish(self, msg: str, color: str) -> None:
         self._typing = False
         self._set_ui(msg, color, 0)
@@ -241,7 +221,7 @@ class VNCTyperApp:
 
 
 if __name__ == "__main__":
-    if not KEYBOARD_OK and not PYAUTOGUI_OK: sys.exit(1)
+    if not KEYBOARD_OK: sys.exit(1)
     root = tk.Tk()
     VNCTyperApp(root)
     root.mainloop()

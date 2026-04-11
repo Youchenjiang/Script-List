@@ -16,25 +16,14 @@ try:
 except ImportError:
     KEYBOARD_OK = False
 
-try:
-    import pyautogui as _pag
-    PYAUTOGUI_OK = True
-except ImportError:
-    PYAUTOGUI_OK = False
 
-
-def _smart_write(text: str, interval: float, backend: str) -> None:
+def _smart_write(text: str, interval: float) -> None:
     # Cleanup modifiers
-    if backend == "keyboard" and KEYBOARD_OK:
+    if KEYBOARD_OK:
         for mod in ['shift', 'ctrl', 'alt', 'windows']:
             try: _kb.release(mod)
             except: pass
-
-    if backend == "keyboard":
         _kb.write(text, delay=interval)
-    else:
-        _pag.FAILSAFE = True
-        _pag.write(text, interval=interval)
 
 
 def main() -> None:
@@ -43,7 +32,6 @@ def main() -> None:
     parser.add_argument("-f", "--file")
     parser.add_argument("-d", "--delay", type=int, default=3)
     parser.add_argument("-i", "--interval", type=float, default=0.03)
-    parser.add_argument("--backend", choices=["keyboard", "pyautogui"], default="keyboard")
     args = parser.parse_args()
 
     if args.text: text = args.text
@@ -60,11 +48,14 @@ def main() -> None:
     print("\r✅ Typing started!")
 
     try:
-        _smart_write(text, args.interval, args.backend)
+        _smart_write(text, args.interval)
         print("✅ Done!")
     except KeyboardInterrupt:
         print("\n⛔ Aborted")
 
 
 if __name__ == "__main__":
+    if not KEYBOARD_OK:
+        print("Error: keyboard module not found.")
+        sys.exit(1)
     main()
