@@ -41,26 +41,59 @@ Script-List/
 ├── README.zh-TW.md
 ├── LICENSE
 ├── .gitignore
-├── image-downloader-pdf/       # 圖片下載與 PDF 轉換工具
-├── text-converter-zh/          # 中文簡繁轉換工具
-├── password-security-checker/  # 密碼外洩與強度檢查工具
-├── openai-chat-cli/            # OpenAI 對話工具，支援自訂人設
-├── image-text-verifier/        # 問卷影像辨識與 CSV 校對修正工具
-├── mhtml-to-pdf/               # MHTML 轉 PDF 工具 (Google 簡報 16:9 / A4)
-└── vnc-auto-typer/             # VNC 剪貼簿替代工具 – 模擬鍵盤輸入
+├── ai/                         # 人工智慧與 LLM 相關工具
+│   ├── openai-chat-cli/        # OpenAI 對話工具，支援自訂人設
+│   └── A2-Reproduction/        # A2: Agentic Android Analysis 漏洞分析復現
+├── automation/                 # 工作流與 GUI 自動化
+│   └── vnc-auto-typer/         # VNC 剪貼簿替代工具 (模擬鍵盤輸入)
+├── data/                       # 資料驗證與提取
+│   └── image-text-verifier/    # 問卷影像辨識與 CSV 校對修正工具
+├── media/                      # 圖片、PDF 與文件處理
+│   ├── image-downloader-pdf/   # 圖片下載與 PDF 轉換工具
+│   ├── image-to-pdf/           # 圖片轉 PDF 工具
+│   ├── mhtml-to-pdf/           # MHTML 轉 PDF 工具 (Google 簡報)
+│   ├── pdf-merger/             # PDF 合併工具
+│   ├── photo-splitter/         # 學生照片自動分割工具
+│   └── ppt-to-pdf/             # PPT 轉 PDF 工具
+├── security/                   # 安全性與分析工具
+│   ├── password-security-checker/ # 密碼外洩與強度檢查工具
+│   └── frida-apk-tool/         # Android APK 修補與 Frida Hook 工具組
+└── text/                       # 文字轉換與編碼
+    ├── text-converter-zh/      # 中文簡繁轉換工具
+    ├── base64-converter/       # Base64 編解碼工具
+    └── hex-to-ascii/           # Hex 轉 ASCII 轉換工具
 ```
 
 ## 🛠️ 可用工具
 
-實用腳本工具:
+實用腳本工具（依功能分類）：
 
-- **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - 批次下載網路圖片並自動合併為 PDF 文件。支援自動偵測與手動模式,具備智能排序功能。 → [詳細說明](image-downloader-pdf/README.md)
-- **文字轉換工具 (簡繁中文)** ([text-converter-zh/](text-converter-zh/)) - 可選擇性的中文簡繁轉換工具組,提供轉換前審核工作流程。包含檢查模式預覽與兩步驟 JSON 設定檔轉換流程。 → [詳細說明](text-converter-zh/README.md)
-- **密碼安全檢查工具** ([password-security-checker/](password-security-checker/)) - PowerShell 工具,使用 HIBP API 檢查密碼是否在資料外洩事件中曝光。包含暴力破解時間估算與隱私保護的 k-匿名查詢。 → [詳細說明](password-security-checker/README.md)
-- **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - OpenAI 對話 API 的命令列介面,支援自訂對話風格。功能包括諸葛亮人設、多語言支援與對話歷史管理。 → [詳細說明](openai-chat-cli/README.md)
-- **問卷影像辨識與校對工具** ([image-text-verifier/](image-text-verifier/)) - 用於將實體問卷掃描圖自動辨識提取答案，並與現有 CSV 資料自動比對、偵測風險與修正的工具。 → [詳細說明](image-text-verifier/README.zh-TW.md)
-- **MHTML 轉 PDF 轉檔工具** ([mhtml-to-pdf/](mhtml-to-pdf/)) - 將 Google 簡報匯出的 MHTML 檔案轉換為零留白 16:9 PDF（或 A4 橫式）。支援 GUI 檔案選擇器、離線瀏覽器模式，自動保留背景圖片。 → [詳細說明](mhtml-to-pdf/README.md)
-- **VNC 自動打字工具** ([vnc-auto-typer/](vnc-auto-typer/)) - 當 VNC 剪貼簿貼上功能無法使用時，從剪貼簿、文字檔或命令列參數讀取文字，以逐字模擬鍵盤輸入的方式輸入 VNC 視窗，支援倒數計時與可調整的按鍵間隔。 → [詳細說明](vnc-auto-typer/README.zh-TW.md)
+### 🤖 AI & LLM 相關
+- **OpenAI Chat CLI** ([ai/openai-chat-cli/](ai/openai-chat-cli/)) - OpenAI 對話 API 的命令列介面，支援自訂對話風格。功能包括諸葛亮人設、多語言支援與對話歷史管理。 → [詳細說明](ai/openai-chat-cli/README.md)
+- **A2: Agentic Android Analysis** ([ai/A2-Reproduction/](ai/A2-Reproduction/)) - Android 漏洞自動化發現與驗證系統，基於多代理人架構的復現專案。 → [詳細說明](ai/A2-Reproduction/README.md)
+
+### ⚙️ 自動化工具
+- **VNC 自動打字工具** ([automation/vnc-auto-typer/](automation/vnc-auto-typer/)) - 當 VNC 剪貼簿貼上功能無法使用時，以模擬鍵盤輸入的方式將文字輸入 VNC 視窗。 → [詳細說明](automation/vnc-auto-typer/README.zh-TW.md)
+
+### 📊 資料驗證與提取
+- **問卷影像辨識與校對工具** ([data/image-text-verifier/](data/image-text-verifier/)) - 用於將實體問卷掃描圖自動辨識，並與現有 CSV 資料自動比對、偵測風險與修正的工具。 → [詳細說明](data/image-text-verifier/README.zh-TW.md)
+
+### 📁 媒體與文件處理
+- **Image Downloader & PDF Converter** ([media/image-downloader-pdf/](media/image-downloader-pdf/)) - 批次下載網路圖片並自動合併為 PDF 文件。支援自動偵測與智能排序功能。 → [詳細說明](media/image-downloader-pdf/README.md)
+- **MHTML 轉 PDF 轉檔工具** ([media/mhtml-to-pdf/](media/mhtml-to-pdf/)) - 將 Google 簡報匯出的 MHTML 檔案轉換為零留白 16:9 PDF。支援 GUI 選擇器與離線模式。 → [詳細說明](media/mhtml-to-pdf/README.md)
+- **PDF 合併工具** ([media/pdf-merger/](media/pdf-merger/)) - 將多個 PDF 檔案按自定義順序合併為單一文件的簡單工具。 → [詳細說明](media/pdf-merger/README.md)
+- **圖片轉 PDF 工具** ([media/image-to-pdf/](media/image-to-pdf/)) - 將指定目錄中的所有圖片自動合併為一個 PDF 文件。 → [詳細說明](media/image-to-pdf/README.md)
+- **PPT 轉 PDF 工具** ([media/ppt-to-pdf/](media/ppt-to-pdf/)) - 批次將 PowerPoint 簡報 (.pptx) 轉換為 PDF 格式。 → [詳細說明](media/ppt-to-pdf/README.md)
+- **學生照片分割工具** ([media/photo-splitter/](media/photo-splitter/)) - 使用人臉偵測技術與名單映射，從團體照中自動提取個人肖像。 → [詳細說明](media/photo-splitter/README.md)
+
+### 🛡️ 安全性工具
+- **密碼安全檢查工具** ([security/password-security-checker/](security/password-security-checker/)) - 使用 HIBP API 檢查密碼是否在資料外洩事件中曝光，並提供破解時間估算。 → [詳細說明](security/password-security-checker/README.md)
+- **Frida APK 修補工具** ([security/frida-apk-tool/](security/frida-apk-tool/)) - 用於為 Android APK 注入 Frida Hook 進行動態分析與測試的工具組。 → [詳細說明](security/frida-apk-tool/README.md)
+
+### 📝 文字轉換與編碼
+- **文字轉換工具 (簡繁中文)** ([text/text-converter-zh/](text/text-converter-zh/)) - 可選擇性的中文簡繁轉換工具組，提供轉換前審核工作流程與 JSON 設定。 → [詳細說明](text/text-converter-zh/README.md)
+- **Base64 轉換工具** ([text/base64-converter/](text/base64-converter/)) - 支援字串與檔案的 Base64 編解碼工具。 → [詳細說明](text/base64-converter/README.md)
+- **Hex 轉 ASCII 轉換工具** ([text/hex-to-ascii/](text/hex-to-ascii/)) - 將十六進位字串轉換為對應的 ASCII 文本。 → [詳細說明](text/hex-to-ascii/README.md)
 
 ## 🚀 快速開始
 

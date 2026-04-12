@@ -41,26 +41,59 @@ Script-List/
 ├── README.zh-TW.md
 ├── LICENSE
 ├── .gitignore
-├── image-downloader-pdf/       # Image downloader and PDF converter
-├── text-converter-zh/          # Chinese text converter (Simplified ↔ Traditional)
-├── password-security-checker/  # Password breach and strength checker
-├── openai-chat-cli/            # OpenAI Chat CLI with custom personas
-├── image-text-verifier/        # Questionnaire image to CSV verification and fixing tool
-├── mhtml-to-pdf/               # MHTML to PDF converter (Google Slides 16:9 / A4)
-└── vnc-auto-typer/             # VNC clipboard workaround – simulates keyboard input
+├── ai/                         # Artificial Intelligence & LLM tools
+│   ├── openai-chat-cli/        # OpenAI Chat CLI with custom personas
+│   └── A2-Reproduction/        # Agentic Android Analysis reproduction
+├── automation/                 # Workflow & GUI automation
+│   └── vnc-auto-typer/         # VNC clipboard workaround (keyboard simulation)
+├── data/                       # Data verification & extraction
+│   └── image-text-verifier/    # Questionnaire image to CSV verification tool
+├── media/                      # Image, PDF & Document processing
+│   ├── image-downloader-pdf/   # Web image downloader and PDF merger
+│   ├── image-to-pdf/           # Simple image to PDF converter
+│   ├── mhtml-to-pdf/           # MHTML to PDF converter (Google Slides)
+│   ├── pdf-merger/             # PDF file merging utility
+│   ├── photo-splitter/         # Student photo extraction/splitting tool
+│   └── ppt-to-pdf/             # PowerPoint to PDF converter
+├── security/                   # Security & Analysis tools
+│   ├── password-security-checker/ # HIBP breach and strength checker
+│   └── frida-apk-tool/         # Android APK patching with Frida hooks
+└── text/                       # Text transformation & encoding
+    ├── text-converter-zh/      # Chinese Simplified ↔ Traditional converter
+    ├── base64-converter/       # Base64 encoding/decoding utility
+    └── hex-to-ascii/           # Hexadecimal to ASCII converter
 ```
 
 ## 🛠️ Available Tools
 
-Practical script tools:
+Practical script tools categorized by function:
 
-- **Image Downloader & PDF Converter** ([image-downloader-pdf/](image-downloader-pdf/)) - Batch download web images and automatically merge them into a PDF document. Supports auto detection and manual mode with smart sorting. → [Details](image-downloader-pdf/README.md)
-- **Text Converter (Simplified ↔ Traditional Chinese)** ([text-converter-zh/](text-converter-zh/)) - Selective Chinese text conversion toolkit with review-before-convert workflow. Check mode for preview and two-step conversion process with JSON configuration. → [Details](text-converter-zh/README.md)
-- **Password Security Checker** ([password-security-checker/](password-security-checker/)) - PowerShell tool to check if passwords have been exposed in data breaches using HIBP API. Includes brute-force time estimation and privacy-preserving k-anonymity query. → [Details](password-security-checker/README.md)
-- **OpenAI Chat CLI** ([openai-chat-cli/](openai-chat-cli/)) - Command-line interface for OpenAI Chat API with customizable conversation styles. Features include Zhuge Liang persona, multi-language support, and conversation history management. → [Details](openai-chat-cli/README.md)
-- **Image-Text Verifier** ([image-text-verifier/](image-text-verifier/)) - A specialized tool for extracting answers from scanned questionnaire images and automatically verifying/fixing them against an existing CSV dataset with targeted risk management. → [Details](image-text-verifier/README.md)
-- **MHTML to PDF Converter** ([mhtml-to-pdf/](mhtml-to-pdf/)) - Convert Google Slides MHTML exports into zero-whitespace 16:9 PDFs (or A4 landscape). Features a GUI file picker, offline browser mode, and automatic background image preservation. → [Details](mhtml-to-pdf/README.md)
-- **VNC Auto Typer** ([vnc-auto-typer/](vnc-auto-typer/)) - Simulate keyboard input into a VNC window when clipboard paste is unavailable. Reads from clipboard, file, or inline text and types character-by-character with a configurable interval and countdown. → [Details](vnc-auto-typer/README.md)
+### 🤖 AI & LLM
+- **OpenAI Chat CLI** ([ai/openai-chat-cli/](ai/openai-chat-cli/)) - Command-line interface for OpenAI Chat API with customizable conversation styles. Features include Zhuge Liang persona, multi-language support, and history management. → [Details](ai/openai-chat-cli/README.md)
+- **A2: Agentic Android Analysis** ([ai/A2-Reproduction/](ai/A2-Reproduction/)) - Reproduction of the A2 framework for automated mobile app vulnerability discovery and validation using multi-agent systems. → [Details](ai/A2-Reproduction/README.md)
+
+### ⚙️ Automation
+- **VNC Auto Typer** ([automation/vnc-auto-typer/](automation/vnc-auto-typer/)) - Simulate keyboard input into a VNC window when clipboard paste is unavailable. Reads from clipboard, file, or inline text. → [Details](automation/vnc-auto-typer/README.md)
+
+### 📊 Data & Verification
+- **Image-Text Verifier** ([data/image-text-verifier/](data/image-text-verifier/)) - Extract answers from scanned questionnaire images and automatically verify/fix them against an existing CSV dataset with targeted risk management. → [Details](data/image-text-verifier/README.md)
+
+### 📁 Media & Documents
+- **Image Downloader & PDF Converter** ([media/image-downloader-pdf/](media/image-downloader-pdf/)) - Batch download web images and automatically merge them into a PDF document. Supports smart sorting. → [Details](media/image-downloader-pdf/README.md)
+- **MHTML to PDF Converter** ([media/mhtml-to-pdf/](media/mhtml-to-pdf/)) - Convert Google Slides MHTML exports into zero-whitespace 16:9 PDFs. Features GUI file picker and offline mode. → [Details](media/mhtml-to-pdf/README.md)
+- **PDF Merger** ([media/pdf-merger/](media/pdf-merger/)) - Simple utility to merge multiple PDF files into a single document with customizable order. → [Details](media/pdf-merger/README.md)
+- **Image to PDF** ([media/image-to-pdf/](media/image-to-pdf/)) - Convert a directory of images into a single PDF document. → [Details](media/image-to-pdf/README.md)
+- **PPT to PDF** ([media/ppt-to-pdf/](media/ppt-to-pdf/)) - Batch convert PowerPoint presentations (.pptx) to PDF format. → [Details](media/ppt-to-pdf/README.md)
+- **Photo Splitter** ([media/photo-splitter/](media/photo-splitter/)) - Extract individual student portraits from group photos using face detection and roster mapping. → [Details](media/photo-splitter/README.md)
+
+### 🛡️ Security
+- **Password Security Checker** ([security/password-security-checker/](security/password-security-checker/)) - PowerShell tool to check if passwords have been exposed in data breaches using HIBP API. → [Details](security/password-security-checker/README.md)
+- **Frida APK Tool** ([security/frida-apk-tool/](security/frida-apk-tool/)) - Toolkit for patching Android APKs with Frida hooks for dynamic analysis and instrumentation. → [Details](security/frida-apk-tool/README.md)
+
+### 📝 Text & Encoding
+- **Text Converter (Simplified ↔ Traditional Chinese)** ([text/text-converter-zh/](text/text-converter-zh/)) - Selective Chinese text conversion toolkit with review-before-convert workflow. → [Details](text/text-converter-zh/README.md)
+- **Base64 Converter** ([text/base64-converter/](text/base64-converter/)) - Utility for encoding and decoding strings or files to/from Base64 format. → [Details](text/base64-converter/README.md)
+- **Hex to ASCII** ([text/hex-to-ascii/](text/hex-to-ascii/)) - Convert hexadecimal strings to their ASCII text equivalents. → [Details](text/hex-to-ascii/README.md)
 
 ## 🚀 Quick Start
 
