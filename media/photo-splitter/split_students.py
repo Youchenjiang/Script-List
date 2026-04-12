@@ -10,9 +10,7 @@ import numpy as np
 
 YUNET_MODEL = Path("face_detection_yunet_2023mar.onnx")
 YUNET_URL = "https://github.com/opencv/opencv_zoo/raw/main/models/face_detection_yunet/face_detection_yunet_2023mar.onnx"
-DEFAULT_ROSTER_IMAGE = Path(
-    r"C:\Users\g1014308\.cursor\projects\c-Users-g1014308-Downloads-photo\assets\c__Users_g1014308_AppData_Roaming_Cursor_User_workspaceStorage_0f57db2fd5c0e4db9149b3a728f57978_images_image-d492b119-948e-456b-b83a-108795bc9779.png"
-)
+DEFAULT_ROSTER_IMAGE = None
 
 ROSTER_MAP: dict[int, list[str]] = {
     1: ["鄒雅雯", "周怡湘", "蘇文馨", "黃詩涵", "林妤蓁", "朱宇婕"],
@@ -722,7 +720,7 @@ def process_one_image(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="將合照依姓名拆成每位同學個人圖")
-    parser.add_argument("--input-dir", default="../../photo", help="輸入資料夾")
+    parser.add_argument("--input-dir", default=".", help="輸入資料夾")
     parser.add_argument("--output-dir", default="split_students_output", help="輸出資料夾")
     parser.add_argument("--debug-dir", default="split_students_debug", help="除錯圖資料夾")
     args = parser.parse_args()
