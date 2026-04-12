@@ -1,0 +1,8 @@
+langchain
+langgraph
+google-generativeai
+pure-python-adb
+requests
+langchain-google-genai
+langchain-openai
+python-dotenv

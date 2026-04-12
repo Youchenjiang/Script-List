@@ -1,0 +1,32 @@
+# A2 Reproduction - Gitignore
+
+# Decompiled Output
+output/*
+!output/README.md
+
+# Local Tools (JADX)
+tools/*
+!tools/README.md
+
+# Temporary Files
+temp/
+__pycache__/
+*.pyc
+
+# Logs and Test Output
+test_output.txt
+full_output*.txt
+real_output.txt
+models.txt
+list_models.py
+*.log
+
+# Environment Variables
+.env
+
+# MacOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
