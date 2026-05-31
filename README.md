@@ -159,6 +159,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🔗 Related Projects
 
 - [Method-List](https://github.com/Youchenjiang/Method-List) - Technical knowledge base and solutions
+- [Clickra](https://github.com/Youchenjiang/Clickra) - Windows modern context menu extension utility (promoted to a standalone repository)
 
 ## 👤 Author
 

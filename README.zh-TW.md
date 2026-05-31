@@ -154,6 +154,7 @@ python script.py
 ## 🔗 相關專案
 
 - [Method-List](https://github.com/Youchenjiang/Method-List) - 技術知識庫與解決方案
+- [Clickra](https://github.com/Youchenjiang/Clickra) - Windows 11 現代右鍵選單自訂工具 (已從此倉庫獨立升格為專屬專案)
 
 ## 👤 作者
 
