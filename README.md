@@ -57,7 +57,8 @@ Script-List/
 │   └── ppt-to-pdf/             # PowerPoint to PDF converter
 ├── security/                   # Security & Analysis tools
 │   ├── password-security-checker/ # HIBP breach and strength checker
-│   └── frida-apk-tool/         # Android APK patching with Frida hooks
+│   ├── frida-apk-tool/         # Android APK patching with Frida hooks
+│   └── cybersec-slide-downloader/ # CYBERSEC 2026 slide downloader
 └── text/                       # Text transformation & encoding
     ├── text-converter-zh/      # Chinese Simplified ↔ Traditional converter
     ├── base64-converter/       # Base64 encoding/decoding utility
@@ -89,6 +90,7 @@ Practical script tools categorized by function:
 ### 🛡️ Security
 - **Password Security Checker** ([security/password-security-checker/](security/password-security-checker/)) - PowerShell tool to check if passwords have been exposed in data breaches using HIBP API. → [Details](security/password-security-checker/README.md)
 - **Frida APK Tool** ([security/frida-apk-tool/](security/frida-apk-tool/)) - Toolkit for patching Android APKs with Frida hooks for dynamic analysis and instrumentation. → [Details](security/frida-apk-tool/README.md)
+- **CYBERSEC 2026 Slide Downloader** ([security/cybersec-slide-downloader/](security/cybersec-slide-downloader/)) - Node.js utility to fetch and download all presentation slides from the CYBERSEC 2026 conference backend. → [Details](security/cybersec-slide-downloader/README.md)
 
 ### 📝 Text & Encoding
 - **Text Converter (Simplified ↔ Traditional Chinese)** ([text/text-converter-zh/](text/text-converter-zh/)) - Selective Chinese text conversion toolkit with review-before-convert workflow. → [Details](text/text-converter-zh/README.md)

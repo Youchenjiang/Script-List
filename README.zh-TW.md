@@ -57,7 +57,8 @@ Script-List/
 │   └── ppt-to-pdf/             # PPT 轉 PDF 工具
 ├── security/                   # 安全性與分析工具
 │   ├── password-security-checker/ # 密碼外洩與強度檢查工具
-│   └── frida-apk-tool/         # Android APK 修補與 Frida Hook 工具組
+│   ├── frida-apk-tool/         # Android APK 修補與 Frida Hook 工具組
+│   └── cybersec-slide-downloader/ # CYBERSEC 2026 簡報下載器
 └── text/                       # 文字轉換與編碼
     ├── text-converter-zh/      # 中文簡繁轉換工具
     ├── base64-converter/       # Base64 編解碼工具
@@ -89,6 +90,7 @@ Script-List/
 ### 🛡️ 安全性工具
 - **密碼安全檢查工具** ([security/password-security-checker/](security/password-security-checker/)) - 使用 HIBP API 檢查密碼是否在資料外洩事件中曝光，並提供破解時間估算。 → [詳細說明](security/password-security-checker/README.md)
 - **Frida APK 修補工具** ([security/frida-apk-tool/](security/frida-apk-tool/)) - 用於為 Android APK 注入 Frida Hook 進行動態分析與測試的工具組。 → [詳細說明](security/frida-apk-tool/README.md)
+- **CYBERSEC 2026 簡報下載器** ([security/cybersec-slide-downloader/](security/cybersec-slide-downloader/)) - 用於從 CYBERSEC 2026 大會 API 爬取與批次下載所有議程簡報的 Node.js 實用工具。 → [詳細說明](security/cybersec-slide-downloader/README.zh-TW.md)
 
 ### 📝 文字轉換與編碼
 - **文字轉換工具 (簡繁中文)** ([text/text-converter-zh/](text/text-converter-zh/)) - 可選擇性的中文簡繁轉換工具組，提供轉換前審核工作流程與 JSON 設定。 → [詳細說明](text/text-converter-zh/README.md)
