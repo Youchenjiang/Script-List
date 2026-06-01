@@ -1,0 +1,265 @@
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
+
+// Configuration
+const CONFIG = {
+  baseUrl: 'https://thehackernews.com',
+  weeksLimit: 3,             // Limit crawling to the last 3 weeks of articles
+  delayMs: 800,              // Delay between requests to prevent rate limits
+  outputDir: path.join(__dirname, 'news_output')
+};
+
+// Helper: Make HTTP GET Request (handles redirects and status check)
+function fetchUrl(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+      }
+    }, (res) => {
+      // Handle HTTP redirects (301, 302)
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return fetchUrl(res.headers.location).then(resolve).catch(reject);
+      }
+      if (res.statusCode !== 200) {
+        return reject(new Error(`HTTP status ${res.statusCode} for URL: ${url}`));
+      }
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+// Helper: Delay helper
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+// Helper: Parse date string (e.g. "May 31, 2026") into Date object
+function parseDate(dateStr) {
+  const match = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}/i.exec(dateStr);
+  if (match) {
+    return new Date(match[0]);
+  }
+  return new Date(dateStr);
+}
+
+// Helper: Format Date object to YYYY-MM-DD
+function formatDate(dateObj) {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+// Helper: Balanced HTML Div extractor
+function extractDivContent(html, searchRegExp) {
+  const startIdx = html.search(searchRegExp);
+  if (startIdx === -1) return null;
+  
+  const startTagEnd = html.indexOf('>', startIdx);
+  if (startTagEnd === -1) return null;
+  
+  const lowerHtml = html.toLowerCase();
+  let openDivs = 1;
+  let pos = startTagEnd + 1;
+  const limit = html.length;
+  
+  while (pos < limit && openDivs > 0) {
+    const nextOpen = lowerHtml.indexOf('<div', pos);
+    const nextClose = lowerHtml.indexOf('</div>', pos);
+    
+    if (nextClose === -1) {
+      break;
+    }
+    
+    if (nextOpen !== -1 && nextOpen < nextClose) {
+      openDivs++;
+      pos = nextOpen + 4;
+    } else {
+      openDivs--;
+      if (openDivs === 0) {
+        return html.slice(startTagEnd + 1, nextClose);
+      }
+      pos = nextClose + 6;
+    }
+  }
+  
+  return null;
+}
+
+// Helper: Strip HTML tags and format text to clean Markdown
+function cleanHtmlToText(html) {
+  if (!html) return '';
+  return html
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, '\n\n## $1\n\n')
+    .replace(/<h3[^>]*>([\s\S]*?)<\/h3>/gi, '\n\n### $1\n\n')
+    .replace(/<h4[^>]*>([\s\S]*?)<\/h4>/gi, '\n\n#### $1\n\n')
+    .replace(/<p[^>]*>/gi, '\n\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<li[^>]*>/gi, '\n- ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '') // Strip all remaining tags
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\n{3,}/g, '\n\n') // Normalize multiple newlines
+    .trim();
+}
+
+async function main() {
+  const targetDateLimit = new Date();
+  targetDateLimit.setDate(targetDateLimit.getDate() - (CONFIG.weeksLimit * 7));
+  console.log(`[Scraper] Initializing... Target date limit: ${CONFIG.weeksLimit} weeks ago (${targetDateLimit.toLocaleDateString()})`);
+
+  if (!fs.existsSync(CONFIG.outputDir)) {
+    fs.mkdirSync(CONFIG.outputDir, { recursive: true });
+  }
+
+  let articlesToFetch = [];
+  let reachedLimit = false;
+
+  // Phase 1: Collect article links within target time limit (using Blogger JSON Feed first, fallback to crawl)
+  console.log(`[Scraper] Fetching articles list via Blogger JSON Feed...`);
+  try {
+    const feedUrl = `${CONFIG.baseUrl}/feeds/posts/default?alt=json&redirect=false&max-results=150`;
+    const feedDataStr = await fetchUrl(feedUrl);
+    const feedObj = JSON.parse(feedDataStr);
+    const entries = feedObj.feed.entry || [];
+    
+    console.log(`[Scraper] Retrieved ${entries.length} feed entries.`);
+    for (const entry of entries) {
+      const title = entry.title ? entry.title.$t.trim() : 'Untitled';
+      const pubDateText = entry.published ? entry.published.$t : '';
+      const dateObj = new Date(pubDateText);
+      
+      if (isNaN(dateObj.getTime())) continue;
+      
+      if (dateObj < targetDateLimit) {
+        console.log(`[Scraper] Reached older post in feed: [${title}] (${dateObj.toDateString()}). Stopping collection.`);
+        break;
+      }
+      
+      const altLink = entry.link.find(l => l.rel === 'alternate' && l.type === 'text/html');
+      if (!altLink) continue;
+      
+      let url = altLink.href;
+      if (url.startsWith('http://')) {
+        url = url.replace('http://', 'https://');
+      }
+      
+      const formattedDate = formatDate(dateObj);
+      const dateText = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      
+      articlesToFetch.push({ url, title, dateText, formattedDate });
+    }
+  } catch (err) {
+    console.warn(`[Warning] Failed to fetch articles via JSON Feed: ${err.message}. Falling back to HTML pagination crawl.`);
+    articlesToFetch = [];
+    let currentPageUrl = CONFIG.baseUrl;
+    
+    while (currentPageUrl && !reachedLimit) {
+      console.log(`[Scraper] Fetching listing page: ${currentPageUrl}`);
+      let html;
+      try {
+        html = await fetchUrl(currentPageUrl);
+      } catch (err) {
+        console.error(`[Error] Failed to fetch list page: ${err.message}`);
+        break;
+      }
+
+      // Parse story links on this page
+      const storyRegex = /<a[^>]*class=['"]story-link['"][^>]*href=['"]([^'"]+)['"][^>]*>([\s\S]*?)<\/a>/g;
+      let match;
+      let countOnPage = 0;
+
+      while ((match = storyRegex.exec(html)) !== null) {
+        const url = match[1];
+        const innerHtml = match[2];
+        
+        const titleMatch = /<h2[^>]*class=['"]home-title['"][^>]*>([^<]+)<\/h2>/.exec(innerHtml);
+        const title = titleMatch ? titleMatch[1].trim() : 'Untitled';
+        
+        const dateMatch = /<div[^>]*class=['"]item-label['"][^>]*>([\s\S]*?)<\/div>/.exec(innerHtml);
+        let dateText = '';
+        if (dateMatch) {
+          dateText = dateMatch[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+        }
+
+        const dateObj = parseDate(dateText);
+
+        // Skip sponsored/external partner links
+        if (!url.includes('thehackernews.com')) continue;
+
+        if (isNaN(dateObj.getTime())) {
+          continue;
+        }
+
+        if (dateObj < targetDateLimit) {
+          reachedLimit = true;
+          console.log(`[Scraper] Reached older post: [${title}] (${dateText}). Stopping listing crawl.`);
+          break;
+        }
+
+        const formattedDate = formatDate(dateObj);
+        articlesToFetch.push({ url, title, dateText, formattedDate });
+        countOnPage++;
+      }
+
+      console.log(`[Scraper] Found ${countOnPage} relevant articles on this page.`);
+
+      if (reachedLimit) break;
+
+      // Extract "Older Posts" pagination URL
+      const pagerRegex = /blog-pager-older-link[^>]*href=['"]([^'"]+)['"]/g;
+      const pagerMatch = pagerRegex.exec(html);
+      currentPageUrl = pagerMatch ? pagerMatch[1].replace(/&amp;/g, '&') : null;
+
+      if (currentPageUrl) {
+        await sleep(CONFIG.delayMs);
+      }
+    }
+  }
+
+  console.log(`\n[Scraper] Listing crawl finished. Found ${articlesToFetch.length} articles to download.`);
+
+  // Phase 2: Download each article and save text content as Markdown
+  for (let i = 0; i < articlesToFetch.length; i++) {
+    const article = articlesToFetch[i];
+    console.log(`[Scraper] (${i + 1}/${articlesToFetch.length}) Downloading: ${article.title}...`);
+    
+    try {
+      await sleep(CONFIG.delayMs);
+      const artHtml = await fetchUrl(article.url);
+      
+      // Extract main article body (id="articlebody")
+      const rawBody = extractDivContent(artHtml, /<div[^>]+(?:id|class)=['"]articlebody['"]/i);
+      let bodyText = '';
+      if (rawBody) {
+        bodyText = cleanHtmlToText(rawBody);
+      }
+
+      if (!bodyText) {
+        console.warn(`[Warning] Main body not found for: ${article.title}`);
+        bodyText = '(Main article body content could not be parsed)';
+      }
+
+      // Format clean markdown file content
+      const sanitizedTitle = article.title.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().substring(0, 85);
+      const filename = `${article.formattedDate} - ${sanitizedTitle}.md`;
+      const fileContent = `# ${article.title}\n\n- **Date**: ${article.dateText}\n- **URL**: ${article.url}\n\n---\n\n${bodyText}\n`;
+      
+      fs.writeFileSync(path.join(CONFIG.outputDir, filename), fileContent);
+    } catch (err) {
+      console.error(`[Error] Failed to download content for [${article.title}]: ${err.message}`);
+    }
+  }
+
+  console.log(`\n[Scraper] Done! All articles saved under: ${CONFIG.outputDir}`);
+}
+
+main().catch(console.error);
