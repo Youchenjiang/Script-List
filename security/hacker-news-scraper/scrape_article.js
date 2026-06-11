@@ -199,27 +199,66 @@ async function main() {
   let formattedDate = '';
   let bodyMarkdown = '';
 
-  console.log('[Scraper] Parsing format: Generic Article');
+  const isTheHackerNews = url.includes('thehackernews.com');
+  const isPermiso = url.includes('permiso.io');
+
   title = extractTitle(html);
 
-  const dateMatch = /"datePublished"\s*:\s*"([^"]+)"/i.exec(html) || /"dateCreated"\s*:\s*"([^"]+)"/i.exec(html);
-  if (dateMatch) {
-    const dateObj = new Date(dateMatch[1]);
-    if (!isNaN(dateObj.getTime())) {
-      formattedDate = formatDate(dateObj);
-      dateText = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  if (isTheHackerNews) {
+    console.log('[Scraper] Parsing format: The Hacker News');
+    // Extract Date
+    const dateMatch = /<span[^>]*class=['"]author['"][^>]*>[\s\S]*?<\/span>[\s\S]*?<span[^>]*class=['"]author['"][^>]*>([\s\S]*?)<\/span>/i.exec(html) || /<div[^>]*class=['"]item-label['"][^>]*>([\s\S]*?)<\/div>/i.exec(html);
+    if (dateMatch) {
+      dateText = dateMatch[1].replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim();
+      const dateObj = new Date(dateText);
+      if (!isNaN(dateObj.getTime())) {
+        formattedDate = formatDate(dateObj);
+      }
     }
-  }
 
-  // Fallback to <article> or search for body divs
-  const rawBody = extractDivContent(html, /<article/i) || extractDivContent(html, /<div[^>]+(?:id|class)=['"](?:post-body|entry-content|content|main-content)['"]/i);
-  if (rawBody) {
-    bodyMarkdown = cleanHtmlToMarkdown(rawBody);
+    // Extract Body
+    const rawBody = extractDivContent(html, /<div[^>]+(?:id|class)=['"]articlebody['"]/i);
+    if (rawBody) {
+      bodyMarkdown = cleanHtmlToMarkdown(rawBody);
+    }
+  } else if (isPermiso) {
+    console.log('[Scraper] Parsing format: Permiso Blog');
+    // Extract Date
+    const dateMatch = /"datePublished"\s*:\s*"([^"]+)"/i.exec(html);
+    if (dateMatch) {
+      const dateObj = new Date(dateMatch[1]);
+      if (!isNaN(dateObj.getTime())) {
+        formattedDate = formatDate(dateObj);
+        dateText = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    }
+
+    // Extract Body
+    const rawBody = extractDivContent(html, /<div[^>]+class=['"]blog-post__body['"]/i);
+    if (rawBody) {
+      bodyMarkdown = cleanHtmlToMarkdown(rawBody);
+    }
   } else {
-    // Last resort: strip whole body
-    const bodyMatch = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(html);
-    if (bodyMatch) {
-      bodyMarkdown = cleanHtmlToMarkdown(bodyMatch[1]);
+    console.log('[Scraper] Parsing format: Generic Article');
+    const dateMatch = /"datePublished"\s*:\s*"([^"]+)"/i.exec(html) || /"dateCreated"\s*:\s*"([^"]+)"/i.exec(html);
+    if (dateMatch) {
+      const dateObj = new Date(dateMatch[1]);
+      if (!isNaN(dateObj.getTime())) {
+        formattedDate = formatDate(dateObj);
+        dateText = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    }
+
+    // Fallback to <article> or search for body divs
+    const rawBody = extractDivContent(html, /<article/i) || extractDivContent(html, /<div[^>]+(?:id|class)=['"](?:post-body|entry-content|content|main-content)['"]/i);
+    if (rawBody) {
+      bodyMarkdown = cleanHtmlToMarkdown(rawBody);
+    } else {
+      // Last resort: strip whole body
+      const bodyMatch = /<body[^>]*>([\s\S]*?)<\/body>/i.exec(html);
+      if (bodyMatch) {
+        bodyMarkdown = cleanHtmlToMarkdown(bodyMatch[1]);
+      }
     }
   }
 
