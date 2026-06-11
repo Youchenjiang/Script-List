@@ -207,6 +207,14 @@ async function main() {
     if (session.downloads && session.downloads.length > 0) {
       session.downloads.forEach((dl, idx) => {
         if (dl.file && dl.file.url) {
+          // Skip "Add to Calendar" links/buttons
+          if (dl.title && dl.title.toLowerCase().includes('add to calendar')) {
+            return;
+          }
+          if (dl.file.url.includes('addcal.io')) {
+            return;
+          }
+
           const suffix = session.downloads.length > 1 ? `_dl${idx + 1}` : '_dl';
           // Extract extension from url or fallback to .pdf
           let ext = '.pdf';

@@ -10,7 +10,7 @@
 - [CRA, Compliance & GRC Regulations](#04-cra-compliance) (14 份簡報)
 - [Red/Blue Team Attack & Penetration](#05-red-blue-attacks) (32 份簡報)
 - [Cloud & Network Security SASE](#06-cloud-network) (10 份簡報)
-- [General Presentations & Opening Remarks](#07-others) (14 份簡報)
+- [General Presentations & Opening Remarks](#07-others) (3 份簡報)
 
 
 ---
@@ -1228,46 +1228,6 @@
 
 ## <a id="07-others"></a>📁 General Presentations & Opening Remarks
 
-### 📄 [AI Security for Everyone: What OWASP's New Agentic AI Top 10 Means for You](downloads/07_Others/%5B4521%5D_dl%20AI%20Security%20for%20Everyone_%20What%20OWASP%27s%20New%20Agentic%20AI%20Top%2010%20Means%20for%20You.pdf)
-- **講師**: Chommakorn Sontesadisai (ALBATROSS CYBERSEC)
-- **單元分類**: `選擇...`
-
-### 📄 [Advanced Cyber Defence Techniques for AI-Driven Threat Vectors](downloads/07_Others/%5B4498%5D_dl%20Advanced%20Cyber%20Defence%20Techniques%20for%20AI-Driven%20Threat%20Vectors.pdf)
-- **講師**: Nyan Tun Zaw (Athena Dynamics)
-- **單元分類**: `選擇...`
-
-### 📄 [Cybersecurity as Capital Allocation: Why CRQ Matters Now](downloads/07_Others/%5B4475%5D_dl%20Cybersecurity%20as%20Capital%20Allocation_%20Why%20CRQ%20Matters%20Now.pdf)
-- **講師**: Akers C. Kuo (Taiwan Risk Governance and Measurement Association (TRGMA))
-- **單元分類**: `選擇...`
-
-### 📄 [Exploring the Deeper Challenge (Part 2): How Can .SVS E-Signatures Enable Human Asset Digitalization?](downloads/07_Others/%5B4476%5D_dl%20Exploring%20the%20Deeper%20Challenge%20%28Part%202%29_%20How%20Can%20.SVS%20E-Signatures%20Enable%20Human%20Asset%20Digitalization_.pdf)
-- **講師**: 吳右任 (雲想科技股份有限公司)
-- **單元分類**: `選擇...`
-
-### 📄 [Fostering an information security-first culture - Insights from the Taiwan Biobank experience](downloads/07_Others/%5B4499%5D_dl%20Fostering%20an%20information%20security-first%20culture%20-%20Insights%20from%20the%20Taiwan%20Biobank%20experience.pdf)
-- **講師**: 張中科 (中央研究院)
-- **單元分類**: `選擇...`
-
-### 📄 [From Compliance to Cyber Resilience: GRC as a Business Enabler](downloads/07_Others/%5B4518%5D_dl%20From%20Compliance%20to%20Cyber%20Resilience_%20GRC%20as%20a%20Business%20Enabler.pdf)
-- **講師**: Jacen Loke (Dynamic Link Solutions)
-- **單元分類**: `選擇...`
-
-### 📄 [From Storage to Root of Trust: Securing Systems with External Secure Flash and Post-Quantum Readiness](downloads/07_Others/%5B4497%5D_dl%20From%20Storage%20to%20Root%20of%20Trust_%20Securing%20Systems%20with%20External%20Secure%20Flash%20and%20Post-Quantum%20Readiness.pdf)
-- **講師**: 葉金瓚 (旺宏電子)
-- **單元分類**: `選擇...`
-
-### 📄 [Identity is the New Currency: Re-Building Payment Trust with the EUDI Wallet](downloads/07_Others/%5B4477%5D_dl%20Identity%20is%20the%20New%20Currency_%20Re-Building%20Payment%20Trust%20with%20the%20EUDI%20Wallet.pdf)
-- **講師**: Jan Oetting (Paymenttools)
-- **單元分類**: `選擇...`
-
-### 📄 [Securing Trust in Industry 5.0: Data-Centric Cybersecurity for the AI and Quantum Era](downloads/07_Others/%5B4495%5D_dl%20Securing%20Trust%20in%20Industry%205.0_%20Data-Centric%20Cybersecurity%20for%20the%20AI%20and%20Quantum%20Era.pdf)
-- **講師**: Daniel Toh (Thales)
-- **單元分類**: `選擇...`
-
-### 📄 [Standardization Progress of Post-Quantum Cryptography Certificate Schemes and Vehicular Network Certificate Schemes](downloads/07_Others/%5B4522%5D_dl%20Standardization%20Progress%20of%20Post-Quantum%20Cryptography%20Certificate%20Schemes%20and%20Vehicular%20Network%20Certificate....pdf)
-- **講師**: 陳志華博士 (Abel C. H. Chen) (中華電信研究院)
-- **單元分類**: `選擇...`
-
 ### 📄 [The Cybercrime Factory: Infostealers. Annual Intelligence Brief.](downloads/07_Others/%5B4244%5D%20The%20Cybercrime%20Factory_%20Infostealers.%20Annual%20Intelligence%20Brief.pdf)
 - **講師**: Leonid Rozenberg (Hudson Rock)
 - **單元分類**: `選擇...`
@@ -1277,10 +1237,6 @@
   2. The Anatomy of Browser Credentials Theft
   3. The Numbers
   4. The Ecosystem
-
-### 📄 [What if Information Security is a Martial Art? Building an Integrated and Sustainable Security Governance Model](downloads/07_Others/%5B4503%5D_dl%20What%20if%20Information%20Security%20is%20a%20Martial%20Art_%20Building%20an%20Integrated%20and%20Sustainable%20Security%20Governance%20M....pdf)
-- **講師**: 陳琬茹 (MISO)
-- **單元分類**: `選擇...`
 
 ### 📄 [他們說我是沒有用的年輕人](downloads/07_Others/%5B4228%5D%20%E4%BB%96%E5%80%91%E8%AA%AA%E6%88%91%E6%98%AF%E6%B2%92%E6%9C%89%E7%94%A8%E7%9A%84%E5%B9%B4%E8%BC%95%E4%BA%BA.pdf)
 - **講師**: PD Lee (自由工作者)

@@ -2146,36 +2146,6 @@
       "Support Period"
     ]
   },
-  "[4475]_dl Cybersecurity as Capital Allocation_ Why CRQ Matters Now.pdf": {
-    "id": "4475",
-    "title": "Cybersecurity as Capital Allocation: Why CRQ Matters Now",
-    "track": "選擇...",
-    "speakers": "Akers C. Kuo (Taiwan Risk Governance and Measurement Association (TRGMA))",
-    "category": "07_Others",
-    "filename": "[4475]_dl Cybersecurity as Capital Allocation_ Why CRQ Matters Now.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4476]_dl Exploring the Deeper Challenge (Part 2)_ How Can .SVS E-Signatures Enable Human Asset Digitalization_.pdf": {
-    "id": "4476",
-    "title": "Exploring the Deeper Challenge (Part 2): How Can .SVS E-Signatures Enable Human Asset Digitalization?",
-    "track": "選擇...",
-    "speakers": "吳右任 (雲想科技股份有限公司)",
-    "category": "07_Others",
-    "filename": "[4476]_dl Exploring the Deeper Challenge (Part 2)_ How Can .SVS E-Signatures Enable Human Asset Digitalization_.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4477]_dl Identity is the New Currency_ Re-Building Payment Trust with the EUDI Wallet.pdf": {
-    "id": "4477",
-    "title": "Identity is the New Currency: Re-Building Payment Trust with the EUDI Wallet",
-    "track": "選擇...",
-    "speakers": "Jan Oetting (Paymenttools)",
-    "category": "07_Others",
-    "filename": "[4477]_dl Identity is the New Currency_ Re-Building Payment Trust with the EUDI Wallet.pdf",
-    "keywords": [],
-    "outline": []
-  },
   "[4478] 數位生態鏈的隱形戰場：Mastercard 如何應對第三方風險與網路威脅.pdf": {
     "id": "4478",
     "title": "數位生態鏈的隱形戰場：Mastercard 如何應對第三方風險與網路威脅",
@@ -2198,56 +2168,6 @@
       "• 據報導，一台中國國家級超級電腦外洩了10 PB（拍位元組）的資料。",
       "人工智慧降低進入門檻並擴大影響規模。"
     ]
-  },
-  "[4495]_dl Securing Trust in Industry 5.0_ Data-Centric Cybersecurity for the AI and Quantum Era.pdf": {
-    "id": "4495",
-    "title": "Securing Trust in Industry 5.0: Data-Centric Cybersecurity for the AI and Quantum Era",
-    "track": "選擇...",
-    "speakers": "Daniel Toh (Thales)",
-    "category": "07_Others",
-    "filename": "[4495]_dl Securing Trust in Industry 5.0_ Data-Centric Cybersecurity for the AI and Quantum Era.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4497]_dl From Storage to Root of Trust_ Securing Systems with External Secure Flash and Post-Quantum Readiness.pdf": {
-    "id": "4497",
-    "title": "From Storage to Root of Trust: Securing Systems with External Secure Flash and Post-Quantum Readiness",
-    "track": "選擇...",
-    "speakers": "葉金瓚 (旺宏電子)",
-    "category": "07_Others",
-    "filename": "[4497]_dl From Storage to Root of Trust_ Securing Systems with External Secure Flash and Post-Quantum Readiness.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4498]_dl Advanced Cyber Defence Techniques for AI-Driven Threat Vectors.pdf": {
-    "id": "4498",
-    "title": "Advanced Cyber Defence Techniques for AI-Driven Threat Vectors",
-    "track": "選擇...",
-    "speakers": "Nyan Tun Zaw (Athena Dynamics)",
-    "category": "07_Others",
-    "filename": "[4498]_dl Advanced Cyber Defence Techniques for AI-Driven Threat Vectors.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4499]_dl Fostering an information security-first culture - Insights from the Taiwan Biobank experience.pdf": {
-    "id": "4499",
-    "title": "Fostering an information security-first culture - Insights from the Taiwan Biobank experience",
-    "track": "選擇...",
-    "speakers": "張中科 (中央研究院)",
-    "category": "07_Others",
-    "filename": "[4499]_dl Fostering an information security-first culture - Insights from the Taiwan Biobank experience.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4503]_dl What if Information Security is a Martial Art_ Building an Integrated and Sustainable Security Governance M....pdf": {
-    "id": "4503",
-    "title": "What if Information Security is a Martial Art? Building an Integrated and Sustainable Security Governance Model",
-    "track": "選擇...",
-    "speakers": "陳琬茹 (MISO)",
-    "category": "07_Others",
-    "filename": "[4503]_dl What if Information Security is a Martial Art_ Building an Integrated and Sustainable Security Governance M....pdf",
-    "keywords": [],
-    "outline": []
   },
   "[4505] 告別無效告警：應用 AI 拯救 SecOps 前線.pdf": {
     "id": "4505",
@@ -2317,36 +2237,6 @@
       "真正的問題不是「要不要用 AI」",
       "AI 導入的真實現況"
     ]
-  },
-  "[4518]_dl From Compliance to Cyber Resilience_ GRC as a Business Enabler.pdf": {
-    "id": "4518",
-    "title": "From Compliance to Cyber Resilience: GRC as a Business Enabler",
-    "track": "選擇...",
-    "speakers": "Jacen Loke (Dynamic Link Solutions)",
-    "category": "07_Others",
-    "filename": "[4518]_dl From Compliance to Cyber Resilience_ GRC as a Business Enabler.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4521]_dl AI Security for Everyone_ What OWASP's New Agentic AI Top 10 Means for You.pdf": {
-    "id": "4521",
-    "title": "AI Security for Everyone: What OWASP's New Agentic AI Top 10 Means for You",
-    "track": "選擇...",
-    "speakers": "Chommakorn Sontesadisai (ALBATROSS CYBERSEC)",
-    "category": "07_Others",
-    "filename": "[4521]_dl AI Security for Everyone_ What OWASP's New Agentic AI Top 10 Means for You.pdf",
-    "keywords": [],
-    "outline": []
-  },
-  "[4522]_dl Standardization Progress of Post-Quantum Cryptography Certificate Schemes and Vehicular Network Certificate....pdf": {
-    "id": "4522",
-    "title": "Standardization Progress of Post-Quantum Cryptography Certificate Schemes and Vehicular Network Certificate Schemes",
-    "track": "選擇...",
-    "speakers": "陳志華博士 (Abel C. H. Chen) (中華電信研究院)",
-    "category": "07_Others",
-    "filename": "[4522]_dl Standardization Progress of Post-Quantum Cryptography Certificate Schemes and Vehicular Network Certificate....pdf",
-    "keywords": [],
-    "outline": []
   },
   "[4531] 從風險管理到韌性防禦：迎戰下一波資安威脅.pdf": {
     "id": "4531",
