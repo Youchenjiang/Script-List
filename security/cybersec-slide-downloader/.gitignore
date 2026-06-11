@@ -1,3 +1,4 @@
 # Local downloaded files
-downloads/
+downloads/**/*
+!downloads/slides_index.md
 download_report.json

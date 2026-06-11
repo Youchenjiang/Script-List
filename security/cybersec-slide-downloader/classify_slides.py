@@ -17,7 +17,7 @@ if sys.stdout.encoding != 'utf-8':
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 DOWNLOADS_DIR = os.path.join(SCRIPT_DIR, "downloads")
 CACHE_FILE = os.path.join(SCRIPT_DIR, "classified_metadata.json")
-INDEX_FILE = os.path.join(SCRIPT_DIR, "slides_index.md")
+INDEX_FILE = os.path.join(DOWNLOADS_DIR, "slides_index.md")
 
 API_URL = "https://ccmsapi.ithome.com.tw"
 
@@ -393,7 +393,7 @@ def main():
             md_lines.append(f"\n## <a id=\"{cat.lower().replace('_', '-')}\"></a>📁 {CATEGORIES[cat]}")
             md_lines.append("")
             
-        escaped_filename = urllib.parse.quote(f"downloads/{cat}/{item['filename']}")
+        escaped_filename = urllib.parse.quote(f"{cat}/{item['filename']}")
         md_lines.append(f"### 📄 [{item['title']}]({escaped_filename})")
         md_lines.append(f"- **講師**: {item['speakers']}")
         if item["track"]:

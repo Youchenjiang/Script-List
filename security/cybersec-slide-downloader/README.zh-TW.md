@@ -11,7 +11,7 @@
 - **自動觸發分類**：下載任何新簡報後，自動執行 Python 分類腳本。
 - **PDF 內容智慧分類**：使用 Python (`pypdf`) 讀取並分析 PDF 投影片內文，依據關鍵詞及大會單元分類自動將簡報移至 7 個類別目錄。
 - **大綱與關鍵詞提取**：過濾掉母片中重複的頁首與頁尾，提取投影片前 5 頁的標題大綱以及前 6 個核心關鍵詞。
-- **簡報檢索目錄**：自動更新 [slides_index.md](slides_index.md) 索引檔，包含講師與公司、單元分類、核心關鍵詞、投影片大綱，並提供本地簡報檔案的相對路徑連結。
+- **簡報檢索目錄**：自動更新 [downloads/slides_index.md](downloads/slides_index.md) 索引檔，包含講師與公司、單元分類、核心關鍵詞、投影片大綱，並提供本地簡報檔案的相對路徑連結。
 
 ## 環境需求
 
@@ -30,7 +30,7 @@
    ```bash
    uv run --with pypdf classify_slides.py
    ```
-4. 開啟 [slides_index.md](slides_index.md)，透過關鍵字或講師搜尋簡報，點擊相對路徑連結即可直接開啟 PDF 閱讀。
+4. 開啟 [downloads/slides_index.md](downloads/slides_index.md)，透過關鍵字或講師搜尋簡報，點擊相對路徑連結即可直接開啟 PDF 閱讀。
 
 ## 分類資料夾結構
 

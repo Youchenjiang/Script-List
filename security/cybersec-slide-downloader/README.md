@@ -11,7 +11,7 @@ A Node.js and Python toolset to dynamically scrape, batch-download, and automati
 - **Auto-run Classification**: Automatically triggers the PDF classifier after downloading new slides.
 - **Advanced PDF Classification & Sorting**: Automatically parses PDF slide content using Python (`pypdf`) and categories them into 7 organized subdirectories based on keyword matching and API track metadata.
 - **Outline & Keyword Extraction**: Extracts the top 5 page headings and 6 keywords from each PDF using a frequency-based running header filter to remove repetitive master-slide headers.
-- **Searchable Markdown Index**: Generates a unified [slides_index.md](slides_index.md) file containing speaker names, company details, relative local file links, outlines, and keywords.
+- **Searchable Markdown Index**: Generates a unified [downloads/slides_index.md](downloads/slides_index.md) file containing speaker names, company details, relative local file links, outlines, and keywords.
 
 ## Prerequisites
 
@@ -30,7 +30,7 @@ A Node.js and Python toolset to dynamically scrape, batch-download, and automati
    ```bash
    uv run --with pypdf classify_slides.py
    ```
-4. Open [slides_index.md](slides_index.md) to search across all sessions and click the local file links to open the PDFs.
+4. Open [downloads/slides_index.md](downloads/slides_index.md) to search across all sessions and click the local file links to open the PDFs.
 
 ## Categorized Folder Layout
 
