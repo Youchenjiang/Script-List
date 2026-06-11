@@ -231,10 +231,21 @@ def classify_pdf(pdf_path, session_title="", session_track=""):
                 if line.isdigit() or len(line) < 4:
                     continue
                 lower_line = line.lower()
-                if 'disclaimer' in lower_line or '免責' in lower_line:
+                
+                # Check for copyright, disclaimers, and common footer templates
+                skip_keywords = [
+                    '©', 'copyright', 'all rights reserved', 'confidential', 'proprietary',
+                    '版權所有', '著作權', '保留所有權利', '免責', 'disclaimer', 'agenda',
+                    'outline', '目錄', '大綱', 'this presentation reflects'
+                ]
+                if any(kw in lower_line for kw in skip_keywords):
                     continue
-                if 'agenda' in lower_line or 'outline' in lower_line or '目錄' in lower_line or '大綱' in lower_line:
+                
+                # Skip lines that are just numbers/dots/slashes/dashes/spaces (e.g. "2 / 20", "Page 2", "Slide 10")
+                cleaned_line = re.sub(r'[\s\d\-/\.|#]', '', lower_line)
+                if not cleaned_line or cleaned_line in ['page', 'slide']:
                     continue
+                    
                 outline.append(line)
                 break
                 

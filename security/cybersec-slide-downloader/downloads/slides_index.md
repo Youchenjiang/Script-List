@@ -22,11 +22,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `visibility`, `security`, `confidential`, `authorized`, `network`, `access`
 - **簡報大綱 (投影片標題)**:
-  1. Confidential | Authorized HPE Partner Use Only
-  2. FORTRESS MENTALITY
-  3. MOBILITY AND CLOUD
-  4. The path forward: network and security must act as one
-  5. Confidential | Authorized
+  1. FORTRESS MENTALITY
+  2. MOBILITY AND CLOUD
+  3. The path forward: network and security must act as one
+  4. VISIBILITY & AUTHENTICATION
+  5. STEP 1 : IDENTIFY
 
 ### 📄 [AI 新賽局：在合規與創新中取得平衡](01_AI_LLM/%5B050615%5D%20AI%20%E6%96%B0%E8%B3%BD%E5%B1%80%EF%BC%9A%E5%9C%A8%E5%90%88%E8%A6%8F%E8%88%87%E5%89%B5%E6%96%B0%E4%B8%AD%E5%8F%96%E5%BE%97%E5%B9%B3%E8%A1%A1.pdf)
 - **講師**: 李鵬 (Fortinet)
@@ -44,11 +44,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `安碁`, `碁學`, `學苑`, `苑版`, `版權`, `權所`
 - **簡報大綱 (投影片標題)**:
-  1. 安碁學苑版權所有,不得翻拍、盜錄、傳播,侵害必究。2
-  2. 問題變了：企業面對的已不是單純技術攻防
-  3. 舊思維不足：資安不能再只是少數人的任務
-  4. 新解法：從單點防禦，走向三層匯聚戰力
-  5. 回去之後，先從三個起手式開始
+  1. 問題變了：企業面對的已不是單純技術攻防
+  2. 舊思維不足：資安不能再只是少數人的任務
+  3. 新解法：從單點防禦，走向三層匯聚戰力
+  4. 回去之後，先從三個起手式開始
+  5. 資安勝戰，來自整體協作戰力
 
 ### 📄 [AI: 我家SOC的超級實習生 - 從SOCCMM看次世代SOC](01_AI_LLM/%5B050709%5D%20AI_%20%E6%88%91%E5%AE%B6SOC%E7%9A%84%E8%B6%85%E7%B4%9A%E5%AF%A6%E7%BF%92%E7%94%9F%20-%20%E5%BE%9ESOCCMM%E7%9C%8B%E6%AC%A1%E4%B8%96%E4%BB%A3SOC.pdf)
 - **講師**: 唐雍為 (資誠智能風險管理諮詢有限公司)
@@ -110,11 +110,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `ai`, `caa`, `rights`, `reserved`, `內容`, `資訊`
 - **簡報大綱 (投影片標題)**:
-  1. ©  2025 CAA  All rights reserved.
-  2. ©  2025 CAA  All rights reserved. 4
-  3. ©  2025 CAA  All rights reserved. 5
-  4. ©  2025 CAA  All rights reserved. 6
-  5. ©  2025 CAA  All rights reserved. 7
+  1. 黃淙澤 秘書長
+  2. 辛頓教授警示：這種失衡正在埋下難以逆轉的系統性風險。
+  3. 碳基智慧 (Human Brain)
+  4. 與其將 AI 作為冰冷工具，不如在底層植入守護人類
+  5. 轉型過渡必經之路：共存期之陣痛
 
 ### 📄 [Beyond Prompt Attacks：用開放技術打造可落地的 LLM 合規防護鏈](01_AI_LLM/%5B050709%5D%20Beyond%20Prompt%20Attacks%EF%BC%9A%E7%94%A8%E9%96%8B%E6%94%BE%E6%8A%80%E8%A1%93%E6%89%93%E9%80%A0%E5%8F%AF%E8%90%BD%E5%9C%B0%E7%9A%84%20LLM%20%E5%90%88%E8%A6%8F%E9%98%B2%E8%AD%B7%E9%8F%88.pdf)
 - **講師**: 曲華榮 (中華電信研究院)
@@ -123,7 +123,7 @@
 - **簡報大綱 (投影片標題)**:
   1. Obscure but Effective: Classical Chinese Jailbreak Prompt Optimization via Bio-Inspired Search,, ICLR 2026,
   2. 安全護欄技術
-  3. 2023-12
+  3. Meta
   4. 新趨勢：串連完整安全合規防護鏈
   5. Risk 1: Secrets Leakage
 
@@ -220,11 +220,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `偵測`, `資安`, `攻擊`, `genai`, `base`, `案例`
 - **簡報大綱 (投影片標題)**:
-  1. 2©  2026
-  2. 3©  2026
-  3. 4©  2026
-  4. 5©  2026
-  5. 6©  2026
+  1. 駭客產業化的真實數據
+  2. 現代 SecOps 的三大痛點
+  3. 黑貓資訊的 GenAI + SOAR 核心戰略
+  4. 可解釋性AI(XAI)大幅收斂誤判並提升效率
+  5. LOLBAS (Living Off The Land Binaries, Scripts and Libraries)
 
 ### 📄 [如何在不踩煞車的情況下，讓企業 AI 安全飆速？](01_AI_LLM/%5B050714%5D%20%E5%A6%82%E4%BD%95%E5%9C%A8%E4%B8%8D%E8%B8%A9%E7%85%9E%E8%BB%8A%E7%9A%84%E6%83%85%E6%B3%81%E4%B8%8B%EF%BC%8C%E8%AE%93%E4%BC%81%E6%A5%AD%20AI%20%E5%AE%89%E5%85%A8%E9%A3%86%E9%80%9F%EF%BC%9F.pdf)
 - **講師**: 林佑儒 (極風雲創股份有限公司)
@@ -245,7 +245,7 @@
   1. 正在加速的三大資安壓力
   2. Travel Small Branch
   3. 一個核心本體，面對多變場景
-  4. 6©  Fortinet Inc. All Rights Reserved.
+  4. 虛實、雲地整合，將營運混亂轉化為統一控制、一致的使用者經驗
   5. 在分支、園區、資料中心、雲端與混合辦公場景中一致執行防護
 
 ### 📄 [工作沒有不見，只怕變成你認不得的樣子：AI 時代下的資安人才生存法則](01_AI_LLM/%5B050710%5D%20%E5%B7%A5%E4%BD%9C%E6%B2%92%E6%9C%89%E4%B8%8D%E8%A6%8B%EF%BC%8C%E5%8F%AA%E6%80%95%E8%AE%8A%E6%88%90%E4%BD%A0%E8%AA%8D%E4%B8%8D%E5%BE%97%E7%9A%84%E6%A8%A3%E5%AD%90%EF%BC%9AAI%20%E6%99%82%E4%BB%A3%E4%B8%8B%E7%9A%84%E8%B3%87%E5%AE%89%E4%BA%BA%E6%89%8D%E7%94%9F%E5%AD%98%E6%B3%95%E5%89%87.pdf)
@@ -329,11 +329,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `ai`, `system`, `prompt`, `安全`, `security`, `palette`
 - **簡報大綱 (投影片標題)**:
-  1. © 2026 F52
-  2. © 2026 F53
-  3. © 2026 F54
-  4. © 2026 F55
-  5. © 2026 F56
+  1. F5 2026 State of Application Strategy
+  2. AI 相關安全挑戰 正為 Agentic AI 做準備
+  3. AI應用服務被攻擊及濫用案例
+  4. System Prompt
+  5. Sy ste m Pro mp t 不 能 充當 Fi rewa ll
 
 ### 📄 [直擊「Shadow AI」失控現場，全面防止資料外洩](01_AI_LLM/%5B050514%5D%20%E7%9B%B4%E6%93%8A%E3%80%8CShadow%20AI%E3%80%8D%E5%A4%B1%E6%8E%A7%E7%8F%BE%E5%A0%B4%EF%BC%8C%E5%85%A8%E9%9D%A2%E9%98%B2%E6%AD%A2%E8%B3%87%E6%96%99%E5%A4%96%E6%B4%A9.pdf)
 - **講師**: 許祐福 (FineArt Technology 精品科技)
@@ -420,11 +420,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `風險`, `胃納`, `ciso`, `資安`, `risk`, `董事`
 - **簡報大綱 (投影片標題)**:
-  1. 02 / 25
-  2. Before we begin 02 / 25
-  3. Opening · 開場 03 / 25
-  4. Opening · 開場 04 / 25
-  5. Opening · 開場 05 / 25
+  1. Before we begin 02 / 25
+  2. Opening · 開場 03 / 25
+  3. Opening · 開場 04 / 25
+  4. Opening · 開場 05 / 25
+  5. WHY為什麼這場對話一直卡住？Why the conversation has been stuck.
 
 ### 📄 [Original Sin of Active Directory - Long Live with NTLM Relay](02_Zero_Trust_Identity/%5B050516%5D%20Original%20Sin%20of%20Active%20Directory%20-%20Long%20Live%20with%20NTLM%20Relay.pdf)
 - **講師**: Jimmy Su (奧義智慧科技)
@@ -485,11 +485,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `存取`, `信任`, `零信`, `持續`, `身分`, `資源`
 - **簡報大綱 (投影片標題)**:
-  1. ©  2026, NEXCOM OT Security | TMR Technologies Co., Ltd. All rights reserved.
-  2. - 零信任架構的核心概念
-  3. - 什麼是「零信任（Zero Trust）」？
-  4. NIST SP 800-207 ( Zero Trust Architecture )
-  5. 零信任架構的核心在於:
+  1. - 零信任架構的核心概念
+  2. - 什麼是「零信任（Zero Trust）」？
+  3. NIST SP 800-207 ( Zero Trust Architecture )
+  4. 零信任架構的核心在於:
+  5. NIST SP 800-207 ( Zero Trust Architecture )
 
 ### 📄 [關上 Windows，戰鬥才開始！macOS 在企業安全的崛起與挑戰](02_Zero_Trust_Identity/%5B050616%5D%20%E9%97%9C%E4%B8%8A%20Windows%EF%BC%8C%E6%88%B0%E9%AC%A5%E6%89%8D%E9%96%8B%E5%A7%8B%EF%BC%81macOS%20%E5%9C%A8%E4%BC%81%E6%A5%AD%E5%AE%89%E5%85%A8%E7%9A%84%E5%B4%9B%E8%B5%B7%E8%88%87%E6%8C%91%E6%88%B0.pdf)
 - **講師**: 葉東逸 (Kazma) (奧義智慧科技)
@@ -513,10 +513,6 @@
 - **核心關鍵詞**: `semi`, `systex`, `corporation`, `rights`, `reserved`, `資安`
 - **簡報大綱 (投影片標題)**:
   1. AI驅動的半導體資安新防線：從分析走向控制
-  2. 2026 3
-  3. 2026 4
-  4. 2026 5
-  5. 2026 6
 
 ### 📄 [後量子密碼學 - 守護未來資訊安全的數位盾牌](03_OT_IoT_Hardware/%5B050614%5D%20%E5%BE%8C%E9%87%8F%E5%AD%90%E5%AF%86%E7%A2%BC%E5%AD%B8%20-%20%E5%AE%88%E8%AD%B7%E6%9C%AA%E4%BE%86%E8%B3%87%E8%A8%8A%E5%AE%89%E5%85%A8%E7%9A%84%E6%95%B8%E4%BD%8D%E7%9B%BE%E7%89%8C.pdf)
 - **講師**: 林邦曄 (中華電信研究院)
@@ -737,10 +733,10 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `自動`, `動化`, `國際`, `際自`, `化協`, `協會`
 - **簡報大綱 (投影片標題)**:
-  1. This presentation reflects my own personal
-  2. ©  2026 國際自動化協會臺灣分會© 2026 國際自動化協會臺灣分會
-  3. ©  2026 國際自動化協會臺灣分會© 2026 國際自動化協會臺灣分會 5
-  4. ©  2026 國際自動化協會臺灣分會 6The ‘Blue Guide’ on the implementation of EU product rules
+  1. view, and do not represent any official
+  2. To be continued …
+  3. Scaling
+  4. For the purposes of Union harmonisation legislation, a product is placed
   5. Support Period
 
 ### 📄 [金融資安政策現況與展望](04_CRA_Compliance/%5B050709%5D%20%E9%87%91%E8%9E%8D%E8%B3%87%E5%AE%89%E6%94%BF%E7%AD%96%E7%8F%BE%E6%B3%81%E8%88%87%E5%B1%95%E6%9C%9B.pdf)
@@ -808,11 +804,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `attack`, `flow`, `phishing`, `malware`, `teamt`, `ppt`
 - **簡報大綱 (投影片標題)**:
-  1. ©  TeamT5 Inc. All rights reserved.
-  2. Speakers
-  3. Contents
-  4. Introduction
-  5. Operation TradeBait
+  1. Speakers
+  2. Contents
+  3. Introduction
+  4. Operation TradeBait
+  5. Social Media Posts
 
 ### 📄 [PS C:\> Live Off the .NET Gadgets - 從指令解析缺陷到符號引擎的新視野](05_Red_Blue_Attacks/%5B050715%5D%20PS%20C___%20Live%20Off%20the%20.NET%20Gadgets%20-%20%E5%BE%9E%E6%8C%87%E4%BB%A4%E8%A7%A3%E6%9E%90%E7%BC%BA%E9%99%B7%E5%88%B0%E7%AC%A6%E8%99%9F%E5%BC%95%E6%93%8E%E7%9A%84%E6%96%B0%E8%A6%96%E9%87%8E.pdf)
 - **講師**: 黃智威 (TXOne Networks Inc.)
@@ -885,11 +881,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `ai`, `攻擊`, `extrahop`, `networks`, `inc`, `rights`
 - **簡報大綱 (投影片標題)**:
-  1. © 2026 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential2
-  2. Daniel Chu
-  3. © 2025 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential4
-  4. © 2026 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential5
-  5. © 2026 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential6
+  1. Daniel Chu
+  2. Revealing:
+  3. AI 對網路安全的顛覆已然開始…
+  4. • Anthropic’s的新模型在發現軟體
+  5. AI-Driven的威脅態勢持續升級
 
 ### 📄 [從「防禦」到「韌性」：2026 資安風險浪潮下，企業資安人才的價值重構與生存策略](05_Red_Blue_Attacks/%5B050714%5D%20%E5%BE%9E%E3%80%8C%E9%98%B2%E7%A6%A6%E3%80%8D%E5%88%B0%E3%80%8C%E9%9F%8C%E6%80%A7%E3%80%8D%EF%BC%9A2026%20%E8%B3%87%E5%AE%89%E9%A2%A8%E9%9A%AA%E6%B5%AA%E6%BD%AE%E4%B8%8B%EF%BC%8C%E4%BC%81%E6%A5%AD%E8%B3%87%E5%AE%89%E4%BA%BA%E6%89%8D%E7%9A%84%E5%83%B9%E5%80%BC%E9%87%8D%E6%A7%8B%E8%88%87%E7%94%9F%E5%AD%98%E7%AD%96%E7%95%A5.pdf)
 - **講師**: 唐任威 (ISC2 Taipei Chapter)
@@ -919,7 +915,7 @@
 - **核心關鍵詞**: `ctf`, `station`, `資安`, `defcon`, `hitcon`, `開始`
 - **簡報大綱 (投影片標題)**:
   1. 8ebf235c0c30a203971251b3c042e69298cee4f5
-  2. 05 / 98
+  2. 今天想跟各位分享
   3. S T A T I O N  ·  0 1  /  0 5
   4. M Y  S T A R T
   5. ~  2 0 1 0 S  ·  T A I W A N
@@ -941,10 +937,10 @@
 - **核心關鍵詞**: `ecloudvalley`, `digital`, `technology`, `co`, `ltd`, `affiliates`
 - **簡報大綱 (投影片標題)**:
   1. CONTENTS
-  2. ©  2026 eCloudvalley Digital Technology Co., Ltd. or its affiliates. All Rights Reserved. Redefine Blue Team with Cloud
-  3. Security Assessment Layer
-  4. 但是 Baseline 在哪呢？
-  5. 為什麼合規了卻還是防止不了駭客攻擊？
+  2. Security Assessment Layer
+  3. 但是 Baseline 在哪呢？
+  4. 為什麼合規了卻還是防止不了駭客攻擊？
+  5. Compliance = Baseline
 
 ### 📄 [數位生態鏈的隱形戰場：Mastercard 如何應對第三方風險與網路威脅](05_Red_Blue_Attacks/%5B050511%5D%20%E6%95%B8%E4%BD%8D%E7%94%9F%E6%85%8B%E9%8F%88%E7%9A%84%E9%9A%B1%E5%BD%A2%E6%88%B0%E5%A0%B4%EF%BC%9AMastercard%20%E5%A6%82%E4%BD%95%E6%87%89%E5%B0%8D%E7%AC%AC%E4%B8%89%E6%96%B9%E9%A2%A8%E9%9A%AA%E8%88%87%E7%B6%B2%E8%B7%AF%E5%A8%81%E8%84%85.pdf)
 - **講師**: Danny Chan (Mastercard)
@@ -1039,11 +1035,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `cybersec`, `academic`, `use`, `演習`, `網路`, `網安`
 - **簡報大綱 (投影片標題)**:
-  1. 3/30
-  2. 4/30
+  1. ● 姓名：張克勤 (Deer4n@NightHawk)
+  2. ● 何謂網安演習?
   3. 何謂網安演習?
-  4. 6/30
-  5. 7/30
+  4. ● 網安演習是一種模擬真實網路攻擊和防禦場景的
+  5. 網安演習核心目標
 
 ### 📄 [虛實融合下的挑戰：汽車產業數位分身安全防護](05_Red_Blue_Attacks/%5B050710%5D%20%E8%99%9B%E5%AF%A6%E8%9E%8D%E5%90%88%E4%B8%8B%E7%9A%84%E6%8C%91%E6%88%B0%EF%BC%9A%E6%B1%BD%E8%BB%8A%E7%94%A2%E6%A5%AD%E6%95%B8%E4%BD%8D%E5%88%86%E8%BA%AB%E5%AE%89%E5%85%A8%E9%98%B2%E8%AD%B7.pdf)
 - **講師**: Chizuru Toyama (TXOne Networks Inc.), Linwei Tsao (TXOne Networks Inc.)
@@ -1118,11 +1114,11 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `broadcom`, `dlp`, `copyright`, `rights`, `reserved`, `term`
 - **簡報大綱 (投影片標題)**:
-  1. |   Copyright @ 2026 Broadcom. All Rights Reserved. The term “Broadcom” refers to Broadcom Inc. and/or its subsidiaries.2
-  2. 您的核心資產，現在究竟在哪裡？
-  3. 邊界思維
-  4. 2026威脅矩陣 - 未知危機的具體化
-  5. 盲區危機 - Shadow AI 正在搬空您的數據
+  1. 您的核心資產，現在究竟在哪裡？
+  2. 邊界思維
+  3. 2026威脅矩陣 - 未知危機的具體化
+  4. 盲區危機 - Shadow AI 正在搬空您的數據
+  5. Global Application Monitoring(GAM) – 控管 AI 時代的 3 步驟
 
 ### 📄 [OPNsense Suricata SmartNIC 高效能網路防護實戰](06_Cloud_Network/%5B050616%5D%20OPNsense%20Suricata%20SmartNIC%20%E9%AB%98%E6%95%88%E8%83%BD%E7%B6%B2%E8%B7%AF%E9%98%B2%E8%AD%B7%E5%AF%A6%E6%88%B0.pdf)
 - **講師**: 鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)
@@ -1140,22 +1136,22 @@
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `設備`, `網路`, `老舊`, `防護`, `無法`, `系統`
 - **簡報大綱 (投影片標題)**:
-  1. 2026 2
-  2. 充斥無法更新的舊版系統與
-  3. 一旦威脅突破邊界，將在
-  4. 佔用設備資源，可能導致
-  5. 2026 6
+  1. 充斥無法更新的舊版系統與
+  2. 一旦威脅突破邊界，將在
+  3. 佔用設備資源，可能導致
+  4. 不假設任何區域或設備是可信
+  5. 將微網段視為每一台設備專屬的微型防火牆。透過多層次防禦機制，將駭客
 
 ### 📄 [Unified SASE 平台戰略：從整合到智能，創造無限價值。](06_Cloud_Network/%5B050614%5D%20Unified%20SASE%20%E5%B9%B3%E5%8F%B0%E6%88%B0%E7%95%A5%EF%BC%9A%E5%BE%9E%E6%95%B4%E5%90%88%E5%88%B0%E6%99%BA%E8%83%BD%EF%BC%8C%E5%89%B5%E9%80%A0%E7%84%A1%E9%99%90%E5%83%B9%E5%80%BC%E3%80%82.pdf)
 - **講師**: 孫嘉陽 (Fortinet)
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `fortinet`, `安全`, `inc`, `rights`, `reserved`, `存取`
 - **簡報大綱 (投影片標題)**:
-  1. 2© Fortinet Inc. All Rights Reserved.
-  2. 3© Fortinet Inc. All Rights Reserved.
-  3. 4©  Fortinet Inc. All Rights Reserved.
-  4. 5©  Fortinet Inc. All Rights Reserved.
-  5. 6© Fortinet Inc. All Rights Reserved.
+  1. 影子 SaaS & GenAI
+  2. 為什麼 SSE 方案無法滿足
+  3. Fortinet Unified SASE：單一架構的威力
+  4. VPN轉型
+  5. FortiSASE 全球基礎建設
 
 ### 📄 [全球連接架構：實現企業隨處安全與連通](06_Cloud_Network/%5B050514%5D%20%E5%85%A8%E7%90%83%E9%80%A3%E6%8E%A5%E6%9E%B6%E6%A7%8B%EF%BC%9A%E5%AF%A6%E7%8F%BE%E4%BC%81%E6%A5%AD%E9%9A%A8%E8%99%95%E5%AE%89%E5%85%A8%E8%88%87%E9%80%A3%E9%80%9A.pdf)
 - **講師**: 施啟繁 (Christopher Say) (Cloudflare)
