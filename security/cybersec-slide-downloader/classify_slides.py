@@ -47,6 +47,36 @@ CATEGORY_KEYWORDS = {
 def is_english_word(word):
     return re.match(r'^[a-zA-Z0-9\s_-]+$', word) is not None
 
+def sanitize_filename(name):
+    sanitized = re.sub(r'[\\/:*?"<>|]', '_', name)
+    sanitized = sanitized.strip().strip('.')
+    if len(sanitized) > 120:
+        sanitized = sanitized[:117] + '...'
+    return sanitized or 'Untitled_Session'
+
+def resolve_session_from_filename(filename, api_sessions):
+    # 1. Try time-based matching first: [MMDDHH] <suffix> <Title>.<ext>
+    match_time = re.match(r'^\[(\d{6})\](?:_part\d+|_dl\d+|_dl)?\s+(.+)\.\w+$', filename)
+    if match_time:
+        time_prefix = match_time.group(1)
+        title_part = match_time.group(2)
+        for s_id, s_val in api_sessions.items():
+            s_start = s_val.get("started_at", "")
+            if len(s_start) >= 13:
+                s_time = s_start[5:7] + s_start[8:10] + s_start[11:13]
+                if s_time == time_prefix and sanitize_filename(s_val.get("title", "")) == title_part:
+                     return s_id, s_val
+
+    # 2. Fallback to ID-based matching (for backward compatibility): [ID] <suffix> <Title>.<ext>
+    match_id = re.match(r'^\[(\d+)\]', filename)
+    if match_id:
+        s_id = match_id.group(1)
+        s_val = api_sessions.get(s_id)
+        if s_val:
+            return s_id, s_val
+
+    return None, {}
+
 STOP_WORDS = set([
     'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'cannot', 'could', 'did', 'do', 'does', 'doing', 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', 'has', 'have', 'having', 'he', 'her', 'here', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'i', 'if', 'in', 'into', 'is', 'it', 'its', 'itself', 'me', 'more', 'most', 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'same', 'she', 'should', 'so', 'some', 'such', 'than', 'that', 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', 'these', 'they', 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'with', 'would', 'you', 'your', 'yours', 'yourself', 'yourselves',
     '的', '了', '和', '是', '就', '都', '而', '及', '與', '或', '在', '著', '於', '之', '由', '被', '讓', '給', '往', '朝', '向', '本', '照', '按', '依', '因', '為', '由於', '所以', '因此', '進而', '從而', '雖然', '儘管', '但是', '可是', '然而', '卻', '不過', '只要', '只有', '除非', '否則', '如果', '假如', '要是', '即使', '就算', '哪怕', '並且', '而且', '還', '甚至', '更', '以及', '其', '他', '她', '它', '他們', '她們', '它們', '我們', '你們', '這', '那', '這裡', '那裡', '這個', '那個', '這些', '那些', '這樣', '那樣', '如此', '怎麼', '甚麼', '什麼', '為什麼', '誰', '哪', '哪裡', '哪個', '哪些', '幾', '多', '少', '多少', '一些', '一個', '一次', '一點', '我們', '可以', '目前', '透過', '使用', '包括', '主要', '進行', '對於', '關於', '為了'
@@ -241,11 +271,8 @@ def main():
     for f in files_to_sort:
         pdf_path = os.path.join(DOWNLOADS_DIR, f)
         
-        # Extract session ID from prefix [ID]
-        match = re.match(r'^\[(\d+)\]', f)
-        session_id = match.group(1) if match else None
-        
-        session = api_sessions.get(session_id, {})
+        # Extract session ID and details from filename
+        session_id, session = resolve_session_from_filename(f, api_sessions)
         title = session.get("title", f)
         track = session.get("track", "")
         
@@ -299,9 +326,7 @@ def main():
                 all_sorted_metadata.append(cache[sf])
             else:
                 # Re-parse if not in cache (e.g. file was sorted manually or cache cleared)
-                match = re.match(r'^\[(\d+)\]', sf)
-                session_id = match.group(1) if match else None
-                session = api_sessions.get(session_id, {})
+                session_id, session = resolve_session_from_filename(sf, api_sessions)
                 title = session.get("title", sf)
                 track = session.get("track", "")
                 

@@ -10,6 +10,7 @@ query gets($language: AvailableLang) {
         sessions {
             id
             title
+            started_at
             slides {
                 id
                 title
@@ -183,11 +184,19 @@ async function main() {
   // Extract all files (slides and downloads)
   const downloadQueue = [];
   sessions.forEach((session) => {
+    let timePrefix = session.id;
+    if (session.started_at && session.started_at.length >= 13) {
+      const m = session.started_at.substring(5, 7);
+      const d = session.started_at.substring(8, 10);
+      const h = session.started_at.substring(11, 13);
+      timePrefix = m + d + h;
+    }
+
     if (session.slides && session.slides.length > 0) {
       session.slides.forEach((slide, idx) => {
         if (slide.slide_file && slide.slide_file.url) {
           const suffix = session.slides.length > 1 ? `_part${idx + 1}` : '';
-          const filename = sanitizeFilename(`[${session.id}]${suffix} ${session.title}`) + '.pdf';
+          const filename = sanitizeFilename(`[${timePrefix}]${suffix} ${session.title}`) + '.pdf';
           if (existingFiles.has(filename)) {
             skippedCount++;
             return;
@@ -223,7 +232,7 @@ async function main() {
             const parsedExt = path.extname(urlPath);
             if (parsedExt) ext = parsedExt;
           } catch (_) {}
-          const filename = sanitizeFilename(`[${session.id}]${suffix} ${session.title}`) + ext;
+          const filename = sanitizeFilename(`[${timePrefix}]${suffix} ${session.title}`) + ext;
           if (existingFiles.has(filename)) {
             skippedCount++;
             return;
