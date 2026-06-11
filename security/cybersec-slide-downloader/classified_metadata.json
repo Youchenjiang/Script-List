@@ -1,0 +1,2663 @@
+{
+  "[4363] 從晶片卡到遊戲主機，利用旁通道與錯誤注入攻擊破解黑產的技術實錄.pdf": {
+    "id": "4363",
+    "title": "從晶片卡到遊戲主機，利用旁通道與錯誤注入攻擊破解黑產的技術實錄",
+    "track": "選擇...",
+    "speakers": "林高裕（Gary） (鑑智實相科技股份有限公司)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4363] 從晶片卡到遊戲主機，利用旁通道與錯誤注入攻擊破解黑產的技術實錄.pdf",
+    "keywords": [
+      "攻擊",
+      "晶片",
+      "安全",
+      "旁通",
+      "通道",
+      "功耗"
+    ],
+    "outline": [
+      "林高裕 Gary Lin",
+      "今天你會看到什麼",
+      "快速調查：你覺得晶片有多安全？",
+      "晶片解剖",
+      "晶片安全發展歷程：從智慧卡到遊戲主機"
+    ]
+  },
+  "[4364] Solving Security in a World That Changes Faster Than Your Tools.pdf": {
+    "id": "4364",
+    "title": "Solving Security in a World That Changes Faster Than Your Tools",
+    "track": "選擇...",
+    "speakers": "Philip Sow (Proofpoint)",
+    "category": "01_AI_LLM",
+    "filename": "[4364] Solving Security in a World That Changes Faster Than Your Tools.pdf",
+    "keywords": [
+      "ai",
+      "security",
+      "data",
+      "agent",
+      "every",
+      "world"
+    ],
+    "outline": [
+      "PSPhilip SowSenior Sales Engineering Manager@ ProofpointCISSPCISMCIPP/A",
+      "THE EVOLVING LANDSCAPE",
+      "THE SHIFTING ATTACK TARGET",
+      "EMAILCOLLABORATIONDATASaaS / APPS",
+      "Humanand agent-centric workspace"
+    ]
+  },
+  "[4367] Mental Jailbreak_ Scaling Law ≠ Human Reasoning 開源從頭打造越獄防護.pdf": {
+    "id": "4367",
+    "title": "Mental Jailbreak: Scaling Law ≠ Human Reasoning 開源從頭打造越獄防護",
+    "track": "選擇...",
+    "speakers": "馬聖豪 (TXOne Networks Inc.)",
+    "category": "01_AI_LLM",
+    "filename": "[4367] Mental Jailbreak_ Scaling Law ≠ Human Reasoning 開源從頭打造越獄防護.pdf",
+    "keywords": [
+      "推理",
+      "human",
+      "reasoning",
+      "system",
+      "attacks",
+      "老婆"
+    ],
+    "outline": [
+      "Shenghao Ma (@aaaddress1)",
+      "情境練習題：老婆在下班前發訊息來",
+      "• Background: Jailbreak?",
+      "Keep the Operation Running",
+      "• 教你如何破解 DeepSeek R1 系统提示词"
+    ]
+  },
+  "[4368] 異常≠威脅：從時序到時頻，打造具解釋性 AI_ML 異常威脅感知的專利實務.pdf": {
+    "id": "4368",
+    "title": "異常≠威脅：從時序到時頻，打造具解釋性 AI/ML 異常威脅感知的專利實務",
+    "track": "選擇...",
+    "speakers": "馬聖豪 (TXOne Networks Inc.)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4368] 異常≠威脅：從時序到時頻，打造具解釋性 AI_ML 異常威脅感知的專利實務.pdf",
+    "keywords": [
+      "anomaly",
+      "detection",
+      "based",
+      "exe",
+      "file",
+      "invoice"
+    ],
+    "outline": [
+      "Shenghao Ma (@aaaddress1)",
+      "Dilemma of Security Industry",
+      "Make Reasonable Anomaly Detection in AI Era!",
+      "Keep the Operation Running",
+      "Time-series: API Behavior Usages, Good or Bad?"
+    ]
+  },
+  "[4371] 量子時代 AI、IoT 與加密貨幣的危機：由 SEALSQ 保護信任重建.pdf": {
+    "id": "4371",
+    "title": "量子時代 AI、IoT 與加密貨幣的危機：由 SEALSQ 保護信任重建",
+    "track": "選擇...",
+    "speakers": "陳聖凱 SK Chen (SEALSQ)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4371] 量子時代 AI、IoT 與加密貨幣的危機：由 SEALSQ 保護信任重建.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4374] 關於 AI 助理凌晨放火燒了公司還順便找 FBI 這檔事.pdf": {
+    "id": "4374",
+    "title": "關於 AI 助理凌晨放火燒了公司還順便找 FBI 這檔事",
+    "track": "選擇...",
+    "speakers": "游照臨 (Steven Meow) (趨勢科技 TrendAI)",
+    "category": "01_AI_LLM",
+    "filename": "[4374] 關於 AI 助理凌晨放火燒了公司還順便找 FBI 這檔事.pdf",
+    "keywords": [
+      "ai",
+      "yolo",
+      "fbi",
+      "steven",
+      "yu",
+      "staff"
+    ],
+    "outline": [
+      "樧 AI Ⲃ杼",
+      "樧 AI Ⲃ杼䳕僘냖垷꡿",
+      "樧 AI Ⲃ杼䳕僘냖垷꡿㱚働⢢☜띷",
+      "婯逈꼥氳⯦䬠┖舅䄕餶⸼䧴火",
+      "✳狞鐩硎礶⢦塛鷠⛼揎✿"
+    ]
+  },
+  "[4377] 從「自動化」邁向「自主化」Agentic AI NDR 時代.pdf": {
+    "id": "4377",
+    "title": "從「自動化」邁向「自主化」Agentic AI NDR 時代",
+    "track": "選擇...",
+    "speakers": "林孟忠 (Sam Lin) (ExtraHop)",
+    "category": "01_AI_LLM",
+    "filename": "[4377] 從「自動化」邁向「自主化」Agentic AI NDR 時代.pdf",
+    "keywords": [
+      "ai",
+      "攻擊",
+      "extrahop",
+      "networks",
+      "inc",
+      "rights"
+    ],
+    "outline": [
+      "© 2026 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential2",
+      "Daniel Chu",
+      "© 2025 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential4",
+      "© 2026 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential5",
+      "© 2026 ExtraHop Networks, Inc.  |  All Rights Reserved  |  Proprietary and Confidential6"
+    ]
+  },
+  "[4385] AI 時代的資料防禦新邊界——從零信任走向「以資料為中心」的自動化韌性.pdf": {
+    "id": "4385",
+    "title": "AI 時代的資料防禦新邊界——從零信任走向「以資料為中心」的自動化韌性",
+    "track": "選擇...",
+    "speakers": "曹家通 (Westcon Taiwan)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4385] AI 時代的資料防禦新邊界——從零信任走向「以資料為中心」的自動化韌性.pdf",
+    "keywords": [
+      "broadcom",
+      "dlp",
+      "copyright",
+      "rights",
+      "reserved",
+      "term"
+    ],
+    "outline": [
+      "|   Copyright @ 2026 Broadcom. All Rights Reserved. The term “Broadcom” refers to Broadcom Inc. and/or its subsidiaries.2",
+      "您的核心資產，現在究竟在哪裡？",
+      "邊界思維",
+      "2026威脅矩陣 - 未知危機的具體化",
+      "盲區危機 - Shadow AI 正在搬空您的數據"
+    ]
+  },
+  "[4387] 告別人工憑證管理：自動化、PQC 部署與 AI 信任，重塑 2026 數位信任架構.pdf": {
+    "id": "4387",
+    "title": "告別人工憑證管理：自動化、PQC 部署與 AI 信任，重塑 2026 數位信任架構",
+    "track": "選擇...",
+    "speakers": "James Cook (DigiCert  Inc.), Lackern Xu (DigiCert)",
+    "category": "01_AI_LLM",
+    "filename": "[4387] 告別人工憑證管理：自動化、PQC 部署與 AI 信任，重塑 2026 數位信任架構.pdf",
+    "keywords": [
+      "trust",
+      "ai",
+      "信任",
+      "confidential",
+      "pki",
+      "pqc"
+    ],
+    "outline": [
+      "“It takes 20 years to build a reputation and five minutes to ruin it.  If you think about that, you'll do things differently.”•-Warren Buffett",
+      "數位信任的基礎：密碼學The Foundation of Digital Trust: Cryptography",
+      "產業分析師觀點Industry Analyst View",
+      "Certificate Usage – From Singapore to Taiwan",
+      "PKI 的深層變革- 格局正在重塑Tectonic Shifts in PKI - The Ground is Moving"
+    ]
+  },
+  "[4390] 從 Nano-GPT 建模技術打造數位分身，保護虛實整合系統持續運營.pdf": {
+    "id": "4390",
+    "title": "從 Nano-GPT 建模技術打造數位分身，保護虛實整合系統持續運營",
+    "track": "選擇...",
+    "speakers": "Yenting Lee (TXOne Networks Inc.)",
+    "category": "01_AI_LLM",
+    "filename": "[4390] 從 Nano-GPT 建模技術打造數位分身，保護虛實整合系統持續運營.pdf",
+    "keywords": [
+      "keep",
+      "operation",
+      "running",
+      "ot",
+      "ics",
+      "gpt"
+    ],
+    "outline": [
+      "OT/ICS Autonomy",
+      "OT/ICS 網路安全困境",
+      "多種滲透 OT 環境的方式",
+      "多種滲透 OT 環境的方式",
+      "OT 網路安全人員不足"
+    ]
+  },
+  "[4394] 關上 Windows，戰鬥才開始！macOS 在企業安全的崛起與挑戰.pdf": {
+    "id": "4394",
+    "title": "關上 Windows，戰鬥才開始！macOS 在企業安全的崛起與挑戰",
+    "track": "選擇...",
+    "speakers": "葉東逸 (Kazma) (奧義智慧科技)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4394] 關上 Windows，戰鬥才開始！macOS 在企業安全的崛起與挑戰.pdf",
+    "keywords": [
+      "macos",
+      "企業",
+      "mac",
+      "信任",
+      "windows",
+      "安全"
+    ],
+    "outline": [
+      "$ whoami",
+      "1. 公司內部有多少 macOS 裝置?",
+      "為什麼現在要談 macOS 企業安全",
+      "macOS 已經進入企業日常",
+      "https://macstadium.com/blog/cio-survey"
+    ]
+  },
+  "[4417] 後量子密碼學 - 守護未來資訊安全的數位盾牌.pdf": {
+    "id": "4417",
+    "title": "後量子密碼學 - 守護未來資訊安全的數位盾牌",
+    "track": "選擇...",
+    "speakers": "林邦曄 (中華電信研究院)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4417] 後量子密碼學 - 守護未來資訊安全的數位盾牌.pdf",
+    "keywords": [
+      "演算",
+      "pqc",
+      "算法",
+      "量子",
+      "簽章",
+      "密碼"
+    ],
+    "outline": [
+      "• 後量子密碼學介紹",
+      "傳統密碼學將會受到量子電腦破解",
+      "Q-Day(破解之日)何時來臨?",
+      "為什麼現在就要在意？",
+      "各種不同類型的PQC"
+    ]
+  },
+  "[4418] 車聯網 C-V2X 結合 V2X_PKI 應用情境.pdf": {
+    "id": "4418",
+    "title": "車聯網 C-V2X 結合 V2X_PKI 應用情境",
+    "track": "選擇...",
+    "speakers": "劉子正 (中華電信研究院)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4418] 車聯網 C-V2X 結合 V2X_PKI 應用情境.pdf",
+    "keywords": [
+      "聯網",
+      "車聯",
+      "資訊",
+      "號誌",
+      "燈態",
+      "發布"
+    ],
+    "outline": [
+      "車聯網-發展趨勢",
+      "車聯網-發展痛點",
+      "車聯網-解決方案",
+      "應用情境-號誌燈態發布",
+      "淡海場域驗證-號誌燈態發布"
+    ]
+  },
+  "[4419] 臺灣數位領域就業金卡.pdf": {
+    "id": "4419",
+    "title": "臺灣數位領域就業金卡",
+    "track": "選擇...",
+    "speakers": "Kevin Sharma (Taiwan DIGI Gold Card Community)",
+    "category": "01_AI_LLM",
+    "filename": "[4419] 臺灣數位領域就業金卡.pdf",
+    "keywords": [
+      "taiwan",
+      "year",
+      "digital",
+      "card",
+      "can",
+      "validity"
+    ],
+    "outline": [
+      "SPOKE & HUB | Anywhere in Asia",
+      "CONVENIENCE & AFFORDABILITY | Small Town",
+      "SAFETY & HEALTH | Taiwan Takes Care of You (&",
+      "COST OF LIVING and QUALITY OF",
+      "SPECIAL"
+    ]
+  },
+  "[4420] 從競技場到戰場：CTF 與 Cyber Range 如何強化資安防禦韌性.pdf": {
+    "id": "4420",
+    "title": "從競技場到戰場：CTF 與 Cyber Range 如何強化資安防禦韌性",
+    "track": "選擇...",
+    "speakers": "Jeff Chao (TRAPA Security)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4420] 從競技場到戰場：CTF 與 Cyber Range 如何強化資安防禦韌性.pdf",
+    "keywords": [
+      "ctf",
+      "station",
+      "資安",
+      "defcon",
+      "hitcon",
+      "開始"
+    ],
+    "outline": [
+      "8ebf235c0c30a203971251b3c042e69298cee4f5",
+      "05 / 98",
+      "S T A T I O N  ·  0 1  /  0 5",
+      "M Y  S T A R T",
+      "~  2 0 1 0 S  ·  T A I W A N"
+    ]
+  },
+  "[4422] CISO和高階主管的風險對話：從風險胃納和風險承受的角度出發.pdf": {
+    "id": "4422",
+    "title": "CISO和高階主管的風險對話：從風險胃納和風險承受的角度出發",
+    "track": "選擇...",
+    "speakers": "李彥民 (Anthony) (SHOPLINE)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4422] CISO和高階主管的風險對話：從風險胃納和風險承受的角度出發.pdf",
+    "keywords": [
+      "風險",
+      "胃納",
+      "ciso",
+      "資安",
+      "risk",
+      "董事"
+    ],
+    "outline": [
+      "02 / 25",
+      "Before we begin 02 / 25",
+      "Opening · 開場 03 / 25",
+      "Opening · 開場 04 / 25",
+      "Opening · 開場 05 / 25"
+    ]
+  },
+  "[4423] 透過 SonicWall 實現 AI 驅動的零信任資安轉型，為中小企業與中型市場提供安全防護方案.pdf": {
+    "id": "4423",
+    "title": "透過 SonicWall 實現 AI 驅動的零信任資安轉型，為中小企業與中型市場提供安全防護方案",
+    "track": "選擇...",
+    "speakers": "Chandrodaya Prasad (SonicWall Inc)",
+    "category": "01_AI_LLM",
+    "filename": "[4423] 透過 SonicWall 實現 AI 驅動的零信任資安轉型，為中小企業與中型市場提供安全防護方案.pdf",
+    "keywords": [
+      "ai",
+      "信任",
+      "企業",
+      "攻擊",
+      "零信",
+      "合作"
+    ],
+    "outline": [
+      "接下來 30 分鐘的內容",
+      "AI 的下一個時代 , 已經到來",
+      "雲端擴張、遠距辦公、生成式 AI── 每一次科技躍進 , 都為攻擊",
+      "攻擊者已經採用",
+      "的網路攻擊鎖定中小企業"
+    ]
+  },
+  "[4425] AI鑑測與稽核：數位韌性時代的實務與證照趨勢.pdf": {
+    "id": "4425",
+    "title": "AI鑑測與稽核：數位韌性時代的實務與證照趨勢",
+    "track": "選擇...",
+    "speakers": "黃淙澤 (中華民國電腦稽核協會)",
+    "category": "01_AI_LLM",
+    "filename": "[4425] AI鑑測與稽核：數位韌性時代的實務與證照趨勢.pdf",
+    "keywords": [
+      "ai",
+      "caa",
+      "rights",
+      "reserved",
+      "內容",
+      "資訊"
+    ],
+    "outline": [
+      "©  2025 CAA  All rights reserved.",
+      "©  2025 CAA  All rights reserved. 4",
+      "©  2025 CAA  All rights reserved. 5",
+      "©  2025 CAA  All rights reserved. 6",
+      "©  2025 CAA  All rights reserved. 7"
+    ]
+  },
+  "[4426] 方丈下山抓駭客：從 KQL 到 MDR，我的修行不在寺裡，在 Log 裡.pdf": {
+    "id": "4426",
+    "title": "方丈下山抓駭客：從 KQL 到 MDR，我的修行不在寺裡，在 Log 裡",
+    "track": "選擇...",
+    "speakers": "黃建笙（方丈） (登豐數位科技/ISC2 Taipei Chapter)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4426] 方丈下山抓駭客：從 KQL 到 MDR，我的修行不在寺裡，在 Log 裡.pdf",
+    "keywords": [
+      "攻擊",
+      "登入",
+      "擊者",
+      "系統",
+      "密碼",
+      "資安"
+    ],
+    "outline": [
+      "加入 讓您的資安之旅，有專家同行！",
+      "一場入侵，從內部流程開始。",
+      "背景說明",
+      "背景說明",
+      "這不是一個漏洞造成的攻擊"
+    ]
+  },
+  "[4429] 當「不小心」成為最大的資安債 — 如何應對「非蓄意型」內部威脅.pdf": {
+    "id": "4429",
+    "title": "當「不小心」成為最大的資安債 — 如何應對「非蓄意型」內部威脅",
+    "track": "選擇...",
+    "speakers": "徐聖翔 (HENNGE K.K.)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4429] 當「不小心」成為最大的資安債 — 如何應對「非蓄意型」內部威脅.pdf",
+    "keywords": [
+      "hennge",
+      "資安",
+      "內部",
+      "威脅",
+      "公司",
+      "資料"
+    ],
+    "outline": [
+      "● 第⼀章 :  什麼是「⾮蓄意型內部威脅」？",
+      "講者與公司簡介",
+      "• 當任 HENNGE One 產品經理。",
+      "HENNGE 的雲端資安服務 HENNGE One",
+      "HENNGE 名稱的由來"
+    ]
+  },
+  "[4430] 從日本棒球看企業資安：為什麼「不失分」比「全壘打」更重要？.pdf": {
+    "id": "4430",
+    "title": "從日本棒球看企業資安：為什麼「不失分」比「全壘打」更重要？",
+    "track": "選擇...",
+    "speakers": "Kevin Chang (HENNGE 台灣惠頂益)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4430] 從日本棒球看企業資安：為什麼「不失分」比「全壘打」更重要？.pdf",
+    "keywords": [
+      "point",
+      "資安",
+      "資料",
+      "外洩",
+      "導入",
+      "雲端"
+    ],
+    "outline": [
+      "九局下半",
+      "日本企業經驗分享",
+      "如果是按照別的順序？",
+      "導入實踐藍圖及衡量指標"
+    ]
+  },
+  "[4431] 是寵物還是牛群？關鍵產業面對國家級資安威脅的盲點.pdf": {
+    "id": "4431",
+    "title": "是寵物還是牛群？關鍵產業面對國家級資安威脅的盲點",
+    "track": "選擇...",
+    "speakers": "Simon McFarlane (HENNGE K.K.)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4431] 是寵物還是牛群？關鍵產業面對國家級資安威脅的盲點.pdf",
+    "keywords": [
+      "stuxnet",
+      "company",
+      "攻擊",
+      "公司",
+      "目標",
+      "exploit"
+    ],
+    "outline": [
+      "STUXNET",
+      "Very expensive",
+      "Stuxnet exploit chain",
+      "納坦茲核設施",
+      "Stuxnet exploit chain"
+    ]
+  },
+  "[4432] 告別防火牆思維：透過 File DLP 打造資料為核心的雲端安全.pdf": {
+    "id": "4432",
+    "title": "告別防火牆思維：透過 File DLP 打造資料為核心的雲端安全",
+    "track": "選擇...",
+    "speakers": "Vivian Hsieh (HENNGE K.K.)",
+    "category": "06_Cloud_Network",
+    "filename": "[4432] 告別防火牆思維：透過 File DLP 打造資料為核心的雲端安全.pdf",
+    "keywords": [
+      "資料",
+      "folder",
+      "檔案",
+      "file",
+      "界線",
+      "共享"
+    ],
+    "outline": [
+      "當資料在雲端，",
+      "講者簡介",
+      "● 擔任 HENNGE File DLP 團隊工程主管及",
+      "當資料在雲端，",
+      "• The fences we drew"
+    ]
+  },
+  "[4433] AI 時代下的資安轉型：新世代 VPN 如何與零信任完美結合.pdf": {
+    "id": "4433",
+    "title": "AI 時代下的資安轉型：新世代 VPN 如何與零信任完美結合",
+    "track": "選擇...",
+    "speakers": "Ted Chou (HENNGE K.K.)",
+    "category": "01_AI_LLM",
+    "filename": "[4433] AI 時代下的資安轉型：新世代 VPN 如何與零信任完美結合.pdf",
+    "keywords": [
+      "ai",
+      "hennge",
+      "資安",
+      "零信",
+      "信任",
+      "驗證"
+    ],
+    "outline": [
+      "HENNGE 名稱的由來",
+      "HENNGE Vision 願景",
+      "HENNGE 的 30 年歷史",
+      "HENNGE 的雲端資安服務 HENNGE One",
+      "AI 下的資安趨勢"
+    ]
+  },
+  "[4435] 從威脅偵測到主動防禦：AI 應用的即時安全防護.pdf": {
+    "id": "4435",
+    "title": "從威脅偵測到主動防禦：AI 應用的即時安全防護",
+    "track": "選擇...",
+    "speakers": "何光永 (SentinelOne)",
+    "category": "01_AI_LLM",
+    "filename": "[4435] 從威脅偵測到主動防禦：AI 應用的即時安全防護.pdf",
+    "keywords": [
+      "ai",
+      "威脅",
+      "數據",
+      "提示",
+      "siem",
+      "安全"
+    ],
+    "outline": [
+      "財務代價",
+      "基於邏輯的攻擊利用 AI 應用層的盲點",
+      "僵化的簽名無法捕捉概率性威脅",
+      "從反應式日誌轉向 AI 主動防禦",
+      "企業級人工智慧使用的四大主要管道"
+    ]
+  },
+  "[4436] AI Powered Zero Trust Networking.pdf": {
+    "id": "4436",
+    "title": "AI Powered Zero Trust Networking",
+    "track": "選擇...",
+    "speakers": "Gordon Tan (HPE)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4436] AI Powered Zero Trust Networking.pdf",
+    "keywords": [
+      "visibility",
+      "security",
+      "confidential",
+      "authorized",
+      "network",
+      "access"
+    ],
+    "outline": [
+      "Confidential | Authorized HPE Partner Use Only",
+      "FORTRESS MENTALITY",
+      "MOBILITY AND CLOUD",
+      "The path forward: network and security must act as one",
+      "Confidential | Authorized"
+    ]
+  },
+  "[4444] 在雲端服務中保護資料安全的實務探討.pdf": {
+    "id": "4444",
+    "title": "在雲端服務中保護資料安全的實務探討",
+    "track": "選擇...",
+    "speakers": "I-Chen Lin (國立政治大學)",
+    "category": "06_Cloud_Network",
+    "filename": "[4444] 在雲端服務中保護資料安全的實務探討.pdf",
+    "keywords": [
+      "雲端",
+      "服務",
+      "安全",
+      "資料",
+      "cloud",
+      "端服"
+    ],
+    "outline": [
+      "• 雲端運算與共享安全責任",
+      "• 實現便捷、隨選的網路存取服務",
+      "• 3種服務模型",
+      "• 專業知識",
+      "雲端服務水準指標"
+    ]
+  },
+  "[4449] 歐盟 Cyber Resilience Act (CRA) 網路安全法規與產品合規要求介紹.pdf": {
+    "id": "4449",
+    "title": "歐盟 Cyber Resilience Act (CRA) 網路安全法規與產品合規要求介紹",
+    "track": "選擇...",
+    "speakers": "David Hsueh 薛正 (Bureau Veritas 必維國際檢驗集團)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4449] 歐盟 Cyber Resilience Act (CRA) 網路安全法規與產品合規要求介紹.pdf",
+    "keywords": [
+      "eu",
+      "digital",
+      "market",
+      "en",
+      "regulation",
+      "hardware"
+    ],
+    "outline": [
+      "歐盟 CE Mark 的執行框架",
+      "CE Mark is undergoing a Reprogramming",
+      "Repeal of Delegated Regulation supplementing the Radio",
+      "Reminder of RED 2014/53/EU directive requirements",
+      "CRA_EU2024_2847_OJ content.png"
+    ]
+  },
+  "[4459] 超越合規：IEC 62443 到 EU CRA 的 AIoT 資安實踐.pdf": {
+    "id": "4459",
+    "title": "超越合規：IEC 62443 到 EU CRA 的 AIoT 資安實踐",
+    "track": "選擇...",
+    "speakers": "謝斗文 (東擎科技)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4459] 超越合規：IEC 62443 到 EU CRA 的 AIoT 資安實踐.pdf",
+    "keywords": [
+      "cra",
+      "挑戰",
+      "eu",
+      "iec",
+      "sdlc",
+      "aiot"
+    ],
+    "outline": [
+      "1. IEC 62443之路-1",
+      "1. IEC 62443之路-2",
+      "1. IEC 62443之路-3",
+      "2-1 CRA 的挑戰-1",
+      "2-1 CRA 的挑戰-2"
+    ]
+  },
+  "[4461] 對焦 CRA，導入 Runtime 防護技術.pdf": {
+    "id": "4461",
+    "title": "對焦 CRA，導入 Runtime 防護技術",
+    "track": "選擇...",
+    "speakers": "唐稚筌 (EXEIN)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4461] 對焦 CRA，導入 Runtime 防護技術.pdf",
+    "keywords": [
+      "security",
+      "reporting",
+      "exein",
+      "io",
+      "may",
+      "hardware"
+    ],
+    "outline": [
+      "10 min",
+      "The Cyber",
+      "CRA entered into force10 Dec 2024",
+      "CRA Product Classification",
+      "What Manufacturers Must Do— Art. 13 + Annex I, Part II"
+    ]
+  },
+  "[4462] AIOT 與衛星通訊在態勢感知與無人系統中的應用.pdf": {
+    "id": "4462",
+    "title": "AIOT 與衛星通訊在態勢感知與無人系統中的應用",
+    "track": "選擇...",
+    "speakers": "孫瑞鴻 (全濠科技股份有限公司)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4462] AIOT 與衛星通訊在態勢感知與無人系統中的應用.pdf",
+    "keywords": [
+      "ai",
+      "edge",
+      "通訊",
+      "secure",
+      "intelligence",
+      "computing"
+    ],
+    "outline": [
+      "The Catalyst for",
+      "Rugged AI Computing for",
+      "Space is getting more crowded",
+      "What Drives US",
+      "Software"
+    ]
+  },
+  "[4464] 用 AI 對抗 AI：看懂程式上下文，降低 AI 生成程式碼風險.pdf": {
+    "id": "4464",
+    "title": "用 AI 對抗 AI：看懂程式上下文，降低 AI 生成程式碼風險",
+    "track": "選擇...",
+    "speakers": "林皇興 (Lambert Lin) (達友科技(股))",
+    "category": "01_AI_LLM",
+    "filename": "[4464] 用 AI 對抗 AI：看懂程式上下文，降低 AI 生成程式碼風險.pdf",
+    "keywords": [
+      "程式",
+      "ai",
+      "式碼",
+      "cwe",
+      "安全",
+      "llm"
+    ],
+    "outline": [
+      "請問有沒有用 AI / LLM 來輔助程式開發?",
+      "針對 AI 生成",
+      "那能不能用 AI / LLM 來輔助源碼掃描",
+      "用AI/LLM來掃描程式專案，可能會發生…",
+      "透過適當的 AI prompt / 安全 Skills 來掃描源碼"
+    ]
+  },
+  "[4466] AI 驅動的半導體資安新防線：從分析走向控制.pdf": {
+    "id": "4466",
+    "title": "AI 驅動的半導體資安新防線：從分析走向控制",
+    "track": "選擇...",
+    "speakers": "卓傳育 (一安智能股份有限公司)",
+    "category": "01_AI_LLM",
+    "filename": "[4466] AI 驅動的半導體資安新防線：從分析走向控制.pdf",
+    "keywords": [
+      "semi",
+      "systex",
+      "corporation",
+      "rights",
+      "reserved",
+      "資安"
+    ],
+    "outline": [
+      "AI驅動的半導體資安新防線：從分析走向控制",
+      "2026 3",
+      "2026 4",
+      "2026 5",
+      "2026 6"
+    ]
+  },
+  "[4470] 沙盒審判日：決定 prompt 的生死存亡.pdf": {
+    "id": "4470",
+    "title": "沙盒審判日：決定 prompt 的生死存亡",
+    "track": "選擇...",
+    "speakers": "林俊鴻 (Jack Lin) (趨勢科技 TrendAI), 郭俊志 (Tony Kuo) (趨勢科技 TrendAI)",
+    "category": "01_AI_LLM",
+    "filename": "[4470] 沙盒審判日：決定 prompt 的生死存亡.pdf",
+    "keywords": [
+      "ai",
+      "security",
+      "sandbox",
+      "agent",
+      "llm",
+      "introduction"
+    ],
+    "outline": [
+      "Team Member",
+      "Story01",
+      "Story – AI history",
+      "Story – Security for AI",
+      "Introduction – Security for AI"
+    ]
+  },
+  "[4474] 躍過合規難關：用 AI 與自動化將EU CRA合規壓力變競爭力！.pdf": {
+    "id": "4474",
+    "title": "躍過合規難關：用 AI 與自動化將EU CRA合規壓力變競爭力！",
+    "track": "選擇...",
+    "speakers": "AFU (國際自動化協會臺灣分會/台達電子工業股份有限公司)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4474] 躍過合規難關：用 AI 與自動化將EU CRA合規壓力變競爭力！.pdf",
+    "keywords": [
+      "自動",
+      "動化",
+      "國際",
+      "際自",
+      "化協",
+      "協會"
+    ],
+    "outline": [
+      "This presentation reflects my own personal",
+      "©  2026 國際自動化協會臺灣分會© 2026 國際自動化協會臺灣分會",
+      "©  2026 國際自動化協會臺灣分會© 2026 國際自動化協會臺灣分會 5",
+      "©  2026 國際自動化協會臺灣分會 6The ‘Blue Guide’ on the implementation of EU product rules",
+      "Support Period"
+    ]
+  },
+  "[4475]_dl Cybersecurity as Capital Allocation_ Why CRQ Matters Now.pdf": {
+    "id": "4475",
+    "title": "Cybersecurity as Capital Allocation: Why CRQ Matters Now",
+    "track": "選擇...",
+    "speakers": "Akers C. Kuo (Taiwan Risk Governance and Measurement Association (TRGMA))",
+    "category": "07_Others",
+    "filename": "[4475]_dl Cybersecurity as Capital Allocation_ Why CRQ Matters Now.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4476]_dl Exploring the Deeper Challenge (Part 2)_ How Can .SVS E-Signatures Enable Human Asset Digitalization_.pdf": {
+    "id": "4476",
+    "title": "Exploring the Deeper Challenge (Part 2): How Can .SVS E-Signatures Enable Human Asset Digitalization?",
+    "track": "選擇...",
+    "speakers": "吳右任 (雲想科技股份有限公司)",
+    "category": "07_Others",
+    "filename": "[4476]_dl Exploring the Deeper Challenge (Part 2)_ How Can .SVS E-Signatures Enable Human Asset Digitalization_.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4477]_dl Identity is the New Currency_ Re-Building Payment Trust with the EUDI Wallet.pdf": {
+    "id": "4477",
+    "title": "Identity is the New Currency: Re-Building Payment Trust with the EUDI Wallet",
+    "track": "選擇...",
+    "speakers": "Jan Oetting (Paymenttools)",
+    "category": "07_Others",
+    "filename": "[4477]_dl Identity is the New Currency_ Re-Building Payment Trust with the EUDI Wallet.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4478] 數位生態鏈的隱形戰場：Mastercard 如何應對第三方風險與網路威脅.pdf": {
+    "id": "4478",
+    "title": "數位生態鏈的隱形戰場：Mastercard 如何應對第三方風險與網路威脅",
+    "track": "選擇...",
+    "speakers": "Danny Chan (Mastercard)",
+    "category": "06_Cloud_Network",
+    "filename": "[4478] 數位生態鏈的隱形戰場：Mastercard 如何應對第三方風險與網路威脅.pdf",
+    "keywords": [
+      "風險",
+      "risk",
+      "網路",
+      "party",
+      "供應",
+      "mastercard"
+    ],
+    "outline": [
+      "我今天覺得有多安全？",
+      "貓捉老鼠的遊戲..",
+      "但我們也不能把所有的資產都鎖起來..",
+      "• 據報導，一台中國國家級超級電腦外洩了10 PB（拍位元組）的資料。",
+      "人工智慧降低進入門檻並擴大影響規模。"
+    ]
+  },
+  "[4495]_dl Securing Trust in Industry 5.0_ Data-Centric Cybersecurity for the AI and Quantum Era.pdf": {
+    "id": "4495",
+    "title": "Securing Trust in Industry 5.0: Data-Centric Cybersecurity for the AI and Quantum Era",
+    "track": "選擇...",
+    "speakers": "Daniel Toh (Thales)",
+    "category": "07_Others",
+    "filename": "[4495]_dl Securing Trust in Industry 5.0_ Data-Centric Cybersecurity for the AI and Quantum Era.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4497]_dl From Storage to Root of Trust_ Securing Systems with External Secure Flash and Post-Quantum Readiness.pdf": {
+    "id": "4497",
+    "title": "From Storage to Root of Trust: Securing Systems with External Secure Flash and Post-Quantum Readiness",
+    "track": "選擇...",
+    "speakers": "葉金瓚 (旺宏電子)",
+    "category": "07_Others",
+    "filename": "[4497]_dl From Storage to Root of Trust_ Securing Systems with External Secure Flash and Post-Quantum Readiness.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4498]_dl Advanced Cyber Defence Techniques for AI-Driven Threat Vectors.pdf": {
+    "id": "4498",
+    "title": "Advanced Cyber Defence Techniques for AI-Driven Threat Vectors",
+    "track": "選擇...",
+    "speakers": "Nyan Tun Zaw (Athena Dynamics)",
+    "category": "07_Others",
+    "filename": "[4498]_dl Advanced Cyber Defence Techniques for AI-Driven Threat Vectors.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4499]_dl Fostering an information security-first culture - Insights from the Taiwan Biobank experience.pdf": {
+    "id": "4499",
+    "title": "Fostering an information security-first culture - Insights from the Taiwan Biobank experience",
+    "track": "選擇...",
+    "speakers": "張中科 (中央研究院)",
+    "category": "07_Others",
+    "filename": "[4499]_dl Fostering an information security-first culture - Insights from the Taiwan Biobank experience.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4503]_dl What if Information Security is a Martial Art_ Building an Integrated and Sustainable Security Governance M....pdf": {
+    "id": "4503",
+    "title": "What if Information Security is a Martial Art? Building an Integrated and Sustainable Security Governance Model",
+    "track": "選擇...",
+    "speakers": "陳琬茹 (MISO)",
+    "category": "07_Others",
+    "filename": "[4503]_dl What if Information Security is a Martial Art_ Building an Integrated and Sustainable Security Governance M....pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4505] 告別無效告警：應用 AI 拯救 SecOps 前線.pdf": {
+    "id": "4505",
+    "title": "告別無效告警：應用 AI 拯救 SecOps 前線",
+    "track": "選擇...",
+    "speakers": "高翔 (黑貓資訊)",
+    "category": "01_AI_LLM",
+    "filename": "[4505] 告別無效告警：應用 AI 拯救 SecOps 前線.pdf",
+    "keywords": [
+      "偵測",
+      "資安",
+      "攻擊",
+      "genai",
+      "base",
+      "案例"
+    ],
+    "outline": [
+      "2©  2026",
+      "3©  2026",
+      "4©  2026",
+      "5©  2026",
+      "6©  2026"
+    ]
+  },
+  "[4507] 從「防禦」到「韌性」：2026 資安風險浪潮下，企業資安人才的價值重構與生存策略.pdf": {
+    "id": "4507",
+    "title": "從「防禦」到「韌性」：2026 資安風險浪潮下，企業資安人才的價值重構與生存策略",
+    "track": "選擇...",
+    "speakers": "唐任威 (ISC2 Taipei Chapter)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4507] 從「防禦」到「韌性」：2026 資安風險浪潮下，企業資安人才的價值重構與生存策略.pdf",
+    "keywords": [
+      "wef",
+      "資安",
+      "韌性",
+      "isc",
+      "cybersecurity",
+      "企業"
+    ],
+    "outline": [
+      "唐任威VINCENT TANG",
+      "從「防禦」到「韌性」Rethinking Cyber Defense in the Age of Systemic Risk2026 資安風險浪潮下，企業資安人才的價值重構與生存策略",
+      "議程012026 威脅浪潮：三股匯流的加速期02防禦思維的終結：典範轉移的必然03資安不平等加劇：韌性分化的兩極世界04人才價值重構：技能地圖的全面翻新05生存策略：個人與組織的行動框架06結語與行動呼籲",
+      "AI 軍備競賽：攻防兩端同時加速攻擊方(Offense)•AI 大幅降低攻擊門檻•自動化釣魚/ 深偽造內容•自適應惡意軟體自動突變•攻擊速度遠超人工反應時間",
+      "地緣政治碎片化：威脅已超越技術範疇2026 年，地緣政治首度成為企業資安風險緩解策略的首要考量因素"
+    ]
+  },
+  "[4514] 如何在不踩煞車的情況下，讓企業 AI 安全飆速？.pdf": {
+    "id": "4514",
+    "title": "如何在不踩煞車的情況下，讓企業 AI 安全飆速？",
+    "track": "選擇...",
+    "speakers": "林佑儒 (極風雲創股份有限公司)",
+    "category": "01_AI_LLM",
+    "filename": "[4514] 如何在不踩煞車的情況下，讓企業 AI 安全飆速？.pdf",
+    "keywords": [
+      "ai",
+      "企業",
+      "安全",
+      "風險",
+      "資料",
+      "資安"
+    ],
+    "outline": [
+      "Company Profile | 極風雲創股份有限公司 Twister5 Co., Ltd.",
+      "AI 已經進入企業的每一個角落",
+      "企業現在面臨兩難",
+      "真正的問題不是「要不要用 AI」",
+      "AI 導入的真實現況"
+    ]
+  },
+  "[4518]_dl From Compliance to Cyber Resilience_ GRC as a Business Enabler.pdf": {
+    "id": "4518",
+    "title": "From Compliance to Cyber Resilience: GRC as a Business Enabler",
+    "track": "選擇...",
+    "speakers": "Jacen Loke (Dynamic Link Solutions)",
+    "category": "07_Others",
+    "filename": "[4518]_dl From Compliance to Cyber Resilience_ GRC as a Business Enabler.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4521]_dl AI Security for Everyone_ What OWASP's New Agentic AI Top 10 Means for You.pdf": {
+    "id": "4521",
+    "title": "AI Security for Everyone: What OWASP's New Agentic AI Top 10 Means for You",
+    "track": "選擇...",
+    "speakers": "Chommakorn Sontesadisai (ALBATROSS CYBERSEC)",
+    "category": "07_Others",
+    "filename": "[4521]_dl AI Security for Everyone_ What OWASP's New Agentic AI Top 10 Means for You.pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4522]_dl Standardization Progress of Post-Quantum Cryptography Certificate Schemes and Vehicular Network Certificate....pdf": {
+    "id": "4522",
+    "title": "Standardization Progress of Post-Quantum Cryptography Certificate Schemes and Vehicular Network Certificate Schemes",
+    "track": "選擇...",
+    "speakers": "陳志華博士 (Abel C. H. Chen) (中華電信研究院)",
+    "category": "07_Others",
+    "filename": "[4522]_dl Standardization Progress of Post-Quantum Cryptography Certificate Schemes and Vehicular Network Certificate....pdf",
+    "keywords": [],
+    "outline": []
+  },
+  "[4531] 從風險管理到韌性防禦：迎戰下一波資安威脅.pdf": {
+    "id": "4531",
+    "title": "從風險管理到韌性防禦：迎戰下一波資安威脅",
+    "track": "選擇...",
+    "speakers": "Ron Wang (Trellix)",
+    "category": "01_AI_LLM",
+    "filename": "[4531] 從風險管理到韌性防禦：迎戰下一波資安威脅.pdf",
+    "keywords": [
+      "ai",
+      "攻擊",
+      "代理",
+      "wise",
+      "資安",
+      "trellix"
+    ],
+    "outline": [
+      "● 人類進步的三大支柱● AI 現實（The AI Reality）● 如何在空氣隔離與任務關鍵環境中支援 AI？● Trellix 將如何防範使用 AI 而導致的資料外洩？",
+      "加速     擴展    ~  人類進步的三大支柱",
+      "股市的關鍵時刻 - Apr 11, Friday",
+      "大型語言模型（LLM）效能基準測試",
+      "完整攻擊鏈"
+    ]
+  },
+  "[4535] 神盾級的 AI 主動資安整合平台.pdf": {
+    "id": "4535",
+    "title": "神盾級的 AI 主動資安整合平台",
+    "track": "選擇...",
+    "speakers": "許宏裕 (凌羣電腦)",
+    "category": "01_AI_LLM",
+    "filename": "[4535] 神盾級的 AI 主動資安整合平台.pdf",
+    "keywords": [
+      "凌羣",
+      "羣電",
+      "電腦",
+      "ai",
+      "hardware",
+      "security"
+    ],
+    "outline": []
+  },
+  "[4664] 營運持續與韌性對運營科技的重要性.pdf": {
+    "id": "4664",
+    "title": "營運持續與韌性對運營科技的重要性",
+    "track": "選擇...",
+    "speakers": "魏銪志 (國立臺北科技大學)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4664] 營運持續與韌性對運營科技的重要性.pdf",
+    "keywords": [
+      "韌性",
+      "風險",
+      "resilience",
+      "系統",
+      "edr",
+      "reference"
+    ],
+    "outline": [
+      "歡迎報考北科大資財所碩博士、資訊安全碩博士學位學程",
+      "由案例來看韌性的重要性",
+      "某物流業者遭網路攻擊突顯韌性的重要•部分資訊系統異常、官網⼀度無法連線，影響網購出貨與配送流程，物流業的關鍵基礎設施風險再度浮上檯⾯•被迫改採⼈⼯流程維持基本運作•不能掃條碼、無法電⼦簽收，司機只能改⽤⼿機拍照、紙本紀錄等⽅式送貨•物流、通路與電商供應鏈⾼度數位化後，資訊系統本⾝已成為營運命脈，⼀旦遭遇網攻，衝擊很快就會從後台擴散到前台•沒有系統輔助/⼈⼯成本較⾼•後台無法受理，違約/營收損失/被對⼿有機會超⾞！",
+      "為什麼要強化韌性-CrowdStrike實例(1/2)•2024年7⽉19⽇CrowdStrike安全防護軟體更新出錯，導致全球約850萬台Windows崩潰，出現BSOD•CS的Falcon為⼀EDR，會檢測和預防威脅並定期向客⼾分發修補程式•Falcon Sensor更新程式出問題是這次事故的主因",
+      "為什麼要強化韌性-CrowdStrike實例(2/2)•裝了EDR不是應該更好嗎？因為更新？那是不是就不要更新？•EDR當然對於可能的問題/弱點/威脅有即時的偵測能⼒，但仍有侷限•偵測引擎需要更新！定義檔需要更新!•驅動程式等級的更新有一定的風險，一定要測試！•不裝EDR的風險當然更⼤，然⽽：•⼀切都是看[風險]發⽣的[可能性]與發⽣後的[衝擊]•然⽽再多的測試還是可能在實際更新的時候出狀況，營運如果受到波及對組織還是有相當有的影響，因此強化組織韌性有其必要！"
+    ]
+  },
+  "[4665] Safer OT with Less Effort：控制層自動化防護架構.pdf": {
+    "id": "4665",
+    "title": "Safer OT with Less Effort：控制層自動化防護架構",
+    "track": "選擇...",
+    "speakers": "卓傳育 (一安智能股份有限公司)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4665] Safer OT with Less Effort：控制層自動化防護架構.pdf",
+    "keywords": [
+      "設備",
+      "網路",
+      "老舊",
+      "防護",
+      "無法",
+      "系統"
+    ],
+    "outline": [
+      "2026 2",
+      "充斥無法更新的舊版系統與",
+      "一旦威脅突破邊界，將在",
+      "佔用設備資源，可能導致",
+      "2026 6"
+    ]
+  },
+  "[4666] 從可視化到可防護：重構OT資安的實踐路徑.pdf": {
+    "id": "4666",
+    "title": "從可視化到可防護：重構OT資安的實踐路徑",
+    "track": "選擇...",
+    "speakers": "劉榮太 (Terence Liu) (睿控網安)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4666] 從可視化到可防護：重構OT資安的實踐路徑.pdf",
+    "keywords": [
+      "visibility",
+      "txone",
+      "networks",
+      "copyright",
+      "rights",
+      "reserved"
+    ],
+    "outline": [
+      "Why OT Security Doesn't",
+      "The \"Safe\" First Step: Visibility",
+      "Where Visibility Gets Stuck",
+      "From Visibility to Prioritized Action",
+      "A Practical Path Forward (6–12 Months)"
+    ]
+  },
+  "[4677] 金融資安政策現況與展望.pdf": {
+    "id": "4677",
+    "title": "金融資安政策現況與展望",
+    "track": "選擇...",
+    "speakers": "林裕泰 (金融監督管理委員會)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4677] 金融資安政策現況與展望.pdf",
+    "keywords": [
+      "資安",
+      "金融",
+      "防護",
+      "韌性",
+      "安全",
+      "強化"
+    ],
+    "outline": [
+      "金融資安政策進程",
+      "我國資安政策",
+      "近年國際資安監理趨勢",
+      "四軸韌性治理架構-思維轉型",
+      "四大主軸→與十大推動重點"
+    ]
+  },
+  "[4678]_part1 從左移防護到韌性金融：建構新世代金融資安防護藍圖.pdf": {
+    "id": "4678",
+    "title": "從左移防護到韌性金融：建構新世代金融資安防護藍圖",
+    "track": "選擇...",
+    "speakers": "林裕泰 (金融監督管理委員會), 吳佑文 (中國信託商業銀行), 蘇清偉 (富邦金控), 陳詰昌 (台新新光金控 / 台新銀行), 劉培文 (第一商業銀行)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4678]_part1 從左移防護到韌性金融：建構新世代金融資安防護藍圖.pdf",
+    "keywords": [
+      "聯防",
+      "情資",
+      "資安",
+      "資料",
+      "來源",
+      "自動"
+    ],
+    "outline": [
+      "城堡式防禦",
+      "共同供應商：從Solarwind到 Korean Leaks",
+      "AI時代：資安威脅從單一組織上升到生態系",
+      "信任共好：生態聯防實踐",
+      "由競爭轉向共好!"
+    ]
+  },
+  "[4678]_part2 從左移防護到韌性金融：建構新世代金融資安防護藍圖.pdf": {
+    "id": "4678",
+    "title": "從左移防護到韌性金融：建構新世代金融資安防護藍圖",
+    "track": "選擇...",
+    "speakers": "林裕泰 (金融監督管理委員會), 吳佑文 (中國信託商業銀行), 蘇清偉 (富邦金控), 陳詰昌 (台新新光金控 / 台新銀行), 劉培文 (第一商業銀行)",
+    "category": "06_Cloud_Network",
+    "filename": "[4678]_part2 從左移防護到韌性金融：建構新世代金融資安防護藍圖.pdf",
+    "keywords": [
+      "備援",
+      "主機",
+      "資料",
+      "境外",
+      "架構",
+      "韌性"
+    ],
+    "outline": [
+      "危機處理流程 持續改善的管理循環(PDCA)",
+      "將計畫化為行動：BCM常態化實踐",
+      "技術架構1.0：雙中心備援架構確保核心資料安全",
+      "備援類型",
+      "兩地雙活架構設計原則"
+    ]
+  },
+  "[4681] 贏在治理：以數位信任為基石，打造企業 AI 競爭優勢的穩健性版圖.pdf": {
+    "id": "4681",
+    "title": "贏在治理：以數位信任為基石，打造企業 AI 競爭優勢的穩健性版圖",
+    "track": "選擇...",
+    "speakers": "潘世鳴 (Peter Pan) (BSI 英國標準協會)",
+    "category": "01_AI_LLM",
+    "filename": "[4681] 贏在治理：以數位信任為基石，打造企業 AI 競爭優勢的穩健性版圖.pdf",
+    "keywords": [
+      "ai",
+      "治理",
+      "bsi",
+      "ithome",
+      "資安",
+      "風險"
+    ],
+    "outline": [
+      "AI 時代的",
+      "負責任的人工智慧:從治理到永續價值",
+      "數位信任的黃金時代與危機",
+      "穩健性與可驗證性",
+      "解讀 AI 治理："
+    ]
+  },
+  "[4682] 證照只是開始：跨越學習到實戰的紅隊之路.pdf": {
+    "id": "4682",
+    "title": "證照只是開始：跨越學習到實戰的紅隊之路",
+    "track": "選擇...",
+    "speakers": "Nullday (DEVCORE)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4682] 證照只是開始：跨越學習到實戰的紅隊之路.pdf",
+    "keywords": [
+      "nullday",
+      "實戰",
+      "紅隊",
+      "靶機",
+      "devco",
+      "re"
+    ],
+    "outline": [
+      "Nullday",
+      "whoami"
+    ]
+  },
+  "[4685] 全球連接架構：實現企業隨處安全與連通.pdf": {
+    "id": "4685",
+    "title": "全球連接架構：實現企業隨處安全與連通",
+    "track": "選擇...",
+    "speakers": "施啟繁 (Christopher Say) (Cloudflare)",
+    "category": "06_Cloud_Network",
+    "filename": "[4685] 全球連接架構：實現企業隨處安全與連通.pdf",
+    "keywords": [
+      "代理",
+      "網路",
+      "ai",
+      "理時",
+      "cloudflare",
+      "全球"
+    ],
+    "outline": [
+      "協助建構更美好的網",
+      "個城市，遍及 125+ 個國家，",
+      "讓 AI 安全跟上",
+      "打造、部署並運行代理",
+      "在最快、"
+    ]
+  },
+  "[4686] 為 AI 劃定微型沙盒的方寸疆界.pdf": {
+    "id": "4686",
+    "title": "為 AI 劃定微型沙盒的方寸疆界",
+    "track": "選擇...",
+    "speakers": "Melody Huang (Cloudflare)",
+    "category": "01_AI_LLM",
+    "filename": "[4686] 為 AI 劃定微型沙盒的方寸疆界.pdf",
+    "keywords": [
+      "ai",
+      "workers",
+      "沙盒",
+      "安全",
+      "性問",
+      "問題"
+    ],
+    "outline": [
+      "誰寫的爛程式碼？",
+      "擴展性問題",
+      "Cloudflare Workers",
+      "Dynamic Workers"
+    ]
+  },
+  "[4690] 貴賓致詞.pdf": {
+    "id": "4690",
+    "title": "貴賓致詞",
+    "track": "選擇...",
+    "speakers": "吳士駿 (國立成功大學)",
+    "category": "01_AI_LLM",
+    "filename": "[4690] 貴賓致詞.pdf",
+    "keywords": [
+      "token",
+      "logprob",
+      "bytes",
+      "system",
+      "ai",
+      "open"
+    ],
+    "outline": [
+      "Three+ messages",
+      "#M1: The “System” is complex-er",
+      "https://www.nvidia.com/zh-tw/data-center/vera-rubin-nvl72/",
+      "OpenBMC",
+      "#M1: The “System” is complex-er"
+    ]
+  },
+  "[4771] 從合規檢核到活下來的能力 - 資安韌性時代.pdf": {
+    "id": "4771",
+    "title": "從合規檢核到活下來的能力 - 資安韌性時代",
+    "track": "選擇...",
+    "speakers": "陳志明 (Jemmy) (安永諮詢服務股份有限公司)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4771] 從合規檢核到活下來的能力 - 資安韌性時代.pdf",
+    "keywords": [
+      "資安",
+      "安全",
+      "管理",
+      "防護",
+      "公司",
+      "韌性"
+    ],
+    "outline": [
+      "講者簡介",
+      "還是從這裡開始吧 … 上市櫃公司年報揭露資通安全作為",
+      "歷年資本額百億以上公司資安作為揭露分析",
+      "113年年報回顧：揭露57項資安作為",
+      "• 揭露率金字塔結構：資安教育訓練／治理／驗證居首，技術深度與主動防禦仍待提升。"
+    ]
+  },
+  "[4224] AttackGPT_ It Can Talk the Kill Chain — But Can It Afford To Walk It_.pdf": {
+    "id": "4224",
+    "title": "AttackGPT: It Can Talk the Kill Chain — But Can It Afford To Walk It?",
+    "track": "選擇...",
+    "speakers": "Jan Michael Alcantara (Netskope)",
+    "category": "01_AI_LLM",
+    "filename": "[4224] AttackGPT_ It Can Talk the Kill Chain — But Can It Afford To Walk It_.pdf",
+    "keywords": [
+      "malware",
+      "code",
+      "time",
+      "can",
+      "llm",
+      "research"
+    ],
+    "outline": [
+      "• Threat Researcher at Threat Labs, Netskope",
+      "Malware abusing LLM in the wild",
+      "Can Malware Contain Only Prompts",
+      "01 Just-In-Time Malware",
+      "Research Scope and Objectives"
+    ]
+  },
+  "[4226] 戳破 AI 的防禦幻影：從紅藍隊視角重構 AI 系統安全.pdf": {
+    "id": "4226",
+    "title": "戳破 AI 的防禦幻影：從紅藍隊視角重構 AI 系統安全",
+    "track": "選擇...",
+    "speakers": "楊政霖博士 (奧義智慧科技)",
+    "category": "01_AI_LLM",
+    "filename": "[4226] 戳破 AI 的防禦幻影：從紅藍隊視角重構 AI 系統安全.pdf",
+    "keywords": [
+      "安全",
+      "攻擊",
+      "ai",
+      "模型",
+      "part",
+      "破口"
+    ],
+    "outline": [
+      "今天我們要拆解的故事",
+      "PART · 01",
+      "PART I · 假象的誕生 05 / 34",
+      "PART I · 假象的誕生 06 / 34",
+      "PART I · 假象的誕生 07 / 34"
+    ]
+  },
+  "[4229] AI發展下的隱私法遵與安全落實.pdf": {
+    "id": "4229",
+    "title": "AI發展下的隱私法遵與安全落實",
+    "track": "選擇...",
+    "speakers": "鄒耀東 (帝濶智慧科技股份有限公司)",
+    "category": "01_AI_LLM",
+    "filename": "[4229] AI發展下的隱私法遵與安全落實.pdf",
+    "keywords": [
+      "智慧",
+      "科技",
+      "帝濶",
+      "濶智",
+      "慧科",
+      "技股"
+    ],
+    "outline": [
+      "鄒耀東 (YT Tsou) 博士 總經理&共同創辦人",
+      "帝濶智慧科技",
+      "屢獲國際大獎與合規認證肯定，代表全球最高標準的技術實力證明",
+      "隱私個資外洩可能比你想像中的嚴重?!",
+      "資料來源: Deloitte & Touche LLP, Beneath the Surface of a Cyberattack: A Deeper Look at the Business Impacts"
+    ]
+  },
+  "[4247] 從 On-Premises 基礎監控邁向智慧化 Cloud 的轉型實踐.pdf": {
+    "id": "4247",
+    "title": "從 On-Premises 基礎監控邁向智慧化 Cloud 的轉型實踐",
+    "track": "選擇...",
+    "speakers": "James Cao (雲力橘子)",
+    "category": "01_AI_LLM",
+    "filename": "[4247] 從 On-Premises 基礎監控邁向智慧化 Cloud 的轉型實踐.pdf",
+    "keywords": [
+      "ai",
+      "自動",
+      "事件",
+      "soc",
+      "雲端",
+      "監控"
+    ],
+    "outline": [
+      "我的背景",
+      "近幾年雲端原生與 AI 技術爆發的，傳統以「搜尋與告",
+      "傳統SOC監控最常遇到的問題......",
+      "SOC維運的真實困局",
+      "從傳統監控平台轉換成雲端監控平台的動機?"
+    ]
+  },
+  "[4253] 具身 AI 走進家：隱私攻防新戰場.pdf": {
+    "id": "4253",
+    "title": "具身 AI 走進家：隱私攻防新戰場",
+    "track": "選擇...",
+    "speakers": "朱益宏 (VicOne)",
+    "category": "01_AI_LLM",
+    "filename": "[4253] 具身 AI 走進家：隱私攻防新戰場.pdf",
+    "keywords": [
+      "資料",
+      "影像",
+      "隱私",
+      "訓練",
+      "用者",
+      "ai"
+    ],
+    "outline": [
+      "智慧眼鏡看到你的一切",
+      "越貼心，越危險",
+      "當 AI 有了身體",
+      "兩個核心問題",
+      "感知層：從源頭只取需要的資訊"
+    ]
+  },
+  "[4269] AI 時代的資安勝戰：從技術防禦轉型為組織匯聚戰力.pdf": {
+    "id": "4269",
+    "title": "AI 時代的資安勝戰：從技術防禦轉型為組織匯聚戰力",
+    "track": "選擇...",
+    "speakers": "劉孟昌 Piner Liu (安碁學苑股份有限公司 ACSI Cyber Security Academy)",
+    "category": "01_AI_LLM",
+    "filename": "[4269] AI 時代的資安勝戰：從技術防禦轉型為組織匯聚戰力.pdf",
+    "keywords": [
+      "安碁",
+      "碁學",
+      "學苑",
+      "苑版",
+      "版權",
+      "權所"
+    ],
+    "outline": [
+      "安碁學苑版權所有,不得翻拍、盜錄、傳播,侵害必究。2",
+      "問題變了：企業面對的已不是單純技術攻防",
+      "舊思維不足：資安不能再只是少數人的任務",
+      "新解法：從單點防禦，走向三層匯聚戰力",
+      "回去之後，先從三個起手式開始"
+    ]
+  },
+  "[4270] 建構堅不可摧的資料堡壘：NetApp 網路韌性解決方案.pdf": {
+    "id": "4270",
+    "title": "建構堅不可摧的資料堡壘：NetApp 網路韌性解決方案",
+    "track": "選擇...",
+    "speakers": "謝進霖 (Eric Hsieh) (零壹科技)",
+    "category": "01_AI_LLM",
+    "filename": "[4270] 建構堅不可摧的資料堡壘：NetApp 網路韌性解決方案.pdf",
+    "keywords": [
+      "資料",
+      "安全",
+      "偵測",
+      "自動",
+      "攻擊",
+      "防禦"
+    ],
+    "outline": [
+      "勒索攻擊的殘酷代價",
+      "為什麼傳統的分層防禦",
+      "從被動防禦邁向主動網路韌性",
+      "最安全的",
+      "簡單、最全面的"
+    ]
+  },
+  "[4273] 當 AI 成為應用核心：企業安全治理的下一個戰場.pdf": {
+    "id": "4273",
+    "title": "當 AI 成為應用核心：企業安全治理的下一個戰場",
+    "track": "選擇...",
+    "speakers": "Leo Jiang 姜景懷 (F5)",
+    "category": "01_AI_LLM",
+    "filename": "[4273] 當 AI 成為應用核心：企業安全治理的下一個戰場.pdf",
+    "keywords": [
+      "ai",
+      "system",
+      "prompt",
+      "安全",
+      "security",
+      "palette"
+    ],
+    "outline": [
+      "© 2026 F52",
+      "© 2026 F53",
+      "© 2026 F54",
+      "© 2026 F55",
+      "© 2026 F56"
+    ]
+  },
+  "[4284] AI 軟體醫材的資安實戰：從美國 FDA 524B 規範到 Threat Modeling 與 Patch SLA 的完整落地.pdf": {
+    "id": "4284",
+    "title": "AI 軟體醫材的資安實戰：從美國 FDA 524B 規範到 Threat Modeling 與 Patch SLA 的完整落地",
+    "track": "選擇...",
+    "speakers": "林家聖 (國立陽明交通大學), 陳靖中 (智德萬生醫科技股份有限公司)",
+    "category": "01_AI_LLM",
+    "filename": "[4284] AI 軟體醫材的資安實戰：從美國 FDA 524B 規範到 Threat Modeling 與 Patch SLA 的完整落地.pdf",
+    "keywords": [
+      "healthcare",
+      "security",
+      "device",
+      "system",
+      "safety",
+      "can"
+    ],
+    "outline": [
+      "About the Speaker",
+      "What Is Critical Infrastructure?",
+      "The First Formal Assessment: 1996",
+      "Healthcare Is Not a",
+      "After 9/11: Healthcare Enters the National"
+    ]
+  },
+  "[4285] Unified SASE 平台戰略：從整合到智能，創造無限價值。.pdf": {
+    "id": "4285",
+    "title": "Unified SASE 平台戰略：從整合到智能，創造無限價值。",
+    "track": "選擇...",
+    "speakers": "孫嘉陽 (Fortinet)",
+    "category": "01_AI_LLM",
+    "filename": "[4285] Unified SASE 平台戰略：從整合到智能，創造無限價值。.pdf",
+    "keywords": [
+      "fortinet",
+      "安全",
+      "inc",
+      "rights",
+      "reserved",
+      "存取"
+    ],
+    "outline": [
+      "2© Fortinet Inc. All Rights Reserved.",
+      "3© Fortinet Inc. All Rights Reserved.",
+      "4©  Fortinet Inc. All Rights Reserved.",
+      "5©  Fortinet Inc. All Rights Reserved.",
+      "6© Fortinet Inc. All Rights Reserved."
+    ]
+  },
+  "[4287] 守護現在，預見未來：FortiGate 打造 AI 時代的「全能守護者」.pdf": {
+    "id": "4287",
+    "title": "守護現在，預見未來：FortiGate 打造 AI 時代的「全能守護者」",
+    "track": "選擇...",
+    "speakers": "余昇瀚 (Fortinet)",
+    "category": "01_AI_LLM",
+    "filename": "[4287] 守護現在，預見未來：FortiGate 打造 AI 時代的「全能守護者」.pdf",
+    "keywords": [
+      "ai",
+      "fortinet",
+      "inc",
+      "rights",
+      "reserved",
+      "應用"
+    ],
+    "outline": [
+      "正在加速的三大資安壓力",
+      "Travel Small Branch",
+      "一個核心本體，面對多變場景",
+      "6©  Fortinet Inc. All Rights Reserved.",
+      "在分支、園區、資料中心、雲端與混合辦公場景中一致執行防護"
+    ]
+  },
+  "[4289] AI 新賽局：在合規與創新中取得平衡.pdf": {
+    "id": "4289",
+    "title": "AI 新賽局：在合規與創新中取得平衡",
+    "track": "選擇...",
+    "speakers": "李鵬 (Fortinet)",
+    "category": "01_AI_LLM",
+    "filename": "[4289] AI 新賽局：在合規與創新中取得平衡.pdf",
+    "keywords": [
+      "ai",
+      "fortinet",
+      "發展",
+      "inc",
+      "rights",
+      "reserved"
+    ],
+    "outline": [
+      "人工智慧基本法》下的資安新賽局",
+      "全球 AI 規範競速已然開跑,",
+      "各國 AI 戰略路徑分歧, 臺灣需在巨頭間尋求最佳平衡點",
+      "臺灣的戰略抉擇：",
+      "奠定法治基礎 : 明確立法宗旨、適用範圍與核心主導機關"
+    ]
+  },
+  "[4292] Security Without Borders_ Breaking Language and Cultural Barriers to Harmonize Global Security Operations.pdf": {
+    "id": "4292",
+    "title": "Security Without Borders: Breaking Language and Cultural Barriers to Harmonize Global Security Operations",
+    "track": "選擇...",
+    "speakers": "Jesse Ku (Bora Pharmaceuticals)",
+    "category": "01_AI_LLM",
+    "filename": "[4292] Security Without Borders_ Breaking Language and Cultural Barriers to Harmonize Global Security Operations.pdf",
+    "keywords": [
+      "jesseku",
+      "ai",
+      "language",
+      "time",
+      "barriers",
+      "culture"
+    ],
+    "outline": [
+      "本言講和簡報中所表達之內容、觀點、想法及意見僅代表講者個人立場，並不是其現任公司或任",
+      "“ Cybersecurity is difficult enough on its own, let alone achieving truly effective",
+      "The story at McDonalds",
+      "Let’s break some barriers",
+      "Identifying the Barriers"
+    ]
+  },
+  "[4295] AI安全該怎麼管_.pdf": {
+    "id": "4295",
+    "title": "AI安全該怎麼管?",
+    "track": "選擇...",
+    "speakers": "陳詰昌 (台新新光金控 / 台新銀行)",
+    "category": "01_AI_LLM",
+    "filename": "[4295] AI安全該怎麼管_.pdf",
+    "keywords": [
+      "ai",
+      "風險",
+      "資料",
+      "模型",
+      "系統",
+      "治理"
+    ],
+    "outline": [
+      "典範轉移與雙面刃",
+      "管理目標",
+      "AI系統風險",
+      "AI系統風險管理重要支柱",
+      "治理框架、標準與法規要求"
+    ]
+  },
+  "[4312] 企業導入 AI 的第一個安全問題：如何在創新與資料保護之間取得平衡.pdf": {
+    "id": "4312",
+    "title": "企業導入 AI 的第一個安全問題：如何在創新與資料保護之間取得平衡",
+    "track": "選擇...",
+    "speakers": "白瑞祥 Ray Pai (Forcepoint)",
+    "category": "01_AI_LLM",
+    "filename": "[4312] 企業導入 AI 的第一個安全問題：如何在創新與資料保護之間取得平衡.pdf",
+    "keywords": [
+      "ai",
+      "工具",
+      "資料",
+      "code",
+      "high",
+      "medium"
+    ],
+    "outline": [
+      "Forcepoint AI 安全成熟度框架",
+      "P A R T   0 1",
+      "市場現況",
+      "市場數據",
+      "真實案例"
+    ]
+  },
+  "[4328] LLM 與 DevSecOps 相遇：AI-Powered DevSecOps 的機會與風險.pdf": {
+    "id": "4328",
+    "title": "LLM 與 DevSecOps 相遇：AI-Powered DevSecOps 的機會與風險",
+    "track": "選擇...",
+    "speakers": "Archer Tsai (華碩電腦股份有限公司)",
+    "category": "01_AI_LLM",
+    "filename": "[4328] LLM 與 DevSecOps 相遇：AI-Powered DevSecOps 的機會與風險.pdf",
+    "keywords": [
+      "ai",
+      "自動",
+      "powered",
+      "generated",
+      "nano",
+      "banana"
+    ],
+    "outline": [
+      "The Near Future",
+      "The Rapid Innovation of Agentic AI",
+      "The New Era of DevSecOps",
+      "AI-powered Development",
+      "AI-powered Development"
+    ]
+  },
+  "[4329] Beyond Prompt Attacks：用開放技術打造可落地的 LLM 合規防護鏈.pdf": {
+    "id": "4329",
+    "title": "Beyond Prompt Attacks：用開放技術打造可落地的 LLM 合規防護鏈",
+    "track": "選擇...",
+    "speakers": "曲華榮 (中華電信研究院)",
+    "category": "01_AI_LLM",
+    "filename": "[4329] Beyond Prompt Attacks：用開放技術打造可落地的 LLM 合規防護鏈.pdf",
+    "keywords": [
+      "模型",
+      "資料",
+      "secrets",
+      "ai",
+      "pii",
+      "合規"
+    ],
+    "outline": [
+      "Obscure but Effective: Classical Chinese Jailbreak Prompt Optimization via Bio-Inspired Search,, ICLR 2026,",
+      "安全護欄技術",
+      "2023-12",
+      "新趨勢：串連完整安全合規防護鏈",
+      "Risk 1: Secrets Leakage"
+    ]
+  },
+  "[4333] 資安韌性不是準備，是選擇： AI 時代的關鍵選擇與應變策略.pdf": {
+    "id": "4333",
+    "title": "資安韌性不是準備，是選擇： AI 時代的關鍵選擇與應變策略",
+    "track": "選擇...",
+    "speakers": "劉家如／虎虎 (艾盾資科股份有限公司)",
+    "category": "01_AI_LLM",
+    "filename": "[4333] 資安韌性不是準備，是選擇： AI 時代的關鍵選擇與應變策略.pdf",
+    "keywords": [
+      "com",
+      "https",
+      "數位",
+      "位鑑",
+      "鑑識",
+      "資安"
+    ],
+    "outline": [
+      "艾盾資科 x AIShield x 虎虎",
+      "01.  數位鑑識應變流程",
+      "數位鑑識應變流程",
+      "事件發生後，先保全再復原",
+      "人工數位鑑識痛點"
+    ]
+  },
+  "[4343] 直擊「Shadow AI」失控現場，全面防止資料外洩.pdf": {
+    "id": "4343",
+    "title": "直擊「Shadow AI」失控現場，全面防止資料外洩",
+    "track": "選擇...",
+    "speakers": "許祐福 (FineArt Technology 精品科技)",
+    "category": "01_AI_LLM",
+    "filename": "[4343] 直擊「Shadow AI」失控現場，全面防止資料外洩.pdf",
+    "keywords": [
+      "ai",
+      "com",
+      "企業",
+      "資料",
+      "限閱",
+      "風險"
+    ],
+    "outline": [
+      "Tools",
+      "2025 企業 AI 導入的致命落差",
+      "39.7%",
+      "視線邊界",
+      "程式碼除錯"
+    ]
+  },
+  "[4350] AI時代司法聯盟鏈：區塊鏈資安治理與智慧監控實踐.pdf": {
+    "id": "4350",
+    "title": "AI時代司法聯盟鏈：區塊鏈資安治理與智慧監控實踐",
+    "track": "選擇...",
+    "speakers": "魯志遠 (法務部調查局)",
+    "category": "01_AI_LLM",
+    "filename": "[4350] AI時代司法聯盟鏈：區塊鏈資安治理與智慧監控實踐.pdf",
+    "keywords": [
+      "數位",
+      "證據",
+      "位證",
+      "時代",
+      "法律",
+      "技術"
+    ],
+    "outline": [
+      "AI時代",
+      "AI時代",
+      "英國倫敦警察廳統計,高達90%犯罪案件涉及數位證據。",
+      "數位鑑識",
+      "法律要懂技術"
+    ]
+  },
+  "[4351] 上吧！資料百變怪！讓合成資料成為你 AI 安全可信的夥伴.pdf": {
+    "id": "4351",
+    "title": "上吧！資料百變怪！讓合成資料成為你 AI 安全可信的夥伴",
+    "track": "選擇...",
+    "speakers": "陳正庭 Chen, Justyn (國家資通安全研究院), 許德丞 Andy Te-Cheng Hsu (國家資通安全研究院)",
+    "category": "01_AI_LLM",
+    "filename": "[4351] 上吧！資料百變怪！讓合成資料成為你 AI 安全可信的夥伴.pdf",
+    "keywords": [
+      "資料",
+      "合成",
+      "成資",
+      "隱私",
+      "ai",
+      "data"
+    ],
+    "outline": [
+      "還在觀望合成資料？六個誤解⼀次聊",
+      "合成資料是什麼？從優勢到落地",
+      "資料的世界正在荒蕪",
+      "資料百變怪：合成資料是什麼？",
+      "合成資料是最容易落地的隱私強化技術"
+    ]
+  },
+  "[4359] 工作沒有不見，只怕變成你認不得的樣子：AI 時代下的資安人才生存法則.pdf": {
+    "id": "4359",
+    "title": "工作沒有不見，只怕變成你認不得的樣子：AI 時代下的資安人才生存法則",
+    "track": "選擇...",
+    "speakers": "唐任威 (ISC2 Taipei Chapter)",
+    "category": "01_AI_LLM",
+    "filename": "[4359] 工作沒有不見，只怕變成你認不得的樣子：AI 時代下的資安人才生存法則.pdf",
+    "keywords": [
+      "ai",
+      "資安",
+      "判斷",
+      "工作",
+      "安人",
+      "安全"
+    ],
+    "outline": [
+      "唐任威VINCENT TANG",
+      "AI 時代下的資安人才生存法則",
+      "錯誤的焦慮vs 正確的焦慮",
+      "AI 真正取代的是什麼？一個判斷標準：凡是能被「明確定義」的工作，AI 都能做——而且做得比人更快更準。",
+      "Do Things Right  vs  Do The Right Thing"
+    ]
+  },
+  "[4360] From Prompt to Shell - Weaponizing AI Agents with the Model Context Protocol.pdf": {
+    "id": "4360",
+    "title": "From Prompt to Shell - Weaponizing AI Agents with the Model Context Protocol",
+    "track": "選擇...",
+    "speakers": "Jie",
+    "category": "01_AI_LLM",
+    "filename": "[4360] From Prompt to Shell - Weaponizing AI Agents with the Model Context Protocol.pdf",
+    "keywords": [
+      "ai",
+      "api",
+      "llm",
+      "txt",
+      "age",
+      "ithome"
+    ],
+    "outline": [
+      "This talk is given by me as an individual",
+      "# whoami",
+      "LLM Revolution",
+      "You can only chat with LLM",
+      "AI Agent"
+    ]
+  },
+  "[4230] 用主觀邏輯打造動態信任分數：零信任架構的實戰演算法則.pdf": {
+    "id": "4230",
+    "title": "用主觀邏輯打造動態信任分數：零信任架構的實戰演算法則",
+    "track": "選擇...",
+    "speakers": "Jason Chuang (NEXCOM 新漢), Baily Lo (NEXCOM OT Security)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4230] 用主觀邏輯打造動態信任分數：零信任架構的實戰演算法則.pdf",
+    "keywords": [
+      "存取",
+      "信任",
+      "零信",
+      "持續",
+      "身分",
+      "資源"
+    ],
+    "outline": [
+      "©  2026, NEXCOM OT Security | TMR Technologies Co., Ltd. All rights reserved.",
+      "- 零信任架構的核心概念",
+      "- 什麼是「零信任（Zero Trust）」？",
+      "NIST SP 800-207 ( Zero Trust Architecture )",
+      "零信任架構的核心在於:"
+    ]
+  },
+  "[4281] 內網中的幽靈：Earth Kurma 的隱身手法與長期的攻擊策略.pdf": {
+    "id": "4281",
+    "title": "內網中的幽靈：Earth Kurma 的隱身手法與長期的攻擊策略",
+    "track": "選擇...",
+    "speakers": "Nick Dai (趨勢科技 TrendAI), Sunny W Lu (趨勢科技 TrendAI)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4281] 內網中的幽靈：Earth Kurma 的隱身手法與長期的攻擊策略.pdf",
+    "keywords": [
+      "exe",
+      "tomcat",
+      "system",
+      "users",
+      "tool",
+      "exfiltration"
+    ],
+    "outline": [
+      "whoami",
+      "• Introduction",
+      "Introduction",
+      "Earth Kurma",
+      "Industries"
+    ]
+  },
+  "[4294] Zero Trust That Works in the Real World_ Containment and Antifragile Cyber Resilience.pdf": {
+    "id": "4294",
+    "title": "Zero Trust That Works in the Real World: Containment and Antifragile Cyber Resilience",
+    "track": "選擇...",
+    "speakers": "John Kindervag (Illumio)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4294] Zero Trust That Works in the Real World_ Containment and Antifragile Cyber Resilience.pdf",
+    "keywords": [
+      "ex",
+      "ad",
+      "trust",
+      "graph",
+      "zero",
+      "security"
+    ],
+    "outline": [
+      "No More",
+      "A strategy designed to stop data breaches and",
+      "1. Who the President is",
+      "Perimeter",
+      "ZERO TRUST"
+    ]
+  },
+  "[4307] PS C___ Live Off the .NET Gadgets - 從指令解析缺陷到符號引擎的新視野.pdf": {
+    "id": "4307",
+    "title": "PS C:\\> Live Off the .NET Gadgets - 從指令解析缺陷到符號引擎的新視野",
+    "track": "選擇...",
+    "speakers": "黃智威 (TXOne Networks Inc.)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4307] PS C___ Live Off the .NET Gadgets - 從指令解析缺陷到符號引擎的新視野.pdf",
+    "keywords": [
+      "block",
+      "patching",
+      "net",
+      "amsi",
+      "powershell",
+      "threat"
+    ],
+    "outline": [
+      "Authors",
+      "01 Background on Windows Fileless Hacking",
+      "Background on Windows Fileless Hacking",
+      "Trojan",
+      "trojan"
+    ]
+  },
+  "[4314] 讓醫療產業再次 Level up：淺淡 Health Level 7 的資安問題及展望.pdf": {
+    "id": "4314",
+    "title": "讓醫療產業再次 Level up：淺淡 Health Level 7 的資安問題及展望",
+    "track": "選擇...",
+    "speakers": "Linwei Tsao (TXOne Networks Inc.)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4314] 讓醫療產業再次 Level up：淺淡 Health Level 7 的資安問題及展望.pdf",
+    "keywords": [
+      "hl",
+      "keep",
+      "operation",
+      "running",
+      "https",
+      "health"
+    ],
+    "outline": [
+      "BiographyLinwei Tsao,Threat Researcher, Cyber Threat & Product Defense Center, TXOne Networks Inc.•研析ICS 相關的通訊協定、網路封包、以及開發佈建威脅獵捕系統，以獲得目前最即時的ICS 攻擊情資•曾開發多項網路相關的產品，包括數據機韌體，DPI engine/pattern 等•曾於CyberSec演講",
+      "Keep the Operation RunningHealth Level 7 是什麼？",
+      "傳統的診所可能會發生這樣的情況：",
+      "Health Level 7 (HL7) 標準是什麼？•始於1979 年，由Health Level Seven International 組織開發並維護•HL7 並非單㇐協定組成，也並非規範如何建立醫療保健系統或應用程序•HL7 提供資料結構指南或規則，以實現醫療系統間資訊的互通及流動•名稱源於OSI Level 7",
+      "實用案例"
+    ]
+  },
+  "[4342] 從 Device Posture 到 ZTNA：打造完整端點零信任架構.pdf": {
+    "id": "4342",
+    "title": "從 Device Posture 到 ZTNA：打造完整端點零信任架構",
+    "track": "選擇...",
+    "speakers": "陳育徽 (Alden Chen) (FineArt Technology 精品科技)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4342] 從 Device Posture 到 ZTNA：打造完整端點零信任架構.pdf",
+    "keywords": [
+      "裝置",
+      "資料",
+      "端點",
+      "存取",
+      "程式",
+      "信任"
+    ],
+    "outline": [
+      "對ZTNA的期望與誤區",
+      "端點上的零信任",
+      "Endpoint 是資料外洩控制核心",
+      "建立以風險為基礎的端點零信任",
+      "零信任裝置態勢範圍"
+    ]
+  },
+  "[4357] Original Sin of Active Directory - Long Live with NTLM Relay.pdf": {
+    "id": "4357",
+    "title": "Original Sin of Active Directory - Long Live with NTLM Relay",
+    "track": "選擇...",
+    "speakers": "Jimmy Su (奧義智慧科技)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4357] Original Sin of Active Directory - Long Live with NTLM Relay.pdf",
+    "keywords": [
+      "ntlm",
+      "challenge",
+      "server",
+      "https",
+      "relay",
+      "signing"
+    ],
+    "outline": [
+      "Long Live with NTLM Relay",
+      "$whoami",
+      "ref.: https://www.ithome.com.tw/news/173753",
+      "Deprecation 真的把 NTLM 殺光了嗎?",
+      "背景知識 x 歷史"
+    ]
+  },
+  "[4223] 從框架到現場：132 項 OT 資安控制的落地實踐.pdf": {
+    "id": "4223",
+    "title": "從框架到現場：132 項 OT 資安控制的落地實踐",
+    "track": "選擇...",
+    "speakers": "Steven Hsu (許育誠) (TXOne Networks Inc.)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4223] 從框架到現場：132 項 OT 資安控制的落地實踐.pdf",
+    "keywords": [
+      "ot",
+      "controls",
+      "security",
+      "risk",
+      "keep",
+      "operation"
+    ],
+    "outline": [
+      "The OT Security Imperative",
+      "Why an OT Cybersecurity Controls Handbook",
+      "The OT Cybersecurity Controls Handbook",
+      "A Shared Task Force Across the Organization",
+      "Organizational Structures: Who Owns OT Cybersecurity?"
+    ]
+  },
+  "[4236] 虛實融合下的挑戰：汽車產業數位分身安全防護.pdf": {
+    "id": "4236",
+    "title": "虛實融合下的挑戰：汽車產業數位分身安全防護",
+    "track": "選擇...",
+    "speakers": "Chizuru Toyama (TXOne Networks Inc.), Linwei Tsao (TXOne Networks Inc.)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4236] 虛實融合下的挑戰：汽車產業數位分身安全防護.pdf",
+    "keywords": [
+      "keep",
+      "operation",
+      "digital",
+      "running",
+      "twin",
+      "attack"
+    ],
+    "outline": [
+      "Speaker ‐ Linwei Tsao•Threat Researcher at TXOne Networks Inc.•Analyze ICS communication protocols and network traffic; develop and deploy threat-hunting systems and malware analysis tools to gather latest ICS attack intelligence.•Previously developed network-related products, including modem firmware and DPI engines/patterns.3",
+      "Speaker ‐ Chizuru Toyama•Senior Threat Researcher at TXOne Networks with over a decade of experience in cybersecurity.•Focused on ICS vulnerability research and threat data analysis, with multiple findings publicly recognized in ICS-CERT advisories.•Previously developed forensic tools that improved incident response.4",
+      "Contents1.Definition and Standards of Digital Twins2.Use Cases of Digital Twins in the Automotive Industry3.Potential Attack Scenarios4.Risk Assessment and Defense Strategies5.Lifecycle Security Considerationss6.Summary and Takeaways",
+      "What is Digital Twins?•Digital Twin: Virtual model of a real-world product, system, or process.•Purpose: Used for simulation, testing, monitoring, and maintenance.",
+      "Architecture and Operational Landscape"
+    ]
+  },
+  "[4254] 從德國 OT 紅隊演練攻擊鏈洞察：製造業迎接歐盟《網路韌性法 CRA》的備戰策略.pdf": {
+    "id": "4254",
+    "title": "從德國 OT 紅隊演練攻擊鏈洞察：製造業迎接歐盟《網路韌性法 CRA》的備戰策略",
+    "track": "選擇...",
+    "speakers": "YU-YU OETTING (德國 Laokoon Security GmbH (資安攻防)), Andreas Krüger (Laokoon SecurITy GmbH)",
+    "category": "03_OT_IoT_Hardware",
+    "filename": "[4254] 從德國 OT 紅隊演練攻擊鏈洞察：製造業迎接歐盟《網路韌性法 CRA》的備戰策略.pdf",
+    "keywords": [
+      "ot",
+      "security",
+      "phase",
+      "red",
+      "laokoon",
+      "industrial"
+    ],
+    "outline": [
+      ">> cat ot-security.info",
+      "IT failure at VW has been",
+      "From Noßmann",
+      ">> whoami",
+      ">> info laokoon"
+    ]
+  },
+  "[4234] 後量子密碼學憑證方案和車聯網憑證方案的標準化進程.pdf": {
+    "id": "4234",
+    "title": "後量子密碼學憑證方案和車聯網憑證方案的標準化進程",
+    "track": "選擇...",
+    "speakers": "陳志華博士 (Abel C. H. Chen) (中華電信研究院)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4234] 後量子密碼學憑證方案和車聯網憑證方案的標準化進程.pdf",
+    "keywords": [
+      "量子",
+      "密碼",
+      "碼學",
+      "標準",
+      "dsa",
+      "後量"
+    ],
+    "outline": [
+      "講者簡介-陳志華(Abel C. H. Chen)",
+      " 後量子密碼學標準化進程",
+      "後量子密碼學標準化進程",
+      "密碼學方法分類",
+      "為什麼需要後量子密碼學方法？"
+    ]
+  },
+  "[4237] 基於 Ascon 確定性隨機位元產生器應用於嵌入式系統.pdf": {
+    "id": "4237",
+    "title": "基於 Ascon 確定性隨機位元產生器應用於嵌入式系統",
+    "track": "選擇...",
+    "speakers": "陳志華博士 (Abel C. H. Chen) (中華電信研究院)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4237] 基於 Ascon 確定性隨機位元產生器應用於嵌入式系統.pdf",
+    "keywords": [
+      "位元",
+      "隨機",
+      "產生",
+      "生器",
+      "量子",
+      "mod"
+    ],
+    "outline": [
+      "講者簡介-陳志華(Abel C. H. Chen)",
+      " 隨機位元產生器(Random Bit Generator, RBG)",
+      "隨機位元產生器",
+      "偽隨機數產生器：NIST SP 800-22 REV . 1",
+      "偽隨機數產生器：基於線性同餘產生器"
+    ]
+  },
+  "[4242] 臺灣人體生物資料庫的資安文化養成經驗.pdf": {
+    "id": "4242",
+    "title": "臺灣人體生物資料庫的資安文化養成經驗",
+    "track": "選擇...",
+    "speakers": "張中科 (中央研究院)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4242] 臺灣人體生物資料庫的資安文化養成經驗.pdf",
+    "keywords": [
+      "資安",
+      "資料",
+      "管理",
+      "生物",
+      "物資",
+      "料庫"
+    ],
+    "outline": [
+      "臺灣人體生物資料庫的資安文化",
+      "自我介紹",
+      "臺灣人體生物資料庫簡介",
+      "被高度監理的資安要求",
+      "資安是戰略議題"
+    ]
+  },
+  "[4248] 如何有效地降低企業資訊安全風險.pdf": {
+    "id": "4248",
+    "title": "如何有效地降低企業資訊安全風險",
+    "track": "選擇...",
+    "speakers": "Jerry Chen (宸鴻科技)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4248] 如何有效地降低企業資訊安全風險.pdf",
+    "keywords": [
+      "安全",
+      "資料",
+      "程式",
+      "核心",
+      "控制",
+      "企業"
+    ],
+    "outline": [
+      "攻擊鏈路拆解：從一封郵件到全廠停工的“殺傷鏈”",
+      "核心痛點：生產中斷風險與巨額損失",
+      "資產流失：核心資料與智慧財產權洩露",
+      "隱形防線：供應鏈與協力廠商風險",
+      "新興威脅：新型AI技術帶來的衍生風險"
+    ]
+  },
+  "[4301] 如何成為不被討厭的資安人員-打工人要好好保護自己篇.pdf": {
+    "id": "4301",
+    "title": "如何成為不被討厭的資安人員-打工人要好好保護自己篇",
+    "track": "選擇...",
+    "speakers": "謝博尊 (中華電信)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4301] 如何成為不被討厭的資安人員-打工人要好好保護自己篇.pdf",
+    "keywords": [
+      "風險",
+      "資安",
+      "安人",
+      "設備",
+      "處理",
+      "如何"
+    ],
+    "outline": [
+      "本次分享僅為個人觀點，與公司實際業務無直接關聯",
+      "自我介紹",
+      "About the topic",
+      "ISMS初開，IT兩分",
+      "• 打工人的困境"
+    ]
+  },
+  "[4303] 穩定幣與虛擬資產的金融應用設計、合規趨勢與資訊安全.pdf": {
+    "id": "4303",
+    "title": "穩定幣與虛擬資產的金融應用設計、合規趨勢與資訊安全",
+    "track": "選擇...",
+    "speakers": "朱姸如 (安永諮詢股份有限公司)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4303] 穩定幣與虛擬資產的金融應用設計、合規趨勢與資訊安全.pdf",
+    "keywords": [
+      "資產",
+      "穩定",
+      "定幣",
+      "金融",
+      "代幣",
+      "支付"
+    ],
+    "outline": [
+      "Before we begin 虛擬資產四大類型速覽",
+      "Before we begin 區塊鏈的商業本質",
+      "Table of contents",
+      "Key observations",
+      "1.1  數字說話——威脅規模 THREAT"
+    ]
+  },
+  "[4356] 合規即戰力：CRA 強制執行倒數，如何將「產品安全」轉化為全球信任競爭力.pdf": {
+    "id": "4356",
+    "title": "合規即戰力：CRA 強制執行倒數，如何將「產品安全」轉化為全球信任競爭力",
+    "track": "選擇...",
+    "speakers": "游政卿 (合勤投資控股)",
+    "category": "04_CRA_Compliance",
+    "filename": "[4356] 合規即戰力：CRA 強制執行倒數，如何將「產品安全」轉化為全球信任競爭力.pdf",
+    "keywords": [
+      "產品",
+      "cra",
+      "安全",
+      "品安",
+      "變成",
+      "風險"
+    ],
+    "outline": [
+      "2026-2027 能否站穩歐盟，取決於三項能力",
+      "CRA 為何而來 : 單一漏洞，如何變成全球風險",
+      "CRA 是什麼 : 含數位元素產品的歐盟市場新規則",
+      "四個時間點、兩場考試",
+      "No Compliance, No Market"
+    ]
+  },
+  "[4232] 超越EPSS：打造更準確的OT漏洞利用預測系統.pdf": {
+    "id": "4232",
+    "title": "超越EPSS：打造更準確的OT漏洞利用預測系統",
+    "track": "選擇...",
+    "speakers": "Daniel Chiu (TXOne Networks Inc.), Queenie Liao (TXOne Networks Inc.)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4232] 超越EPSS：打造更準確的OT漏洞利用預測系統.pdf",
+    "keywords": [
+      "epss",
+      "keep",
+      "operation",
+      "running",
+      "cve",
+      "threat"
+    ],
+    "outline": [
+      "Speaker",
+      "CONTENTS",
+      "Introduction & Motivation",
+      "Impossible to patch all vulnerabilities",
+      "Only 2% to 5.7% of vulnerabilities are exploited in attacks"
+    ]
+  },
+  "[4233] AI_ 我家SOC的超級實習生 - 從SOCCMM看次世代SOC.pdf": {
+    "id": "4233",
+    "title": "AI: 我家SOC的超級實習生 - 從SOCCMM看次世代SOC",
+    "track": "選擇...",
+    "speakers": "唐雍為 (資誠智能風險管理諮詢有限公司)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4233] AI_ 我家SOC的超級實習生 - 從SOCCMM看次世代SOC.pdf",
+    "keywords": [
+      "ai",
+      "soc",
+      "管理",
+      "自動",
+      "情資",
+      "服務"
+    ],
+    "outline": [
+      "│經歷│",
+      "500+ 70% 48% 4 hrs",
+      "SOC的三大痛點",
+      "AI超級實習生帶動",
+      "今天的主角登場 — AI超級實習生"
+    ]
+  },
+  "[4280] Cyber Innovation：重塑網路與端點的威脅獵捕防線.pdf": {
+    "id": "4280",
+    "title": "Cyber Innovation：重塑網路與端點的威脅獵捕防線",
+    "track": "選擇...",
+    "speakers": "劉叡 (中華資安國際)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4280] Cyber Innovation：重塑網路與端點的威脅獵捕防線.pdf",
+    "keywords": [
+      "資安",
+      "服務",
+      "入侵",
+      "攻擊",
+      "關鍵",
+      "威脅"
+    ],
+    "outline": [
+      "這是 2025 年全球最快的駭客橫向移動時間。",
+      "中華電信集團的資安專業公司,前身是中華電信對外資安服務團隊",
+      "歷年獲獎紀錄",
+      "B O T T O M  L I N E  U P  F R O N T",
+      "A G E N D A"
+    ]
+  },
+  "[4290] 當老闆覺得防毒軟體＝資安成熟度 100 分時.pdf": {
+    "id": "4290",
+    "title": "當老闆覺得防毒軟體＝資安成熟度 100 分時",
+    "track": "選擇...",
+    "speakers": "吳阡語 (錸恩帕斯科技股份有限公司)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4290] 當老闆覺得防毒軟體＝資安成熟度 100 分時.pdf",
+    "keywords": [
+      "資安",
+      "防毒",
+      "老闆",
+      "mdr",
+      "毒軟",
+      "軟體"
+    ],
+    "outline": [
+      "WhoamI",
+      "• 蝦咪！還在想怎麼跟老闆說要買防毒",
+      "蝦咪！還在想怎麼跟老闆說要買防毒",
+      "Windows Defender預設版與第三方防毒軟體的差異",
+      "資安第一步，先安內在攘外"
+    ]
+  },
+  "[4296] 金融業弱點管理怎麼管？.pdf": {
+    "id": "4296",
+    "title": "金融業弱點管理怎麼管？",
+    "track": "選擇...",
+    "speakers": "陳詰昌 (台新新光金控 / 台新銀行)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4296] 金融業弱點管理怎麼管？.pdf",
+    "keywords": [
+      "漏洞",
+      "管理",
+      "風險",
+      "安全",
+      "修補",
+      "洞管"
+    ],
+    "outline": [
+      "弱點與漏洞",
+      "漏洞管理就是風險管理的分支",
+      "建立漏洞管理體系",
+      "漏洞管理核心概念",
+      "Top-Down治理組織（R&R）"
+    ]
+  },
+  "[4308] AI 驅動的資安聯防：如何透過 MDR 與自動化打造企業『自癒級』防線.pdf": {
+    "id": "4308",
+    "title": "AI 驅動的資安聯防：如何透過 MDR 與自動化打造企業『自癒級』防線",
+    "track": "選擇...",
+    "speakers": "盧惠光 (台灣二版有限公司)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4308] AI 驅動的資安聯防：如何透過 MDR 與自動化打造企業『自癒級』防線.pdf",
+    "keywords": [
+      "ai",
+      "自動",
+      "台灣",
+      "偵測",
+      "攻擊",
+      "eset"
+    ],
+    "outline": [
+      "2026 亞太與台灣資安態勢分析",
+      "台灣企業的雙重挑戰：供應鏈與人才荒",
+      "傳統防禦的崩潰點：AI 時代的 MTTR危機",
+      "• 威脅 1： 攻擊速度從「天」縮短至「分鐘」",
+      "威脅一：AI 壓縮下的「秒速攻擊」週期"
+    ]
+  },
+  "[4320] 當AI能轉生成任何角色：面對產品與供應鏈安全新挑戰.pdf": {
+    "id": "4320",
+    "title": "當AI能轉生成任何角色：面對產品與供應鏈安全新挑戰",
+    "track": "選擇...",
+    "speakers": "鄭禹葳 (Fiona Cheng) (偉康科技股份有限公司)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4320] 當AI能轉生成任何角色：面對產品與供應鏈安全新挑戰.pdf",
+    "keywords": [
+      "漏洞",
+      "攻擊",
+      "round",
+      "發布",
+      "擊路",
+      "路徑"
+    ],
+    "outline": [
+      "About Me",
+      "2026 年了，在產品⼯程中  AI 可以是 …",
+      "s o u r c e :  h t t p s : / / w w w . a n t h r o p i c . c o m / g l a s s w i n g",
+      "在那兩週之前 ... ⼀場讓⼈晚上睡不著的演講",
+      "Nicholas Carlini – Black-hat LLMs|unpromted 2026"
+    ]
+  },
+  "[4324] Operation TradeBait：假案真駭的釣魚詐騙行動.pdf": {
+    "id": "4324",
+    "title": "Operation TradeBait：假案真駭的釣魚詐騙行動",
+    "track": "選擇...",
+    "speakers": "Tay Cheng (TeamT5 杜浦數位安全), Jessica Fang (TeamT5 杜浦數位安全)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4324] Operation TradeBait：假案真駭的釣魚詐騙行動.pdf",
+    "keywords": [
+      "attack",
+      "flow",
+      "phishing",
+      "malware",
+      "teamt",
+      "ppt"
+    ],
+    "outline": [
+      "©  TeamT5 Inc. All rights reserved.",
+      "Speakers",
+      "Contents",
+      "Introduction",
+      "Operation TradeBait"
+    ]
+  },
+  "[4330] 供應鏈間互不信任的危機：解構《以色列在台灣》背後的數位信任危機與鑑識挑戰.pdf": {
+    "id": "4330",
+    "title": "供應鏈間互不信任的危機：解構《以色列在台灣》背後的數位信任危機與鑑識挑戰",
+    "track": "選擇...",
+    "speakers": "陳長志 (艾盾資科股份有限公司)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4330] 供應鏈間互不信任的危機：解構《以色列在台灣》背後的數位信任危機與鑑識挑戰.pdf",
+    "keywords": [
+      "ai",
+      "告警",
+      "自動",
+      "soc",
+      "資安",
+      "大腦"
+    ],
+    "outline": [
+      "A G E N D A本場議程五個章節——從問題到藍圖，重新定義資安維運的下㇐步。",
+      "C H A P T E R  O N E  ·  P R O L O G U E序幕雙大腦的衝突SOC + MDR · The Stacking Myth揭開防禦碎片化的代價專業分工，還是災難級的互踢皮球？",
+      "0 1  ·  序 幕兩個大腦各自為政，SLA 在裂縫中失蹤A 團隊看SOC、B 團隊看MDR ——告警在中間互踢皮球。Q U E S T I O NSOC 與EDR 都在做「規則」與「告警」——為何不交給同㇐個大腦？",
+      "C H A P T E R  T W O  ·  T H E  C R I S I S危機業界不能說的秘密The Castrated Defense人力極限如何迫使企業自廢武功高價設備淪為「告警墳場」為什麼客戶變成廠商的工具人？",
+      "0 2  ·  危 機海量告警，廠商是怎麼「看完」的？為了結案SLA，業界四種公開的祕密——你以為的分析，其實是漏斗。S H O R T C U T0 1僅處理Incident放生零星的早期告警，只等系統自動打包成「事件」才被動介入。為節省人力，完美錯失阻斷威脅的黃金時間，任由攻擊橫向擴散。S H O R T C U T  0 2僅看 「高」 風險為了結案效率，直接過濾中、低風險與資訊型告警。殊不知APT 組織最擅⾧的「合法掩護非法」，就完美隱藏在這些被略過的雜訊中。S H O R T C U T  0 3依賴規則淪為總機把告警倒進SIEM，僅靠關鍵字與靜態規則觸發信件，把「轉發通知」包裝成「資安分析」。S H O R T C U T  0 4憑藉經驗主觀斷案看到相似告警就憑印象放行，不走標準SOP 進行深度分析，更不會留下完整的調查軌跡。"
+    ]
+  },
+  "[4348] 從 150 場紅隊演練數據看產業安全.pdf": {
+    "id": "4348",
+    "title": "從 150 場紅隊演練數據看產業安全",
+    "track": "選擇...",
+    "speakers": "徐念恩 (戴夫寇爾股份有限公司)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4348] 從 150 場紅隊演練數據看產業安全.pdf",
+    "keywords": [
+      "資安",
+      "演練",
+      "安全",
+      "產品",
+      "防禦",
+      "紅隊"
+    ],
+    "outline": [
+      "你⾯對的是駭客，我們也是",
+      "https://www.juksy.com/article/92693",
+      "政府機關⾼科技製造業關鍵基礎設施",
+      "議程⼤綱",
+      "從不同視⾓"
+    ]
+  },
+  "[4256] 您的資安聯防真的有達到預期的效果嗎？.pdf": {
+    "id": "4256",
+    "title": "您的資安聯防真的有達到預期的效果嗎？",
+    "track": "選擇...",
+    "speakers": "陳昱崇 (Zero Chen) (伊雲谷數位科技)",
+    "category": "06_Cloud_Network",
+    "filename": "[4256] 您的資安聯防真的有達到預期的效果嗎？.pdf",
+    "keywords": [
+      "ecloudvalley",
+      "digital",
+      "technology",
+      "co",
+      "ltd",
+      "affiliates"
+    ],
+    "outline": [
+      "CONTENTS",
+      "©  2026 eCloudvalley Digital Technology Co., Ltd. or its affiliates. All Rights Reserved. Redefine Blue Team with Cloud",
+      "Security Assessment Layer",
+      "但是 Baseline 在哪呢？",
+      "為什麼合規了卻還是防止不了駭客攻擊？"
+    ]
+  },
+  "[4279] 雲端韌性：從供應鏈事件看雲端資安強化實務.pdf": {
+    "id": "4279",
+    "title": "雲端韌性：從供應鏈事件看雲端資安強化實務",
+    "track": "選擇...",
+    "speakers": "邱永興 (中華資安國際股份有限公司)",
+    "category": "06_Cloud_Network",
+    "filename": "[4279] 雲端韌性：從供應鏈事件看雲端資安強化實務.pdf",
+    "keywords": [
+      "資安",
+      "雲端",
+      "事件",
+      "day",
+      "安事",
+      "程式"
+    ],
+    "outline": [
+      "三 雲端安全強化方案",
+      "資安事件處理統計結果與分析 (1/2)",
+      "資安事件處理統計結果與分析 (2/2)",
+      "資安事件發生趨勢分析：行業別變化 與 攻擊手法重大差異",
+      "雲地混合環境中，營運核心系統遭勒索加密"
+    ]
+  },
+  "[4293] OPNsense Suricata SmartNIC 高效能網路防護實戰.pdf": {
+    "id": "4293",
+    "title": "OPNsense Suricata SmartNIC 高效能網路防護實戰",
+    "track": "選擇...",
+    "speakers": "鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)",
+    "category": "06_Cloud_Network",
+    "filename": "[4293] OPNsense Suricata SmartNIC 高效能網路防護實戰.pdf",
+    "keywords": [
+      "opnsense",
+      "架構",
+      "學校",
+      "fw",
+      "dns",
+      "防護"
+    ],
+    "outline": [
+      "核心價值",
+      "• Linux / iptables / FreeBSD",
+      "教育網路環境",
+      "校園資安挑戰",
+      "流量成長與壓力"
+    ]
+  },
+  "[4228] 他們說我是沒有用的年輕人.pdf": {
+    "id": "4228",
+    "title": "他們說我是沒有用的年輕人",
+    "track": "選擇...",
+    "speakers": "PD Lee (自由工作者)",
+    "category": "07_Others",
+    "filename": "[4228] 他們說我是沒有用的年輕人.pdf",
+    "keywords": [
+      "學習",
+      "工作",
+      "later",
+      "找到",
+      "自己",
+      "years"
+    ],
+    "outline": [
+      "• 沒有用的年輕人",
+      "一位新鮮的文組畢業生",
+      "One year later…",
+      "終於找到約聘工作",
+      "2 years later…"
+    ]
+  },
+  "[4244] The Cybercrime Factory_ Infostealers. Annual Intelligence Brief.pdf": {
+    "id": "4244",
+    "title": "The Cybercrime Factory: Infostealers. Annual Intelligence Brief.",
+    "track": "選擇...",
+    "speakers": "Leonid Rozenberg (Hudson Rock)",
+    "category": "07_Others",
+    "filename": "[4244] The Cybercrime Factory_ Infostealers. Annual Intelligence Brief.pdf",
+    "keywords": [
+      "clickfix",
+      "cybercrime",
+      "epidemic",
+      "source",
+      "ecosystem",
+      "compromised"
+    ],
+    "outline": [
+      "On the Chefʼs Menu",
+      "The Anatomy of Browser Credentials Theft",
+      "The Numbers",
+      "The Ecosystem"
+    ]
+  },
+  "[4293] OPNsense Suricata SmartNIC 高效能網路防��實戰.pdf": {
+    "id": "4293",
+    "title": "OPNsense Suricata SmartNIC 高效能網路防護實戰",
+    "track": "選擇...",
+    "speakers": "鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)",
+    "category": "06_Cloud_Network",
+    "filename": "[4293] OPNsense Suricata SmartNIC 高效能網路防��實戰.pdf",
+    "keywords": [
+      "opnsense",
+      "架構",
+      "學校",
+      "fw",
+      "dns",
+      "防護"
+    ],
+    "outline": [
+      "核心價值",
+      "• Linux / iptables / FreeBSD",
+      "教育網路環境",
+      "校園資安挑戰",
+      "流量成長與壓力"
+    ]
+  },
+  "[4293] OPNsense Suricata SmartNIC 高效能網路防���實戰.pdf": {
+    "id": "4293",
+    "title": "OPNsense Suricata SmartNIC 高效能網路防護實戰",
+    "track": "選擇...",
+    "speakers": "鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)",
+    "category": "06_Cloud_Network",
+    "filename": "[4293] OPNsense Suricata SmartNIC 高效能網路防���實戰.pdf",
+    "keywords": [
+      "opnsense",
+      "架構",
+      "學校",
+      "fw",
+      "dns",
+      "防護"
+    ],
+    "outline": [
+      "核心價值",
+      "• Linux / iptables / FreeBSD",
+      "教育網路環境",
+      "校園資安挑戰",
+      "流量成長與壓力"
+    ]
+  },
+  "[4326] 有關資安事件的那些事：資安事件教會我的操作及如何使得組織更健壯.pdf": {
+    "id": "4326",
+    "title": "有關資安事件的那些事：資安事件教會我的操作及如何使得組織更健壯",
+    "track": "選擇...",
+    "speakers": "Sam Chan (自由系統股份有限公司)",
+    "category": "02_Zero_Trust_Identity",
+    "filename": "[4326] 有關資安事件的那些事：資安事件教會我的操作及如何使得組織更健壯.pdf",
+    "keywords": [
+      "資安",
+      "授權",
+      "資訊",
+      "soc",
+      "事件",
+      "未經"
+    ],
+    "outline": [
+      "Who am I?",
+      "Chapter 1 — 資安事件的定義",
+      "Chapter 1 - 資安事件的定義",
+      "Integrity",
+      "Availability"
+    ]
+  },
+  "[4427] 紅隊與藍隊較勁的數位戰場：窺探各國網路攻防演練方式.pdf": {
+    "id": "4427",
+    "title": "紅隊與藍隊較勁的數位戰場：窺探各國網路攻防演練方式",
+    "track": "選擇...",
+    "speakers": "張克勤 (國防大學理工學院)",
+    "category": "05_Red_Blue_Attacks",
+    "filename": "[4427] 紅隊與藍隊較勁的數位戰場：窺探各國網路攻防演練方式.pdf",
+    "keywords": [
+      "cybersec",
+      "academic",
+      "use",
+      "演習",
+      "網路",
+      "網安"
+    ],
+    "outline": [
+      "3/30",
+      "4/30",
+      "何謂網安演習?",
+      "6/30",
+      "7/30"
+    ]
+  }
+}

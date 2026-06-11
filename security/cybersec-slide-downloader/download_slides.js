@@ -1,6 +1,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const API_URL = 'https://ccmsapi.ithome.com.tw';
 const SESSIONS_QUERY = `
@@ -40,6 +41,28 @@ function sanitizeFilename(name) {
     sanitized = sanitized.substring(0, 117) + '...';
   }
   return sanitized || 'Untitled_Session';
+}
+
+// Helper to recursively find all file names already present in downloads/ subdirectories
+function getExistingFiles(dir) {
+  const files = new Set();
+  if (!fs.existsSync(dir)) return files;
+  
+  function walk(currentDir) {
+    const list = fs.readdirSync(currentDir);
+    list.forEach((file) => {
+      const fullPath = path.join(currentDir, file);
+      const stat = fs.statSync(fullPath);
+      if (stat && stat.isDirectory()) {
+        walk(fullPath);
+      } else {
+        files.add(file);
+      }
+    });
+  }
+  
+  walk(dir);
+  return files;
 }
 
 function postRequest(url, data) {
@@ -154,6 +177,9 @@ async function main() {
 
   console.log(`Found ${sessions.length} total sessions.`);
 
+  const existingFiles = getExistingFiles(downloadsDir);
+  let skippedCount = 0;
+
   // Extract all files (slides and downloads)
   const downloadQueue = [];
   sessions.forEach((session) => {
@@ -162,6 +188,10 @@ async function main() {
         if (slide.slide_file && slide.slide_file.url) {
           const suffix = session.slides.length > 1 ? `_part${idx + 1}` : '';
           const filename = sanitizeFilename(`[${session.id}]${suffix} ${session.title}`) + '.pdf';
+          if (existingFiles.has(filename)) {
+            skippedCount++;
+            return;
+          }
           downloadQueue.push({
             id: session.id,
             sessionTitle: session.title,
@@ -186,6 +216,10 @@ async function main() {
             if (parsedExt) ext = parsedExt;
           } catch (_) {}
           const filename = sanitizeFilename(`[${session.id}]${suffix} ${session.title}`) + ext;
+          if (existingFiles.has(filename)) {
+            skippedCount++;
+            return;
+          }
           downloadQueue.push({
             id: session.id,
             sessionTitle: session.title,
@@ -200,7 +234,7 @@ async function main() {
   });
 
   const totalFiles = downloadQueue.length;
-  console.log(`Found ${totalFiles} files to download.`);
+  console.log(`Found ${totalFiles} new files to download (skipped ${skippedCount} already downloaded).`);
 
   // Concurrent downloader with limit
   const CONCURRENCY_LIMIT = 5;
@@ -275,4 +309,14 @@ async function main() {
   });
 }
 
-main().catch(console.error);
+main()
+  .then(() => {
+    console.log('\n2. Auto-running PDF classifier and sorter...');
+    try {
+      execSync('uv run --with pypdf classify_slides.py', { cwd: __dirname, stdio: 'inherit' });
+      console.log('Classifier finished successfully.');
+    } catch (err) {
+      console.error('Failed to run classifier:', err.message);
+    }
+  })
+  .catch(console.error);
