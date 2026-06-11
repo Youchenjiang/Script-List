@@ -36,13 +36,16 @@ CATEGORIES = {
 }
 
 CATEGORY_KEYWORDS = {
-    "01_AI_LLM": ["ai", "llm", "gpt", "claude", "openai", "chatgpt", "copilot", "genai", "人工智慧", "智慧", "語言模型", "機器學習", "生成式", "模型"],
-    "02_Zero_Trust_Identity": ["zero trust", "ztna", "identity", "零信任", "身分", "憑證", "識別", "mfa", "ad", "active directory", "ntlm", "驗證", "授權"],
-    "03_OT_IoT_Hardware": ["ot", "ics", "iot", "iiot", "scada", "plc", "modbus", "dnp3", "opc", "車聯網", "v2x", "晶片", "製造業", "半導體", "工控", "物聯網", "硬體", "旁通道", "錯誤注入", "汽車"],
-    "04_CRA_Compliance": ["cra", "cyber resilience act", "合規", "法規", "網路安全法", "標準", "iso", "nist", "grc", "sla", "稽核", "fda", "規範", "防禦成熟度"],
-    "05_Red_Blue_Attacks": ["red team", "blue team", "紅隊", "藍隊", "攻防", "威脅", "釣魚", "phishing", "mdr", "獵捕", "threat", "木馬", "cve", "漏洞", "apt", "沙盒", "sandbox", "越獄", "jailbreak", "kql", "soc", "駭客", "入侵"],
-    "06_Cloud_Network": ["cloud", "sase", "vpn", "sd-wan", "雲端", "邊緣", "dlp", "web", "dns", "waf", "ssl", "tls", "網路", "防火牆"]
+    "01_AI_LLM": ["ai", "llm", "gpt", "claude", "openai", "chatgpt", "copilot", "genai", "agent", "rag", "ml", "deep learning", "machine learning", "人工智慧", "智慧", "語言模型", "機器學習", "生成式", "模型"],
+    "02_Zero_Trust_Identity": ["zero trust", "ztna", "identity", "iam", "pam", "oauth", "saml", "sso", "active directory", "ldap", "mfa", "ad", "ntlm", "零信任", "身分", "憑證", "識別", "驗證", "授權"],
+    "03_OT_IoT_Hardware": ["ot", "ics", "iot", "iiot", "scada", "plc", "modbus", "dnp3", "opc", "firmware", "hardware", "chip", "車聯網", "v2x", "晶片", "製造業", "半導體", "工控", "物聯網", "硬體", "旁通道", "錯誤注入", "汽車"],
+    "04_CRA_Compliance": ["cra", "cyber resilience act", "合規", "法規", "網路安全法", "標準", "iso", "nist", "grc", "sla", "稽核", "fda", "規範", "防禦成熟度", "compliance", "regulation"],
+    "05_Red_Blue_Attacks": ["red team", "blue team", "紅隊", "藍隊", "攻防", "威脅", "釣魚", "phishing", "mdr", "獵捕", "threat", "木馬", "cve", "漏洞", "apt", "沙盒", "sandbox", "越獄", "jailbreak", "kql", "soc", "駭客", "入侵", "attack", "malware", "ransomware", "exploit", "vulnerability", "攻擊", "惡意程式", "勒索軟體", "滲透", "鑑識"],
+    "06_Cloud_Network": ["cloud", "sase", "vpn", "sd-wan", "雲端", "邊緣", "dlp", "web", "dns", "waf", "ssl", "tls", "網路", "防火牆", "firewall", "ddos"]
 }
+
+def is_english_word(word):
+    return re.match(r'^[a-zA-Z0-9\s_-]+$', word) is not None
 
 STOP_WORDS = set([
     'a', 'about', 'above', 'after', 'again', 'against', 'all', 'am', 'an', 'and', 'any', 'are', 'as', 'at', 'be', 'because', 'been', 'before', 'being', 'below', 'between', 'both', 'but', 'by', 'cannot', 'could', 'did', 'do', 'does', 'doing', 'down', 'during', 'each', 'few', 'for', 'from', 'further', 'had', 'has', 'have', 'having', 'he', 'her', 'here', 'hers', 'herself', 'him', 'himself', 'his', 'how', 'i', 'if', 'in', 'into', 'is', 'it', 'its', 'itself', 'me', 'more', 'most', 'my', 'myself', 'no', 'nor', 'not', 'of', 'off', 'on', 'once', 'only', 'or', 'other', 'our', 'ours', 'ourselves', 'out', 'over', 'own', 'same', 'she', 'should', 'so', 'some', 'such', 'than', 'that', 'the', 'their', 'theirs', 'them', 'themselves', 'then', 'there', 'these', 'they', 'this', 'those', 'through', 'to', 'too', 'under', 'until', 'up', 'very', 'was', 'we', 'were', 'what', 'when', 'where', 'which', 'while', 'who', 'whom', 'why', 'with', 'would', 'you', 'your', 'yours', 'yourself', 'yourselves',
@@ -135,16 +138,22 @@ def classify_pdf(pdf_path, session_title="", session_track=""):
         
         for cat, keywords in CATEGORY_KEYWORDS.items():
             for kw in keywords:
+                kw_lower = kw.lower()
+                if is_english_word(kw_lower):
+                    pattern = rf"\b{re.escape(kw_lower)}\b"
+                else:
+                    pattern = re.escape(kw_lower)
+                
                 # Direct content score
-                content_matches = len(re.findall(re.escape(kw), lower_text))
+                content_matches = len(re.findall(pattern, lower_text))
                 cat_scores[cat] += content_matches
                 
                 # Title score (weight = 5)
-                title_matches = len(re.findall(re.escape(kw), lower_title))
+                title_matches = len(re.findall(pattern, lower_title))
                 cat_scores[cat] += title_matches * 5
                 
                 # Track score (weight = 8)
-                track_matches = len(re.findall(re.escape(kw), lower_track))
+                track_matches = len(re.findall(pattern, lower_track))
                 cat_scores[cat] += track_matches * 8
                 
         # Find best category
