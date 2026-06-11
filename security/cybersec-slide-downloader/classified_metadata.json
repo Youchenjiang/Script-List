@@ -711,52 +711,6 @@
       "流量成長與壓力"
     ]
   },
-  "[4293] OPNsense Suricata SmartNIC 高效能網路防��實戰.pdf": {
-    "id": "4293",
-    "title": "OPNsense Suricata SmartNIC 高效能網路防護實戰",
-    "track": "選擇...",
-    "speakers": "鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)",
-    "category": "06_Cloud_Network",
-    "filename": "[4293] OPNsense Suricata SmartNIC 高效能網路防��實戰.pdf",
-    "keywords": [
-      "opnsense",
-      "架構",
-      "學校",
-      "fw",
-      "dns",
-      "防護"
-    ],
-    "outline": [
-      "核心價值",
-      "• Linux / iptables / FreeBSD",
-      "教育網路環境",
-      "校園資安挑戰",
-      "流量成長與壓力"
-    ]
-  },
-  "[4293] OPNsense Suricata SmartNIC 高效能網路防���實戰.pdf": {
-    "id": "4293",
-    "title": "OPNsense Suricata SmartNIC 高效能網路防護實戰",
-    "track": "選擇...",
-    "speakers": "鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)",
-    "category": "06_Cloud_Network",
-    "filename": "[4293] OPNsense Suricata SmartNIC 高效能網路防���實戰.pdf",
-    "keywords": [
-      "opnsense",
-      "架構",
-      "學校",
-      "fw",
-      "dns",
-      "防護"
-    ],
-    "outline": [
-      "核心價值",
-      "• Linux / iptables / FreeBSD",
-      "教育網路環境",
-      "校園資安挑戰",
-      "流量成長與壓力"
-    ]
-  },
   "[4294] Zero Trust That Works in the Real World_ Containment and Antifragile Cyber Resilience.pdf": {
     "id": "4294",
     "title": "Zero Trust That Works in the Real World: Containment and Antifragile Cyber Resilience",

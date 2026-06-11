@@ -9,7 +9,7 @@
 - [OT, IoT & Hardware Security](#03-ot-iot-hardware) (8 份簡報)
 - [CRA, Compliance & GRC Regulations](#04-cra-compliance) (14 份簡報)
 - [Red/Blue Team Attack & Penetration](#05-red-blue-attacks) (32 份簡報)
-- [Cloud & Network Security SASE](#06-cloud-network) (10 份簡報)
+- [Cloud & Network Security SASE](#06-cloud-network) (8 份簡報)
 - [General Presentations & Opening Remarks](#07-others) (3 份簡報)
 
 
@@ -1125,28 +1125,6 @@
   5. 盲區危機 - Shadow AI 正在搬空您的數據
 
 ### 📄 [OPNsense Suricata SmartNIC 高效能網路防護實戰](downloads/06_Cloud_Network/%5B4293%5D%20OPNsense%20Suricata%20SmartNIC%20%E9%AB%98%E6%95%88%E8%83%BD%E7%B6%B2%E8%B7%AF%E9%98%B2%E8%AD%B7%E5%AF%A6%E6%88%B0.pdf)
-- **講師**: 鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)
-- **單元分類**: `選擇...`
-- **核心關鍵詞**: `opnsense`, `架構`, `學校`, `fw`, `dns`, `防護`
-- **簡報大綱 (投影片標題)**:
-  1. 核心價值
-  2. • Linux / iptables / FreeBSD
-  3. 教育網路環境
-  4. 校園資安挑戰
-  5. 流量成長與壓力
-
-### 📄 [OPNsense Suricata SmartNIC 高效能網路防護實戰](downloads/06_Cloud_Network/%5B4293%5D%20OPNsense%20Suricata%20SmartNIC%20%E9%AB%98%E6%95%88%E8%83%BD%E7%B6%B2%E8%B7%AF%E9%98%B2%EF%BF%BD%EF%BF%BD%E5%AF%A6%E6%88%B0.pdf)
-- **講師**: 鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)
-- **單元分類**: `選擇...`
-- **核心關鍵詞**: `opnsense`, `架構`, `學校`, `fw`, `dns`, `防護`
-- **簡報大綱 (投影片標題)**:
-  1. 核心價值
-  2. • Linux / iptables / FreeBSD
-  3. 教育網路環境
-  4. 校園資安挑戰
-  5. 流量成長與壓力
-
-### 📄 [OPNsense Suricata SmartNIC 高效能網路防護實戰](downloads/06_Cloud_Network/%5B4293%5D%20OPNsense%20Suricata%20SmartNIC%20%E9%AB%98%E6%95%88%E8%83%BD%E7%B6%B2%E8%B7%AF%E9%98%B2%EF%BF%BD%EF%BF%BD%EF%BF%BD%E5%AF%A6%E6%88%B0.pdf)
 - **講師**: 鄭明彰 (南投縣教育網路中心), 鄭郁霖 (Jason Cheng) (節省工具箱/中華民國軟體自由協會)
 - **單元分類**: `選擇...`
 - **核心關鍵詞**: `opnsense`, `架構`, `學校`, `fw`, `dns`, `防護`
