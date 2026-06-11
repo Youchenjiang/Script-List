@@ -59,7 +59,8 @@ Script-List/
 │   ├── password-security-checker/ # HIBP breach and strength checker
 │   ├── frida-apk-tool/         # Android APK patching with Frida hooks
 │   ├── cybersec-slide-downloader/ # CYBERSEC 2026 slide downloader
-│   └── hacker-news-scraper/    # The Hacker News 3-week article scraper
+│   ├── hacker-news-scraper/    # The Hacker News 3-week article scraper
+│   └── local-https-cert-helper/ # Local HTTPS self-signed certificate helper
 └── text/                       # Text transformation & encoding
     ├── text-converter-zh/      # Chinese Simplified ↔ Traditional converter
     ├── base64-converter/       # Base64 encoding/decoding utility
@@ -93,6 +94,7 @@ Practical script tools categorized by function:
 - **Frida APK Tool** ([security/frida-apk-tool/](security/frida-apk-tool/)) - Toolkit for patching Android APKs with Frida hooks for dynamic analysis and instrumentation. → [Details](security/frida-apk-tool/README.md)
 - **CYBERSEC 2026 Slide Downloader** ([security/cybersec-slide-downloader/](security/cybersec-slide-downloader/)) - Node.js utility to fetch and download all presentation slides from the CYBERSEC 2026 conference backend. → [Details](security/cybersec-slide-downloader/README.md)
 - **Hacker News Scraper** ([security/hacker-news-scraper/](security/hacker-news-scraper/)) - Node.js scraper utility to batch download the last 3 weeks of articles from The Hacker News as Markdown. → [Details](security/hacker-news-scraper/README.md)
+- **Local HTTPS Certificate Helper** ([security/local-https-cert-helper/](security/local-https-cert-helper/)) - OpenSSL tool to quickly generate local Root CA and server certificates, with a Node.js test server. → [Details](security/local-https-cert-helper/README.md)
 
 ### 📝 Text & Encoding
 - **Text Converter (Simplified ↔ Traditional Chinese)** ([text/text-converter-zh/](text/text-converter-zh/)) - Selective Chinese text conversion toolkit with review-before-convert workflow. → [Details](text/text-converter-zh/README.md)
