@@ -268,7 +268,8 @@ async function main() {
   }
 
   // Save the result
-  const outputDir = path.join(__dirname, 'news_output');
+  const scrapeDateStr = formatDate(new Date());
+  const outputDir = path.join(__dirname, 'news_output', scrapeDateStr);
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
@@ -282,6 +283,31 @@ async function main() {
 
   fs.writeFileSync(outputPath, fileContent, 'utf8');
   console.log(`[Scraper] Success! Article saved to:\n  ${outputPath}`);
+
+  // Trigger automatic translation
+  console.log(`[Scraper] Starting automatic translation...`);
+  try {
+    const { translateFile } = require('./translate_news');
+    const parentDir = path.dirname(outputDir);
+    const dirName = path.basename(outputDir);
+    const destDir = path.join(parentDir, `${dirName} [zh-TW]`);
+    if (!fs.existsSync(destDir)) {
+      fs.mkdirSync(destDir, { recursive: true });
+    }
+
+    const { translatedContent, translatedTitle } = await translateFile(outputPath, 'zh-TW');
+    
+    const datePrefixMatch = /^(\d{4}-\d{2}-\d{2}\s+-\s+)/.exec(filename);
+    const datePrefix = datePrefixMatch ? datePrefixMatch[1] : '';
+    const sanitizedTitle = translatedTitle.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().substring(0, 85);
+    const destFilename = `${datePrefix}${sanitizedTitle}.md`;
+    const destPath = path.join(destDir, destFilename);
+
+    fs.writeFileSync(destPath, translatedContent, 'utf8');
+    console.log(`[Scraper] Saved translated version to:\n  ${destPath}`);
+  } catch (err) {
+    console.error(`[Scraper] [Translate] Failed to translate article: ${err.message}`);
+  }
 }
 
 main().catch(console.error);

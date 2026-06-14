@@ -2,12 +2,20 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// Helper: Format Date object to YYYY-MM-DD
+function formatDate(dateObj) {
+  const year = dateObj.getFullYear();
+  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+  const day = String(dateObj.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 // Configuration
 const CONFIG = {
   baseUrl: 'https://thehackernews.com',
   weeksLimit: 3,             // Limit crawling to the last 3 weeks of articles
   delayMs: 800,              // Delay between requests to prevent rate limits
-  outputDir: path.join(__dirname, 'news_output')
+  outputDir: path.join(__dirname, 'news_output', formatDate(new Date()))
 };
 
 // Helper: Make HTTP GET Request (handles redirects and status check)
@@ -44,13 +52,6 @@ function parseDate(dateStr) {
   return new Date(dateStr);
 }
 
-// Helper: Format Date object to YYYY-MM-DD
-function formatDate(dateObj) {
-  const year = dateObj.getFullYear();
-  const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-  const day = String(dateObj.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
 
 // Helper: Balanced HTML Div extractor
 function extractDivContent(html, searchRegExp) {
@@ -260,6 +261,78 @@ async function main() {
   }
 
   console.log(`\n[Scraper] Done! All articles saved under: ${CONFIG.outputDir}`);
+
+  // Trigger automatic translation
+  console.log(`\n[Scraper] Starting automatic translation...`);
+  try {
+    const { translateFile } = require('./translate_news');
+    const parentDir = path.dirname(CONFIG.outputDir);
+    const dirName = path.basename(CONFIG.outputDir);
+    const destDir = path.join(parentDir, `${dirName} [zh-TW]`);
+    if (!fs.existsSync(destDir)) {
+      fs.mkdirSync(destDir, { recursive: true });
+    }
+
+    // Build a cache of already translated URLs in destDir
+    const translatedUrls = new Set();
+    if (fs.existsSync(destDir)) {
+      const destFiles = fs.readdirSync(destDir).filter(f => f.endsWith('.md'));
+      for (const f of destFiles) {
+        const filePath = path.join(destDir, f);
+        try {
+          const content = fs.readFileSync(filePath, 'utf8');
+          const match = content.match(/-\s+\*\*URL\*\*:\s*([^\s\n]+)/);
+          if (match) {
+            translatedUrls.add(match[1].trim());
+          }
+        } catch (err) {}
+      }
+    }
+
+    const files = fs.readdirSync(CONFIG.outputDir);
+    const mdFiles = files.filter(f => f.endsWith('.md') && fs.statSync(path.join(CONFIG.outputDir, f)).isFile());
+    
+    for (let i = 0; i < mdFiles.length; i++) {
+      const filename = mdFiles[i];
+      const sourcePath = path.join(CONFIG.outputDir, filename);
+      
+      // Read URL from source file
+      let sourceUrl = '';
+      try {
+        const sourceContent = fs.readFileSync(sourcePath, 'utf8');
+        const match = sourceContent.match(/-\s+\*\*URL\*\*:\s*([^\s\n]+)/);
+        if (match) {
+          sourceUrl = match[1].trim();
+        }
+      } catch (err) {}
+
+      if (sourceUrl && translatedUrls.has(sourceUrl)) {
+        continue;
+      }
+      
+      const datePrefixMatch = /^(\d{4}-\d{2}-\d{2}\s+-\s+)/.exec(filename);
+      const datePrefix = datePrefixMatch ? datePrefixMatch[1] : '';
+
+      console.log(`[Scraper] [Translate] (${i + 1}/${mdFiles.length}) Translating: ${filename}...`);
+      try {
+        const { translatedContent, translatedTitle } = await translateFile(sourcePath, 'zh-TW');
+        const sanitizedTitle = translatedTitle.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().substring(0, 85);
+        const destFilename = `${datePrefix}${sanitizedTitle}.md`;
+        const destPath = path.join(destDir, destFilename);
+
+        fs.writeFileSync(destPath, translatedContent, 'utf8');
+        if (sourceUrl) {
+          translatedUrls.add(sourceUrl);
+        }
+      } catch (err) {
+        console.error(`[Scraper] [Translate] Error translating ${filename}: ${err.message}`);
+      }
+      await sleep(2500);
+    }
+    console.log(`[Scraper] [Translate] Automatic translation completed.`);
+  } catch (err) {
+    console.error(`[Scraper] [Translate] Failed to run translation: ${err.message}`);
+  }
 }
 
 main().catch(console.error);

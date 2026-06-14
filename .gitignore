@@ -12,3 +12,6 @@ venv.bak/
 
 # Python caches
 __pycache__/
+
+# Scraper outputs
+**/news_output/
