@@ -45,7 +45,8 @@ Script-List/
 │   ├── openai-chat-cli/        # OpenAI 對話工具，支援自訂人設
 │   └── A2-Reproduction/        # A2: Agentic Android Analysis 漏洞分析復現
 ├── automation/                 # 工作流與 GUI 自動化
-│   └── vnc-auto-typer/         # VNC 剪貼簿替代工具 (模擬鍵盤輸入)
+│   ├── vnc-auto-typer/         # VNC 剪貼簿替代工具 (模擬鍵盤輸入)
+│   └── sync-github-stars/      # GitHub 收藏清單自動歸類與同步工具
 ├── data/                       # 資料驗證與提取
 │   └── image-text-verifier/    # 問卷影像辨識與 CSV 校對修正工具
 ├── media/                      # 圖片、PDF 與文件處理
@@ -77,6 +78,7 @@ Script-List/
 
 ### ⚙️ 自動化工具
 - **VNC 自動打字工具** ([automation/vnc-auto-typer/](automation/vnc-auto-typer/)) - 當 VNC 剪貼簿貼上功能無法使用時，以模擬鍵盤輸入的方式將文字輸入 VNC 視窗。 → [詳細說明](automation/vnc-auto-typer/README.zh-TW.md)
+- **GitHub 收藏清單同步工具** ([automation/sync-github-stars/](automation/sync-github-stars/)) - 根據 Markdown 的分類標題，自動將專案收藏並分類至 GitHub 星標收藏清單（Star Lists）中。 → [詳細說明](automation/sync-github-stars/README.zh-TW.md)
 
 ### 📊 資料驗證與提取
 - **問卷影像辨識與校對工具** ([data/image-text-verifier/](data/image-text-verifier/)) - 用於將實體問卷掃描圖自動辨識，並與現有 CSV 資料自動比對、偵測風險與修正的工具。 → [詳細說明](data/image-text-verifier/README.zh-TW.md)

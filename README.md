@@ -45,7 +45,8 @@ Script-List/
 │   ├── openai-chat-cli/        # OpenAI Chat CLI with custom personas
 │   └── A2-Reproduction/        # Agentic Android Analysis reproduction
 ├── automation/                 # Workflow & GUI automation
-│   └── vnc-auto-typer/         # VNC clipboard workaround (keyboard simulation)
+│   ├── vnc-auto-typer/         # VNC clipboard workaround (keyboard simulation)
+│   └── sync-github-stars/      # GitHub Star Lists Sync Utility
 ├── data/                       # Data verification & extraction
 │   └── image-text-verifier/    # Questionnaire image to CSV verification tool
 ├── media/                      # Image, PDF & Document processing
@@ -77,6 +78,7 @@ Practical script tools categorized by function:
 
 ### ⚙️ Automation
 - **VNC Auto Typer** ([automation/vnc-auto-typer/](automation/vnc-auto-typer/)) - Simulate keyboard input into a VNC window when clipboard paste is unavailable. Reads from clipboard, file, or inline text. → [Details](automation/vnc-auto-typer/README.md)
+- **GitHub Star Lists Sync Utility** ([automation/sync-github-stars/](automation/sync-github-stars/)) - Synchronize starred repositories into custom categorized GitHub Star Lists based on Markdown headings. → [Details](automation/sync-github-stars/README.md)
 
 ### 📊 Data & Verification
 - **Image-Text Verifier** ([data/image-text-verifier/](data/image-text-verifier/)) - Extract answers from scanned questionnaire images and automatically verify/fix them against an existing CSV dataset with targeted risk management. → [Details](data/image-text-verifier/README.md)
