@@ -1,94 +1,119 @@
-# VNC Auto Typer
+# VNC Input Helper
 
-A lightweight tool that simulates keyboard input into a VNC window when the clipboard paste function is unavailable (e.g. on restricted platforms like CDX).
+A lightweight utility suite that assists keyboard and mouse inputs inside a VNC or virtual machine window when native copy-paste, modifier holding, or clicking is restricted (e.g. on secure platforms like CDX).
 
 [閱讀繁體中文版](README.zh-TW.md)
 
-## Description
+---
 
-When connecting to a remote virtual machine via a web-based VNC client (e.g. noVNC or CDX), copying and pasting text from the host machine is often blocked. This project allows you to paste text into a local window and automatically "type" it into the remote session using physical key events.
+## 🌟 Key Features
+
+1. **Auto Typer (自動打字)**: Paste text into a local window and automatically "type" it character by character into a remote VNC session. Prevents clipboard-blocking restrictions.
+2. **Key Holder (按鍵長按)**: Simulates holding down a physical keyboard key (e.g. `w`, `space`, `shift`) for a timed duration or indefinitely. Extremely useful for gaming, bypassing idle timeouts, or testing.
+3. **Auto Clicker (滑鼠連點)**: Fast mouse clicking simulator supporting left, right, and middle clicks with customizable millisecond intervals. Built natively using Windows `ctypes` API to remain 100% lightweight and zero-dependency.
 
 | Tool | Best for |
 |---|---|
-| `vnc_typer_gui.py` | **Repeated use** — a persistent always-on-top GUI window. |
-| `vnc_auto_typer.py` | **One-shot / scripted use** — CLI tool driven by arguments or clipboard. |
-| **Standalone EXE** | **No-install use** — Single file `VNCAutoTyper_Lite.exe`. |
+| `vnc_helper_gui.py` | **Interactive GUI use** — A tabbed, persistent, always-on-top dashboard. |
+| `vnc_helper_cli.py` | **Scripted / automated use** — Pure console tool driven by command-line arguments. |
+| **Standalone EXE** | **No-install portability** — Single file `VNCInputHelper_Lite.exe`. |
 
 ---
 
-## 🚀 Building the Standalone EXE (Lite)
+To keep the repository clean, we do not bundle the binaries directly. You can build your own **~8MB "Lite" version** using PyInstaller:
 
-To keep the repository lightweight, we do not distribute the binary directly. You can build your own **13MB "Lite" version** using PyInstaller:
-
-1. **Prerequisites**: Ensure you have Python and the requirements installed.
+1. **Prerequisites**: Ensure you have Python 3.8+ and pip.
 2. **Install PyInstaller**:
    ```bash
    pip install pyinstaller
    ```
-3. **Run the Slim Build Command**:
+3. **Run the Whitelist Build Command**:
    ```bash
-   pyinstaller --onefile --windowed --name VNCAutoTyper_Lite --collect-all keyboard --exclude-module PyQt5 --exclude-module PyQt6 --exclude-module numpy --exclude-module cv2 --exclude-module matplotlib --exclude-module scipy --exclude-module pandas --exclude-module mkl vnc_typer_gui.py
+   pyinstaller --clean VNCInputHelper_Lite.spec
    ```
-4. The output will be located in the `dist/` folder as `VNCAutoTyper_Lite.exe`.
+4. The output binary will be generated in the `dist/` folder as `VNCInputHelper_Lite.exe`.
 
 > [!TIP]
-> **Why this command?** Standard PyInstaller builds can exceed 300MB if they pull in libraries like OpenCV or NumPy from your environment. The `--exclude-module` flags ensure you get the smallest possible file.
+> **Why this command?** The project contains a custom `VNCInputHelper_Lite.spec` file that enforces strict whitelist-based packaging. It filters the Python standard library and DLLs programmatically so that only the minimum essential modules needed for GUI, key simulation, and ctypes mouse clicks are compiled. This keeps the final binary size at just ~8MB.
 
 ---
 
 ## Prerequisites (Script Version)
 
 - **Python 3.8+**
-- **Requirements**: `pip install keyboard pyperclip`
-- **Permissions**: The `keyboard` library requires **Administrator** (Windows) or **root/sudo** (Linux) privileges to simulate physical key presses correctly across the VNC tunnel.
+- **Dependencies**: `pip install keyboard pyperclip`
+- **Permissions**: The `keyboard` library requires **Administrator** (Windows) or **root/sudo** (Linux) privileges to simulate physical key events globally.
 
 ---
 
-## GUI Tool — `vnc_typer_gui.py` *(Recommended)*
+## GUI Tool — `vnc_helper_gui.py` *(Recommended)*
 
-A persistent, compact window that stays visible while you work in VNC.
-
-### Features
-- **Always on top**: Never loses focus behind your browser.
-- **Immediate Abort**: Interrupt typing instantly at any character.
-- **Real-time Progress**: Visual bar shows typing completion.
-- **Unicode Support**: Safely types Chinese/special characters.
-
-### Usage
+Launch the graphical dashboard:
 ```bash
-python vnc_typer_gui.py
+python vnc_helper_gui.py
 ```
 
-1. **Paste** text into the text area.
-2. Click **"Send to VNC"** (or press **Ctrl+Enter**) — countdown starts.
-3. **Switch to your VNC window** and click inside the text field.
-4. The tool types the text automatically.
+### GUI Layout & Features
+- **Always on top**: Toggle checkbox in the header to ensure the utility window stays visible while clicking inside VNC windows.
+- **Tab 1: Auto Typer**: Configure typing delay and interval speed.
+- **Tab 2: Key Holder**: Features a grid of common keys (W, A, S, D, Space, Shift, Ctrl, Alt, Enter, etc.) for quick selection, support for timed holding (seconds) or indefinite holding.
+- **Tab 3: Auto Clicker**: Choose mouse buttons, set millisecond intervals, and specify click counts or run indefinitely.
+- **Global Delay**: A startup delay (default 3s) is applied globally across all tasks to give you time to switch focus to your target VNC window.
+- **Global Abort**: Pressing the **`Esc`** key at any point (even if focused inside the VNC window) will immediately abort any typing, holding, or clicking operations.
 
 ---
 
-## CLI Tool — `vnc_auto_typer.py`
+## CLI Tool — `vnc_helper_cli.py`
 
-Driven by command line arguments for scripting or one-off tasks.
+Driven by arguments, perfect for one-shot command-line usage or batch scripting.
 
 ```bash
-# Type from clipboard (default)
-python vnc_auto_typer.py
+# 1. Typer Mode (Default): Types clipboard content
+python vnc_helper_cli.py --mode typer
+
+# Type inline text
+python vnc_helper_cli.py --mode typer --text "echo 'Hello World'"
 
 # Type from a file
-python vnc_auto_typer.py -f script.sh
+python vnc_helper_cli.py --mode typer --file script.sh
 
-# Type specific string
-python vnc_auto_typer.py -t "echo hello world"
+# 2. Key Holder Mode: Hold 'w' key down for 10 seconds (default)
+python vnc_helper_cli.py --mode hold --key w --duration 10.0
+
+# Indefinite hold (Press Esc to release)
+python vnc_helper_cli.py --mode hold --key space --duration 0
+
+# 3. Auto Clicker Mode: Double-click left mouse button every 500ms
+python vnc_helper_cli.py --mode click --button left --interval 0.5 --count 10
+```
+
+### CLI Arguments Reference
+
+```text
+  -h, --help            show this help message and exit
+  -m, --mode {typer,hold,click}
+                        Automation mode (default: typer)
+  -d, --delay DELAY     Startup delay in seconds (default: 3)
+  -t, --text TEXT       Inline text to type (for typer mode)
+  -f, --file FILE       File containing text to type (for typer mode)
+  -i, --interval INTERVAL
+                        Interval: s/char for typer, or s/click for clicker (default: 0.03/0.1)
+  -k, --key KEY         Key to hold down (for hold mode) (default: w)
+  -dur, --duration DURATION
+                        Duration in seconds to hold key (0 for indefinite, default: 10.0)
+  -btn, --button {left,right,middle}
+                        Mouse button to click (for click mode) (default: left)
+  -c, --count COUNT     Number of clicks to perform (0 for indefinite, default: 100)
 ```
 
 ---
 
 ## Troubleshooting
 
-- **Characters dropped**: Increase the **Interval (s/char)** setting (e.g., `0.06` or `0.08`) to compensate for VNC network lag.
-- **Stuck Keys**: If the Shift key gets "stuck" (typing in all caps), the tool now includes an automatic modifier reset at the start of every task.
-- **Special characters garbled**: We use a canonical key map and `keyboard.write()` for maximum compatibility with VNC tunnels.
-- **Linux Permission Error**: Run with `sudo python vnc_typer_gui.py`.
+- **Characters dropped**: Increase the **Interval (s/char)** setting (e.g. `0.06` or `0.08`) to compensate for VNC network latency.
+- **Sticky Keys**: If modifier keys (like Shift or Ctrl) get stuck, the application will automatically perform a modifier release reset at the start of any run. Alternatively, closing the GUI releases all virtual keys.
+- **Clicker issues on macOS/Linux**: The mouse auto-clicker relies on native Windows APIs (`ctypes`) to remain lightweight. On Linux, it falls back to calling `xdotool`. If `xdotool` is not installed, clicking will be skipped.
+- **Linux Permission Error**: Run the script with root permissions: `sudo python vnc_helper_gui.py`.
 
 ---
 
