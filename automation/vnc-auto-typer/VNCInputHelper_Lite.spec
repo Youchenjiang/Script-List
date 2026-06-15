@@ -8,7 +8,7 @@ tmp_ret = collect_all('keyboard')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 a = Analysis(
-    ['vnc_typer_gui.py'],
+    ['vnc_helper_gui.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,
@@ -24,7 +24,7 @@ a = Analysis(
 # ── STRICT WHITELIST FILTERING ────────────────────────────────────────────────
 whitelist = {
     # App code & core library dependencies
-    'vnc_typer_gui',
+    'vnc_helper_gui',
     'keyboard',
     'pyperclip',
     'tkinter',
