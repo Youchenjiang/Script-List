@@ -45,7 +45,7 @@ Script-List/
 │   ├── openai-chat-cli/        # OpenAI Chat CLI with custom personas
 │   └── A2-Reproduction/        # Agentic Android Analysis reproduction
 ├── automation/                 # Workflow & GUI automation
-│   ├── vnc-auto-typer/         # VNC clipboard workaround (keyboard simulation)
+│   ├── vnc-input-helper/       # VNC automation assistant (typer, key hold, clicker)
 │   └── sync-github-stars/      # GitHub Star Lists Sync Utility
 ├── data/                       # Data verification & extraction
 │   └── image-text-verifier/    # Questionnaire image to CSV verification tool
@@ -77,7 +77,7 @@ Practical script tools categorized by function:
 - **A2: Agentic Android Analysis** ([ai/A2-Reproduction/](ai/A2-Reproduction/)) - Reproduction of the A2 framework for automated mobile app vulnerability discovery and validation using multi-agent systems. → [Details](ai/A2-Reproduction/README.md)
 
 ### ⚙️ Automation
-- **VNC Auto Typer** ([automation/vnc-auto-typer/](automation/vnc-auto-typer/)) - Simulate keyboard input into a VNC window when clipboard paste is unavailable. Reads from clipboard, file, or inline text. → [Details](automation/vnc-auto-typer/README.md)
+- **VNC Input Helper** ([automation/vnc-input-helper/](automation/vnc-input-helper/)) - Simulate keyboard typing, hold down keys, or auto-click mouse buttons inside a restricted VNC window. → [Details](automation/vnc-input-helper/README.md)
 - **GitHub Star Lists Sync Utility** ([automation/sync-github-stars/](automation/sync-github-stars/)) - Synchronize starred repositories into custom categorized GitHub Star Lists based on Markdown headings. → [Details](automation/sync-github-stars/README.md)
 
 ### 📊 Data & Verification

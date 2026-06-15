@@ -45,7 +45,7 @@ Script-List/
 │   ├── openai-chat-cli/        # OpenAI 對話工具，支援自訂人設
 │   └── A2-Reproduction/        # A2: Agentic Android Analysis 漏洞分析復現
 ├── automation/                 # 工作流與 GUI 自動化
-│   ├── vnc-auto-typer/         # VNC 剪貼簿替代工具 (模擬鍵盤輸入)
+│   ├── vnc-input-helper/       # VNC 輸入輔助工具 (打字、長按、連點)
 │   └── sync-github-stars/      # GitHub 收藏清單自動歸類與同步工具
 ├── data/                       # 資料驗證與提取
 │   └── image-text-verifier/    # 問卷影像辨識與 CSV 校對修正工具
@@ -77,7 +77,7 @@ Script-List/
 - **A2: Agentic Android Analysis** ([ai/A2-Reproduction/](ai/A2-Reproduction/)) - Android 漏洞自動化發現與驗證系統，基於多代理人架構的復現專案。 → [詳細說明](ai/A2-Reproduction/README.md)
 
 ### ⚙️ 自動化工具
-- **VNC 自動打字工具** ([automation/vnc-auto-typer/](automation/vnc-auto-typer/)) - 當 VNC 剪貼簿貼上功能無法使用時，以模擬鍵盤輸入的方式將文字輸入 VNC 視窗。 → [詳細說明](automation/vnc-auto-typer/README.zh-TW.md)
+- **VNC 輸入輔助工具** ([automation/vnc-input-helper/](automation/vnc-input-helper/)) - 當 VNC 剪貼簿無法貼上、按鍵需長按或需要滑鼠連點時的模擬輸入輔助工具。 → [詳細說明](automation/vnc-input-helper/README.zh-TW.md)
 - **GitHub 收藏清單同步工具** ([automation/sync-github-stars/](automation/sync-github-stars/)) - 根據 Markdown 的分類標題，自動將專案收藏並分類至 GitHub 星標收藏清單（Star Lists）中。 → [詳細說明](automation/sync-github-stars/README.zh-TW.md)
 
 ### 📊 資料驗證與提取
