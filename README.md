@@ -49,6 +49,7 @@ Script-List/
 │   ├── vnc-input-helper/       # VNC automation assistant (typer, key hold, clicker)
 │   └── sync-github-stars/      # GitHub Star Lists Sync Utility
 ├── data/                       # Data verification & extraction
+│   ├── homework-submission-analyzer/ # Homework submission analysis utility
 │   └── image-text-verifier/    # Questionnaire image to CSV verification tool
 ├── media/                      # Image, PDF & Document processing
 │   ├── image-downloader-pdf/   # Web image downloader and PDF merger
@@ -83,6 +84,7 @@ Practical script tools categorized by function:
 - **GitHub Star Lists Sync Utility** ([automation/sync-github-stars/](automation/sync-github-stars/)) - Synchronize starred repositories into custom categorized GitHub Star Lists based on Markdown headings. → [Details](automation/sync-github-stars/README.md)
 
 ### 📊 Data & Verification
+- **Homework Submission Analyzer** ([data/homework-submission-analyzer/](data/homework-submission-analyzer/)) - A Node.js utility for eeclass assignments that automatically parses PDF certificates, matches names, and generates a CSV report. → [Details](data/homework-submission-analyzer/README.md)
 - **Image-Text Verifier** ([data/image-text-verifier/](data/image-text-verifier/)) - Extract answers from scanned questionnaire images and automatically verify/fix them against an existing CSV dataset with targeted risk management. → [Details](data/image-text-verifier/README.md)
 
 ### 📁 Media & Documents

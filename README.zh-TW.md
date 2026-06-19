@@ -49,6 +49,7 @@ Script-List/
 │   ├── vnc-input-helper/       # VNC 輸入輔助工具 (打字、長按、連點)
 │   └── sync-github-stars/      # GitHub 收藏清單自動歸類與同步工具
 ├── data/                       # 資料驗證與提取
+│   ├── homework-submission-analyzer/ # 學生作業繳交狀態自動統計工具
 │   └── image-text-verifier/    # 問卷影像辨識與 CSV 校對修正工具
 ├── media/                      # 圖片、PDF 與文件處理
 │   ├── image-downloader-pdf/   # 圖片下載與 PDF 轉換工具
@@ -83,6 +84,7 @@ Script-List/
 - **GitHub 收藏清單同步工具** ([automation/sync-github-stars/](automation/sync-github-stars/)) - 根據 Markdown 的分類標題，自動將專案收藏並分類至 GitHub 星標收藏清單（Star Lists）中。 → [詳細說明](automation/sync-github-stars/README.zh-TW.md)
 
 ### 📊 資料驗證與提取
+- **學生作業狀態統計工具** ([data/homework-submission-analyzer/](data/homework-submission-analyzer/)) - 專為 eeclass 作業包設計，能自動解析 PDF 證書、比對姓名並輸出 CSV 統計報表的 Node.js 腳本。 → [詳細說明](data/homework-submission-analyzer/README.zh-TW.md)
 - **問卷影像辨識與校對工具** ([data/image-text-verifier/](data/image-text-verifier/)) - 用於將實體問卷掃描圖自動辨識，並與現有 CSV 資料自動比對、偵測風險與修正的工具。 → [詳細說明](data/image-text-verifier/README.zh-TW.md)
 
 ### 📁 媒體與文件處理
