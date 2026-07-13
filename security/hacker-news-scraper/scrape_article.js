@@ -197,10 +197,12 @@ async function main() {
   let title = 'Untitled';
   let dateText = '';
   let formattedDate = '';
+  let authorText = '';
   let bodyMarkdown = '';
 
   const isTheHackerNews = url.includes('thehackernews.com');
   const isPermiso = url.includes('permiso.io');
+  const isSecurelist = url.includes('securelist.com');
 
   title = extractTitle(html);
 
@@ -235,6 +237,29 @@ async function main() {
 
     // Extract Body
     const rawBody = extractDivContent(html, /<div[^>]+class=['"]blog-post__body['"]/i);
+    if (rawBody) {
+      bodyMarkdown = cleanHtmlToMarkdown(rawBody);
+    }
+  } else if (isSecurelist) {
+    console.log('[Scraper] Parsing format: Securelist');
+    // Extract Date from JSON-LD
+    const dateMatch = /"datePublished"\s*:\s*"([^"]+)"/i.exec(html) || /"dateCreated"\s*:\s*"([^"]+)"/i.exec(html);
+    if (dateMatch) {
+      const dateObj = new Date(dateMatch[1]);
+      if (!isNaN(dateObj.getTime())) {
+        formattedDate = formatDate(dateObj);
+        dateText = dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+    }
+
+    // Extract Author
+    const authorMatch = /"author"[^}]*"name"\s*:\s*"([^"]+)"/i.exec(html);
+    if (authorMatch) {
+      authorText = authorMatch[1];
+    }
+
+    // Extract Body - try <article> first, then entry-content
+    const rawBody = extractDivContent(html, /<article/i) || extractDivContent(html, /<div[^>]+class=['"]entry-content['"]/i);
     if (rawBody) {
       bodyMarkdown = cleanHtmlToMarkdown(rawBody);
     }
@@ -278,7 +303,7 @@ async function main() {
   const prefix = formattedDate ? `${formattedDate} - ` : '';
   const filename = `${prefix}${sanitizedTitle}.md`;
   
-  const fileContent = `# ${title}\n\n${dateText ? `- **Date**: ${dateText}\n` : ''}- **URL**: ${url}\n\n---\n\n${bodyMarkdown}\n`;
+  const fileContent = `# ${title}\n\n${dateText ? `- **Date**: ${dateText}\n` : ''}${authorText ? `- **Author**: ${authorText}\n` : ''}- **URL**: ${url}\n\n---\n\n${bodyMarkdown}\n`;
   const outputPath = path.join(outputDir, filename);
 
   fs.writeFileSync(outputPath, fileContent, 'utf8');
