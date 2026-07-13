@@ -237,11 +237,12 @@ async function main() {
 
   console.log(`\n[Scraper] Listing crawl finished. Found ${articlesToFetch.length} articles to download.`);
 
-  // Phase 2: Download each article and save text content as Markdown
-  for (let i = 0; i < articlesToFetch.length; i++) {
-    const article = articlesToFetch[i];
-    console.log(`[Scraper] (${i + 1}/${articlesToFetch.length}) Downloading: ${article.title}...`);
-    
+  // Phase 2: Download each article and save text content as Markdown (parallel batches)
+  const BATCH_SIZE = 5;
+  let downloaded = 0;
+  let downloadFailed = 0;
+
+  async function downloadArticle(article, index) {
     try {
       await sleep(CONFIG.delayMs);
       const artHtml = await fetchUrl(article.url);
@@ -264,9 +265,18 @@ async function main() {
       const fileContent = `# ${article.title}\n\n- **Date**: ${article.dateText}\n- **URL**: ${article.url}\n\n---\n\n${bodyText}\n`;
       
       fs.writeFileSync(path.join(CONFIG.outputDir, filename), fileContent);
+      downloaded++;
+      console.log(`[Scraper] (${downloaded + downloadFailed}/${articlesToFetch.length}) Done: ${article.title}`);
     } catch (err) {
+      downloadFailed++;
       console.error(`[Error] Failed to download content for [${article.title}]: ${err.message}`);
     }
+  }
+
+  for (let i = 0; i < articlesToFetch.length; i += BATCH_SIZE) {
+    const batch = articlesToFetch.slice(i, i + BATCH_SIZE);
+    console.log(`[Scraper] Batch ${Math.floor(i / BATCH_SIZE) + 1}: downloading ${batch.length} articles...`);
+    await Promise.all(batch.map((article, j) => downloadArticle(article, i + j)));
   }
 
   console.log(`\n[Scraper] Done! All articles saved under: ${CONFIG.outputDir}`);
