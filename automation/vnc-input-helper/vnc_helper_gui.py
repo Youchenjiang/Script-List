@@ -119,6 +119,7 @@ class VNCInputHelperApp:
         self._build_ui()
         self._apply_topmost()
         self._register_global_hotkey()
+        self._register_key_capture()
 
     def _configure_root(self) -> None:
         self.root.title("VNC Input Helper")
@@ -230,67 +231,174 @@ class VNCInputHelperApp:
 
     def _build_tab_holder(self) -> None:
         tab = self._tab_holder
-        tab.grid_columnconfigure(0, weight=0)
-        tab.grid_columnconfigure(1, weight=1)
 
-        # Row 0: Description
-        tk.Label(tab, text="Hold a key or combo (e.g. 'ctrl+shift+s') in the active VNC window.", bg=C["bg"], fg=C["muted"],
-                 font=("Segoe UI", 9), anchor="w").grid(row=0, column=0, columnspan=2, sticky="ew", pady=(10, 8))
+        # Row 0: Combo display
+        combo_frame = tk.Frame(tab, bg=C["surface"], padx=8, pady=6)
+        combo_frame.pack(fill="x", padx=10, pady=(10, 4))
 
-        # Row 1: Key field
-        tk.Label(tab, text="Key to hold:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=1, column=0, sticky="w", pady=6)
-        
-        key_input_frame = tk.Frame(tab, bg=C["bg"])
-        key_input_frame.grid(row=1, column=1, sticky="ew", pady=6)
-        
-        self._hold_key_var = tk.StringVar(value="w")
-        self._hold_key_entry = tk.Entry(key_input_frame, textvariable=self._hold_key_var, bg=C["input"], fg=C["text"],
-                                        insertbackground=C["text"], relief="flat", font=("Segoe UI", 10), width=10)
-        self._hold_key_entry.pack(side="left")
-        
-        # Row 2: Common keys picker grid
-        tk.Label(tab, text="Common Keys:", bg=C["bg"], fg=C["muted"], font=("Segoe UI", 9)).grid(row=2, column=0, sticky="nw", pady=(12, 0))
-        
-        keys_grid = tk.Frame(tab, bg=C["bg"])
-        keys_grid.grid(row=2, column=1, sticky="w", pady=(12, 10))
-        
-        common_keys = [
-            ("W", "w"), ("A", "a"), ("S", "s"), ("D", "d"),
-            ("Space", "space"), ("Shift", "shift"), ("Ctrl", "ctrl"),
-            ("Alt", "alt"), ("Enter", "enter"), ("Tab", "tab"), ("Up", "up"), ("Down", "down")
+        tk.Label(combo_frame, text="Selected:", bg=C["surface"], fg=C["muted"],
+                 font=("Segoe UI", 9)).pack(side="left")
+        self._hold_combo_var = tk.StringVar(value="(none)")
+        tk.Label(combo_frame, textvariable=self._hold_combo_var, bg=C["surface"], fg=C["accent"],
+                 font=("Consolas", 11, "bold")).pack(side="left", padx=(8, 0))
+
+        self._capturing_combo = False
+        self._capture_btn = tk.Button(combo_frame, text="⏺ Capture Keys", command=self._toggle_capture_combo,
+                                      bg=C["surface"], fg=C["muted"], font=("Segoe UI", 8), relief="flat",
+                                      padx=6, cursor="hand2")
+        self._capture_btn.pack(side="right", padx=(4, 0))
+        tk.Button(combo_frame, text="Clear", command=self._clear_hold_combo, bg=C["surface"], fg=C["muted"],
+                  font=("Segoe UI", 8), relief="flat", padx=6, cursor="hand2").pack(side="right")
+
+        # Track which keys are selected
+        self._hold_selected_keys = []
+        self._hold_key_buttons = {}
+
+        # Row 1: Virtual keyboard
+        kb_frame = tk.Frame(tab, bg=C["bg"])
+        kb_frame.pack(fill="x", padx=10, pady=4)
+
+        KB_KEY_H = 28
+        KB_FONT = ("Segoe UI", 7)
+
+        def make_key(parent, label, vk_name, col, row, width=1, colspan=1):
+            """Create a keyboard key button."""
+            is_mod = vk_name in ("ctrl", "alt", "shift", "win")
+            bg = C["accent"] if is_mod else C["surface"]
+            btn = tk.Button(parent, text=label, bg=bg, fg=C["text"],
+                           activebackground=C["accent_hover"], activeforeground="#ffffff",
+                           relief="flat", font=KB_FONT, cursor="hand2", height=1,
+                           command=lambda v=vk_name: self._toggle_hold_key(v))
+            btn.grid(row=row, column=col, columnspan=colspan, padx=1, pady=1, sticky="nsew")
+            self._hold_key_buttons[vk_name] = btn
+            return btn
+
+        # Row 0: Esc + F-keys
+        row0 = tk.Frame(kb_frame, bg=C["bg"])
+        row0.pack(fill="x", pady=1)
+        for i in range(13):
+            row0.grid_columnconfigure(i, weight=1)
+        f_labels = [("Esc", "esc")] + [(f"F{i}", f"f{i}") for i in range(1, 13)]
+        for col, (label, vk) in enumerate(f_labels):
+            make_key(row0, label, vk, col, 0, width=1)
+
+        # Row 1: Number row
+        row1 = tk.Frame(kb_frame, bg=C["bg"])
+        row1.pack(fill="x", pady=1)
+        num_keys = [
+            ("`", "`"), ("1", "1"), ("2", "2"), ("3", "3"), ("4", "4"),
+            ("5", "5"), ("6", "6"), ("7", "7"), ("8", "8"), ("9", "9"),
+            ("0", "0"), ("-", "-"), ("=", "="), ("Bksp", "backspace"),
         ]
-        for index, (label, val) in enumerate(common_keys):
-            r, c = index // 4, index % 4
-            btn = tk.Button(keys_grid, text=label, bg=C["surface"], fg=C["text"],
-                            activebackground=C["accent"], activeforeground="#ffffff",
-                            relief="flat", width=7, font=("Segoe UI", 8), cursor="hand2",
-                            command=lambda v=val: self._hold_key_var.set(v))
-            btn.grid(row=r, column=c, padx=3, pady=3)
+        for i in range(14):
+            row1.grid_columnconfigure(i, weight=1)
+        for col, (label, vk) in enumerate(num_keys):
+            w = 2 if vk == "backspace" else 1
+            make_key(row1, label, vk, col, 0, width=w)
 
-        # Row 3: Mode Options (Indefinite vs Duration)
-        tk.Label(tab, text="Hold Mode:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=3, column=0, sticky="w", pady=6)
-        
+        # Row 2: QWERTY row
+        row2 = tk.Frame(kb_frame, bg=C["bg"])
+        row2.pack(fill="x", pady=1)
+        qwerty_keys = [
+            ("Tab", "tab"), ("Q", "q"), ("W", "w"), ("E", "e"), ("R", "r"),
+            ("T", "t"), ("Y", "y"), ("U", "u"), ("I", "i"), ("O", "o"),
+            ("P", "p"), ("[", "["), ("]", "]"), ("\\", "\\"),
+        ]
+        for i in range(14):
+            row2.grid_columnconfigure(i, weight=1)
+        for col, (label, vk) in enumerate(qwerty_keys):
+            w = 2 if vk == "tab" else 1
+            make_key(row2, label, vk, col, 0, width=w)
+
+        # Row 3: Home row
+        row3 = tk.Frame(kb_frame, bg=C["bg"])
+        row3.pack(fill="x", pady=1)
+        home_keys = [
+            ("Caps", "capslock"), ("A", "a"), ("S", "s"), ("D", "d"), ("F", "f"),
+            ("G", "g"), ("H", "h"), ("J", "j"), ("K", "k"), ("L", "l"),
+            (";", ";"), ("'", "'"), ("Enter", "enter"),
+        ]
+        for i in range(13):
+            row3.grid_columnconfigure(i, weight=1)
+        for col, (label, vk) in enumerate(home_keys):
+            w = 2 if vk in ("capslock", "enter") else 1
+            make_key(row3, label, vk, col, 0, width=w)
+
+        # Row 4: Shift row
+        row4 = tk.Frame(kb_frame, bg=C["bg"])
+        row4.pack(fill="x", pady=1)
+        shift_keys = [
+            ("Shift", "shift"), ("Z", "z"), ("X", "x"), ("C", "c"), ("V", "v"),
+            ("B", "b"), ("N", "n"), ("M", "m"), (",", ","), (".", "."),
+            ("/", "/"), ("Shift", "shift_r"),
+        ]
+        for i in range(12):
+            row4.grid_columnconfigure(i, weight=1)
+        for col, (label, vk) in enumerate(shift_keys):
+            w = 2 if "shift" in vk else 1
+            make_key(row4, label, vk, col, 0, width=w)
+
+        # Row 5: Bottom row
+        row5 = tk.Frame(kb_frame, bg=C["bg"])
+        row5.pack(fill="x", pady=1)
+        bottom_keys = [
+            ("Ctrl", "ctrl"), ("Win", "win"), ("Alt", "alt"),
+            ("Space", "space"), ("Alt", "alt_r"), ("Win", "win_r"),
+            ("Menu", "menu"), ("Ctrl", "ctrl_r"),
+        ]
+        for i in range(8):
+            row5.grid_columnconfigure(i, weight=1)
+        for col, (label, vk) in enumerate(bottom_keys):
+            w = 3 if vk == "space" else 1
+            make_key(row5, label, vk, col, 0, width=w)
+
+        # Row 6: Hold Mode
         mode_frame = tk.Frame(tab, bg=C["bg"])
-        mode_frame.grid(row=3, column=1, sticky="w", pady=6)
-        
-        self._hold_indefinite_var = tk.BooleanVar(value=True)
-        
-        tk.Radiobutton(mode_frame, text="Indefinitely (Until Esc)", variable=self._hold_indefinite_var, value=True,
-                       command=self._update_hold_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
-                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left")
-                       
-        tk.Radiobutton(mode_frame, text="Timed hold", variable=self._hold_indefinite_var, value=False,
-                       command=self._update_hold_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
-                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(14, 0))
+        mode_frame.pack(fill="x", padx=10, pady=(8, 2))
 
-        # Row 4: Duration Spinbox
-        tk.Label(tab, text="Duration (s):", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=4, column=0, sticky="w", pady=6)
+        tk.Label(mode_frame, text="Hold Mode:", bg=C["bg"], fg=C["text"],
+                 font=("Segoe UI", 9)).pack(side="left")
+        self._hold_indefinite_var = tk.BooleanVar(value=True)
+        tk.Radiobutton(mode_frame, text="Until Esc", variable=self._hold_indefinite_var, value=True,
+                       command=self._update_hold_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
+                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(8, 0))
+        tk.Radiobutton(mode_frame, text="Timed:", variable=self._hold_indefinite_var, value=False,
+                       command=self._update_hold_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
+                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(8, 0))
         self._hold_duration_var = tk.DoubleVar(value=10.0)
-        self._hold_spin = tk.Spinbox(tab, from_=1.0, to=3600.0, increment=1.0, textvariable=self._hold_duration_var,
-                                     width=6, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 10))
-        self._hold_spin.grid(row=4, column=1, sticky="w", pady=6)
-        
+        self._hold_spin = tk.Spinbox(mode_frame, from_=1.0, to=3600.0, increment=1.0, textvariable=self._hold_duration_var,
+                                     width=5, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 9))
+        self._hold_spin.pack(side="left", padx=(4, 0))
+        tk.Label(mode_frame, text="s", bg=C["bg"], fg=C["muted"], font=("Segoe UI", 9)).pack(side="left")
         self._update_hold_states()
+
+    def _toggle_hold_key(self, vk_name: str) -> None:
+        """Toggle a key in the hold combo."""
+        if vk_name in self._hold_selected_keys:
+            self._hold_selected_keys.remove(vk_name)
+        else:
+            self._hold_selected_keys.append(vk_name)
+        self._update_hold_combo_display()
+
+    def _clear_hold_combo(self) -> None:
+        self._hold_selected_keys.clear()
+        self._update_hold_combo_display()
+
+    def _update_hold_combo_display(self) -> None:
+        """Update the combo label and key button highlights."""
+        if self._hold_selected_keys:
+            combo = "+".join(self._hold_selected_keys)
+            self._hold_combo_var.set(combo)
+        else:
+            self._hold_combo_var.set("(none)")
+
+        # Update button highlights
+        for vk, btn in self._hold_key_buttons.items():
+            if vk in self._hold_selected_keys:
+                btn.config(bg=C["success"], fg="#ffffff")
+            else:
+                is_mod = vk in ("ctrl", "alt", "shift", "win")
+                btn.config(bg=C["accent"] if is_mod else C["surface"], fg=C["text"])
 
     def _build_tab_clicker(self) -> None:
         tab = self._tab_clicker
@@ -561,10 +669,52 @@ class VNCInputHelperApp:
         if self._running:
             self._abort_event.set()
 
+    def _register_key_capture(self) -> None:
+        """Register key capture - only active when _capturing_combo is True."""
+        pass  # Now handled by _toggle_capture_combo
+
+    def _toggle_capture_combo(self) -> None:
+        """Start/stop capturing keyboard input for combo building."""
+        if self._capturing_combo:
+            self._stop_capture_combo()
+        else:
+            self._start_capture_combo()
+
+    def _start_capture_combo(self) -> None:
+        if not KEYBOARD_OK:
+            self._set_ui("⚠️ keyboard library not available", C["warning"], 0)
+            return
+        self._capturing_combo = True
+        self._capture_btn.config(text="⏹ Stop Capture", bg=C["danger"], fg="white")
+        self._set_ui("⌨️ Capturing... press keys to build combo, Esc or click Stop to finish", C["warning"], 0)
+        self._kb_capture_hook = _kb.hook(self._on_capture_key_event)
+
+    def _stop_capture_combo(self) -> None:
+        self._capturing_combo = False
+        self._capture_btn.config(text="⏺ Capture Keys", bg=C["surface"], fg=C["muted"])
+        if hasattr(self, '_kb_capture_hook') and self._kb_capture_hook:
+            _kb.unhook(self._kb_capture_hook)
+            self._kb_capture_hook = None
+        self._set_ui("Ready — Select mode and click Start.", C["muted"], 0)
+
+    def _on_capture_key_event(self, event) -> None:
+        """Handle captured key events for combo building."""
+        if not self._capturing_combo:
+            return
+        if event.name == "esc":
+            self.root.after(0, self._stop_capture_combo)
+            return
+        if event.event_type == "down":
+            self.root.after(0, lambda name=event.name: self._toggle_hold_key(name))
+
     def _on_action_clicked(self) -> None:
         if self._running:
             self._abort_event.set()
             return
+
+        # Stop any active key capture
+        if self._capturing_combo:
+            self._stop_capture_combo()
 
         # Prepare parameters & validate
         self._abort_event.clear()
@@ -586,10 +736,10 @@ class VNCInputHelperApp:
 
         elif tab_idx == 1:
             # Key Holder
-            key = self._hold_key_var.get().strip().lower()
-            if not key:
-                self._set_ui("⚠️ Enter a key name first!", C["warning"], 0)
+            if not self._hold_selected_keys:
+                self._set_ui("⚠️ Click keys on the keyboard first!", C["warning"], 0)
                 return
+            key = "+".join(self._hold_selected_keys)
             
             indefinite = self._hold_indefinite_var.get()
             duration = 0.0 if indefinite else self._hold_duration_var.get()
@@ -803,15 +953,20 @@ class VNCInputHelperApp:
     def _on_close(self) -> None:
         """Cleanup logic when application window is closed."""
         self._abort_event.set()
-        time.sleep(0.1)  # Allow worker threads brief window to release keys
+        self._recording = False
+        if self._capturing_combo:
+            self._stop_capture_combo()
+        time.sleep(0.1)
         
-        # Absolute safety release check
         if KEYBOARD_OK:
             try:
                 _release_modifiers()
-                hold_key = self._hold_key_var.get().strip().lower()
-                if hold_key:
-                    _kb.release(hold_key)
+                # Release any held combo keys
+                for vk in self._hold_selected_keys:
+                    try:
+                        _kb.release(vk)
+                    except Exception:
+                        pass
             except Exception:
                 pass
         self.root.destroy()
