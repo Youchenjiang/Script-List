@@ -29,27 +29,78 @@ except ImportError:
     CLIPBOARD_OK = False
 
 
-def mouse_click(button: str = "left") -> None:
-    """Simulate a mouse click using Windows API or fallback to xdotool on Linux/macOS."""
+def mouse_click(button: str = "left", x: int = None, y: int = None) -> None:
+    """Simulate a mouse click using Windows API or fallback to xdotool on Linux/macOS.
+    If x and y are provided, move to that position first."""
     if sys.platform == "win32":
         import ctypes
+        user32 = ctypes.windll.user32
+        if x is not None and y is not None:
+            screen_w = user32.GetSystemMetrics(0)
+            screen_h = user32.GetSystemMetrics(1)
+            abs_x = int(x * 65535 / screen_w)
+            abs_y = int(y * 65535 / screen_h)
+            user32.mouse_event(0x8000 | 0x0001, abs_x, abs_y, 0, 0)  # ABSOLUTE | MOVE
+            time.sleep(0.01)
         if button == "left":
-            ctypes.windll.user32.mouse_event(0x0002, 0, 0, 0, 0)  # Left down
-            ctypes.windll.user32.mouse_event(0x0004, 0, 0, 0, 0)  # Left up
+            user32.mouse_event(0x0002, 0, 0, 0, 0)  # Left down
+            user32.mouse_event(0x0004, 0, 0, 0, 0)  # Left up
         elif button == "right":
-            ctypes.windll.user32.mouse_event(0x0008, 0, 0, 0, 0)  # Right down
-            ctypes.windll.user32.mouse_event(0x0010, 0, 0, 0, 0)  # Right up
+            user32.mouse_event(0x0008, 0, 0, 0, 0)  # Right down
+            user32.mouse_event(0x0010, 0, 0, 0, 0)  # Right up
         elif button == "middle":
-            ctypes.windll.user32.mouse_event(0x0020, 0, 0, 0, 0)  # Middle down
-            ctypes.windll.user32.mouse_event(0x0040, 0, 0, 0, 0)  # Middle up
+            user32.mouse_event(0x0020, 0, 0, 0, 0)  # Middle down
+            user32.mouse_event(0x0040, 0, 0, 0, 0)  # Middle up
     else:
         # Fallback for Linux (needs xdotool installed)
+        if x is not None and y is not None:
+            try:
+                subprocess.run(["xdotool", "mousemove", str(x), str(y)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                pass
         btn_map = {"left": "1", "middle": "2", "right": "3"}
         btn = btn_map.get(button, "1")
         try:
             subprocess.run(["xdotool", "click", btn], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass
+
+
+def get_cursor_pos():
+    """Get current cursor position (Windows only)."""
+    if sys.platform == "win32":
+        import ctypes
+        point = ctypes.wintypes.POINT()
+        ctypes.windll.user32.GetCursorPos(ctypes.byref(point))
+        return point.x, point.y
+    return 0, 0
+
+
+def pick_position():
+    """Interactive coordinate picker: track mouse, Enter to confirm, Esc to cancel."""
+    print("=== Mouse Position Picker ===")
+    print("Move mouse to target, press Enter to confirm, Esc to cancel.\n")
+    if sys.platform != "win32":
+        print("Error: --pick only supports Windows.")
+        return None, None
+    import ctypes
+    VK_RETURN = 0x0D
+    VK_ESCAPE = 0x1B
+    user32 = ctypes.windll.user32
+    last_pos = None
+    while True:
+        if user32.GetAsyncKeyState(VK_RETURN) & 0x8000:
+            x, y = get_cursor_pos()
+            print(f"\nConfirmed: ({x}, {y})")
+            return x, y
+        if user32.GetAsyncKeyState(VK_ESCAPE) & 0x8000:
+            print("\nCancelled.")
+            return None, None
+        x, y = get_cursor_pos()
+        if (x, y) != last_pos:
+            print(f"\r  Position: ({x}, {y})  ", end="", flush=True)
+            last_pos = (x, y)
+        time.sleep(0.05)
 
 
 def _release_modifiers() -> None:
@@ -128,9 +179,11 @@ def run_hold(key: str, duration: float) -> None:
         _kb.release(key)
 
 
-def run_clicker(button: str, interval: float, count: int) -> None:
-    """Click mouse repeatedly at interval for count times or indefinitely."""
-    print(f"🖱️  Clicking '{button}' button... Press Esc to STOP.")
+def run_clicker(button: str, interval: float, count: int, x: int = None, y: int = None) -> None:
+    """Click mouse repeatedly at interval for count times or indefinitely.
+    If x and y are provided, click at that position; otherwise click at current cursor."""
+    pos_str = f"at ({x}, {y})" if x is not None else "at cursor"
+    print(f"🖱️  Clicking '{button}' button {pos_str}... Press Esc to STOP.")
     clicks_done = 0
     try:
         while True:
@@ -138,7 +191,7 @@ def run_clicker(button: str, interval: float, count: int) -> None:
                 print("\n⛔ Clicker Aborted")
                 break
                 
-            mouse_click(button)
+            mouse_click(button, x, y)
             clicks_done += 1
             
             if count > 0 and clicks_done >= count:
@@ -173,8 +226,21 @@ def main() -> None:
                         help="Mouse button to click (for click mode)")
     parser.add_argument("-c", "--count", type=int, default=100,
                         help="Number of clicks to perform (0 for indefinite, default: 100)")
+    parser.add_argument("--x", type=int, help="Target X coordinate for clicking")
+    parser.add_argument("--y", type=int, help="Target Y coordinate for clicking")
+    parser.add_argument("--pick", action="store_true",
+                        help="Interactive coordinate picker mode (Enter to confirm, Esc to cancel)")
+    parser.add_argument("--now", action="store_true",
+                        help="Skip startup delay and start immediately")
     
     args = parser.parse_args()
+
+    # Handle --pick mode
+    if args.pick:
+        x, y = pick_position()
+        if x is None:
+            return
+        args.x, args.y = x, y
 
     # Determine text to type if in typer mode
     if args.mode == "typer":
@@ -200,9 +266,10 @@ def main() -> None:
             print("No text to type.")
             return
 
-    # Run Countdown
-    if not run_countdown(args.delay):
-        return
+    # Run Countdown (skip if --now)
+    if not args.now:
+        if not run_countdown(args.delay):
+            return
 
     # Run selected mode
     if args.mode == "typer":
@@ -213,7 +280,7 @@ def main() -> None:
         # Clicker uses interval argument. If user didn't override the default typer interval (0.03),
         # click interval should ideally default to 0.1s. Let's make clicker default interval 0.1s if unmodified.
         click_interval = args.interval if args.interval != 0.03 else 0.1
-        run_clicker(args.button, click_interval, args.count)
+        run_clicker(args.button, click_interval, args.count, args.x, args.y)
 
 
 if __name__ == "__main__":
