@@ -56,21 +56,35 @@ C = {
 }
 
 
-def mouse_click(button: str = "left") -> None:
-    """Simulate a mouse click using Windows API or fallback to xdotool on Linux/macOS."""
+def mouse_click(button: str = "left", x: int = None, y: int = None) -> None:
+    """Simulate a mouse click using Windows API or fallback to xdotool on Linux/macOS.
+    If x and y are provided, move to that position first."""
     if sys.platform == "win32":
         import ctypes
+        user32 = ctypes.windll.user32
+        if x is not None and y is not None:
+            screen_w = user32.GetSystemMetrics(0)
+            screen_h = user32.GetSystemMetrics(1)
+            abs_x = int(x * 65535 / screen_w)
+            abs_y = int(y * 65535 / screen_h)
+            user32.mouse_event(0x8000 | 0x0001, abs_x, abs_y, 0, 0)  # ABSOLUTE | MOVE
+            time.sleep(0.01)
         if button == "left":
-            ctypes.windll.user32.mouse_event(0x0002, 0, 0, 0, 0)  # Left down
-            ctypes.windll.user32.mouse_event(0x0004, 0, 0, 0, 0)  # Left up
+            user32.mouse_event(0x0002, 0, 0, 0, 0)  # Left down
+            user32.mouse_event(0x0004, 0, 0, 0, 0)  # Left up
         elif button == "right":
-            ctypes.windll.user32.mouse_event(0x0008, 0, 0, 0, 0)  # Right down
-            ctypes.windll.user32.mouse_event(0x0010, 0, 0, 0, 0)  # Right up
+            user32.mouse_event(0x0008, 0, 0, 0, 0)  # Right down
+            user32.mouse_event(0x0010, 0, 0, 0, 0)  # Right up
         elif button == "middle":
-            ctypes.windll.user32.mouse_event(0x0020, 0, 0, 0, 0)  # Middle down
-            ctypes.windll.user32.mouse_event(0x0040, 0, 0, 0, 0)  # Middle up
+            user32.mouse_event(0x0020, 0, 0, 0, 0)  # Middle down
+            user32.mouse_event(0x0040, 0, 0, 0, 0)  # Middle up
     else:
         # Fallback for Linux (needs xdotool installed)
+        if x is not None and y is not None:
+            try:
+                subprocess.run(["xdotool", "mousemove", str(x), str(y)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            except Exception:
+                pass
         btn_map = {"left": "1", "middle": "2", "right": "3"}
         btn = btn_map.get(button, "1")
         try:
@@ -95,6 +109,9 @@ class VNCInputHelperApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self._running = False
+        self._recording = False
+        self._recorded_actions = []
+        self._recording_start_time = 0
         self._abort_event = threading.Event()
         self._topmost_var = tk.BooleanVar(value=True)
 
@@ -281,50 +298,104 @@ class VNCInputHelperApp:
         tab.grid_columnconfigure(1, weight=1)
 
         # Row 0: Description
-        tk.Label(tab, text="Simulates continuous mouse clicking at current cursor position.", bg=C["bg"], fg=C["muted"],
+        tk.Label(tab, text="Record mouse actions and replay them, or click continuously.", bg=C["bg"], fg=C["muted"],
                  font=("Segoe UI", 9), anchor="w").grid(row=0, column=0, columnspan=2, sticky="ew", pady=(10, 8))
 
-        # Row 1: Mouse button
-        tk.Label(tab, text="Mouse button:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=1, column=0, sticky="w", pady=6)
-        
-        btn_frame = tk.Frame(tab, bg=C["bg"])
-        btn_frame.grid(row=1, column=1, sticky="w", pady=6)
-        
+        # Row 1: Mode selector
+        tk.Label(tab, text="Mode:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=1, column=0, sticky="w", pady=6)
+        self._click_mode_var = tk.StringVar(value="simple")
+        mode_frame = tk.Frame(tab, bg=C["bg"])
+        mode_frame.grid(row=1, column=1, sticky="w", pady=6)
+        tk.Radiobutton(mode_frame, text="Simple Click", variable=self._click_mode_var, value="simple",
+                       command=self._update_click_mode, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
+                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left")
+        tk.Radiobutton(mode_frame, text="Record & Replay", variable=self._click_mode_var, value="record",
+                       command=self._update_click_mode, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
+                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(14, 0))
+
+        # ── Simple Click sub-panel ──
+        self._click_simple_frame = tk.Frame(tab, bg=C["bg"])
+        self._click_simple_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
+
+        sf = self._click_simple_frame
+        sf.grid_columnconfigure(1, weight=1)
+
+        tk.Label(sf, text="Mouse button:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=0, column=0, sticky="w", pady=6)
+        btn_frame = tk.Frame(sf, bg=C["bg"])
+        btn_frame.grid(row=0, column=1, sticky="w", pady=6)
         self._click_btn_var = tk.StringVar(value="left")
         for btn_name in ["left", "right", "middle"]:
             tk.Radiobutton(btn_frame, text=btn_name.capitalize(), variable=self._click_btn_var, value=btn_name,
                            bg=C["bg"], fg=C["muted"], selectcolor=C["surface"], activebackground=C["bg"],
                            activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(0, 14))
 
-        # Row 2: Interval
-        tk.Label(tab, text="Click interval (ms):", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=2, column=0, sticky="w", pady=6)
+        tk.Label(sf, text="Click interval (ms):", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=1, column=0, sticky="w", pady=6)
         self._click_interval_var = tk.IntVar(value=100)
-        tk.Spinbox(tab, from_=1, to=10000, increment=10, textvariable=self._click_interval_var,
-                   width=6, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 10)).grid(row=2, column=1, sticky="w", pady=6)
+        tk.Spinbox(sf, from_=1, to=10000, increment=10, textvariable=self._click_interval_var,
+                   width=6, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 10)).grid(row=1, column=1, sticky="w", pady=6)
 
-        # Row 3: Click mode options
-        tk.Label(tab, text="Click Mode:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=3, column=0, sticky="w", pady=6)
-        
-        mode_frame = tk.Frame(tab, bg=C["bg"])
-        mode_frame.grid(row=3, column=1, sticky="w", pady=6)
-        
+        tk.Label(sf, text="Click count:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=2, column=0, sticky="w", pady=6)
+        count_frame = tk.Frame(sf, bg=C["bg"])
+        count_frame.grid(row=2, column=1, sticky="w", pady=6)
         self._click_indefinite_var = tk.BooleanVar(value=True)
-        tk.Radiobutton(mode_frame, text="Indefinitely (Until Esc)", variable=self._click_indefinite_var, value=True,
+        tk.Radiobutton(count_frame, text="Unlimited (Esc to stop)", variable=self._click_indefinite_var, value=True,
                        command=self._update_click_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
                        activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left")
-                       
-        tk.Radiobutton(mode_frame, text="Click count limit", variable=self._click_indefinite_var, value=False,
+        tk.Radiobutton(count_frame, text="Limit:", variable=self._click_indefinite_var, value=False,
                        command=self._update_click_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
                        activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(14, 0))
-
-        # Row 4: Count spinbox
-        tk.Label(tab, text="Click count limit:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=4, column=0, sticky="w", pady=6)
         self._click_count_var = tk.IntVar(value=100)
-        self._click_spin = tk.Spinbox(tab, from_=1, to=100000, increment=10, textvariable=self._click_count_var,
+        self._click_spin = tk.Spinbox(count_frame, from_=1, to=100000, increment=10, textvariable=self._click_count_var,
                                       width=8, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 10))
-        self._click_spin.grid(row=4, column=1, sticky="w", pady=6)
-
+        self._click_spin.pack(side="left", padx=(4, 0))
         self._update_click_states()
+
+        # ── Record & Replay sub-panel ──
+        self._click_record_frame = tk.Frame(tab, bg=C["bg"])
+        self._click_record_frame.grid(row=2, column=0, columnspan=2, sticky="ew")
+
+        rf = self._click_record_frame
+        rf.grid_columnconfigure(1, weight=1)
+
+        tk.Label(rf, text="Recorded actions:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=0, column=0, sticky="w", pady=6)
+        self._record_status_var = tk.StringVar(value="No actions recorded")
+        tk.Label(rf, textvariable=self._record_status_var, bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 9), anchor="w").grid(row=0, column=1, sticky="w", pady=6)
+
+        rec_btn_frame = tk.Frame(rf, bg=C["bg"])
+        rec_btn_frame.grid(row=1, column=0, columnspan=2, sticky="w", pady=4)
+        self._rec_btn = tk.Button(rec_btn_frame, text="⏺  Start Recording", command=self._toggle_recording,
+                                  bg=C["danger"], fg="white", font=("Segoe UI", 9, "bold"), relief="flat",
+                                  padx=10, cursor="hand2")
+        self._rec_btn.pack(side="left")
+        tk.Button(rec_btn_frame, text="🗑  Clear", command=self._clear_recording, bg=C["surface"], fg=C["muted"],
+                  font=("Segoe UI", 9), relief="flat", padx=10, cursor="hand2").pack(side="left", padx=(8, 0))
+
+        tk.Label(rf, text="Replay speed:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=2, column=0, sticky="w", pady=6)
+        speed_frame = tk.Frame(rf, bg=C["bg"])
+        speed_frame.grid(row=2, column=1, sticky="w", pady=6)
+        self._replay_speed_var = tk.DoubleVar(value=1.0)
+        tk.Scale(speed_frame, from_=0.1, to=5.0, resolution=0.1, orient="horizontal",
+                 variable=self._replay_speed_var, bg=C["bg"], fg=C["text"], troughcolor=C["input"],
+                 highlightthickness=0, font=("Segoe UI", 8), length=140).pack(side="left")
+        tk.Label(speed_frame, text="x", bg=C["bg"], fg=C["muted"], font=("Segoe UI", 9)).pack(side="left")
+
+        tk.Label(rf, text="Loop count:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=3, column=0, sticky="w", pady=6)
+        loop_frame = tk.Frame(rf, bg=C["bg"])
+        loop_frame.grid(row=3, column=1, sticky="w", pady=6)
+        self._replay_loop_var = tk.BooleanVar(value=True)
+        tk.Radiobutton(loop_frame, text="Once", variable=self._replay_loop_var, value=False,
+                       bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
+                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left")
+        tk.Radiobutton(loop_frame, text="Repeat:", variable=self._replay_loop_var, value=True,
+                       bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
+                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(14, 0))
+        self._replay_count_var = tk.IntVar(value=10)
+        tk.Spinbox(loop_frame, from_=1, to=10000, textvariable=self._replay_count_var,
+                   width=6, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 10)).pack(side="left", padx=(4, 0))
+
+        # Hide record panel by default
+        self._click_record_frame.grid_remove()
 
     def _build_footer(self) -> None:
         footer = tk.Frame(self.root, bg=C["bg"])
@@ -370,6 +441,69 @@ class VNCInputHelperApp:
             self._click_spin.config(state="disabled", fg=C["muted"])
         else:
             self._click_spin.config(state="normal", fg=C["text"])
+
+    def _update_click_mode(self) -> None:
+        if self._click_mode_var.get() == "simple":
+            self._click_simple_frame.grid()
+            self._click_record_frame.grid_remove()
+        else:
+            self._click_simple_frame.grid_remove()
+            self._click_record_frame.grid()
+
+    def _toggle_recording(self) -> None:
+        if self._recording:
+            self._stop_recording()
+        else:
+            self._start_recording()
+
+    def _start_recording(self) -> None:
+        self._recording = True
+        self._recorded_actions = []
+        self._recording_start_time = time.time()
+        self._rec_btn.config(text="⏹  Stop Recording", bg=C["warning"])
+        self._record_status_var.set("Recording... perform your clicks now")
+        threading.Thread(target=self._record_worker, daemon=True).start()
+
+    def _stop_recording(self) -> None:
+        self._recording = False
+        self._rec_btn.config(text="⏺  Start Recording", bg=C["danger"])
+        count = len(self._recorded_actions)
+        self._record_status_var.set(f"{count} actions recorded")
+
+    def _clear_recording(self) -> None:
+        self._recording = False
+        self._recorded_actions = []
+        self._rec_btn.config(text="⏺  Start Recording", bg=C["danger"])
+        self._record_status_var.set("No actions recorded")
+
+    def _record_worker(self) -> None:
+        """Record mouse click events: (button, x, y, timestamp_offset)."""
+        import ctypes
+        user32 = ctypes.windll.user32
+        VK_LBUTTON = 0x01
+        VK_RBUTTON = 0x02
+        VK_MBUTTON = 0x04
+        prev_left = prev_right = prev_middle = False
+
+        while self._recording:
+            point = ctypes.wintypes.POINT()
+            user32.GetCursorPos(ctypes.byref(point))
+            left = user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000 != 0
+            right = user32.GetAsyncKeyState(VK_RBUTTON) & 0x8000 != 0
+            middle = user32.GetAsyncKeyState(VK_MBUTTON) & 0x8000 != 0
+
+            if left and not prev_left:
+                self._recorded_actions.append(("left", point.x, point.y, time.time() - self._recording_start_time))
+            if right and not prev_right:
+                self._recorded_actions.append(("right", point.x, point.y, time.time() - self._recording_start_time))
+            if middle and not prev_middle:
+                self._recorded_actions.append(("middle", point.x, point.y, time.time() - self._recording_start_time))
+
+            prev_left, prev_right, prev_middle = left, right, middle
+            count = len(self._recorded_actions)
+            if count > 0:
+                self.root.after(0, lambda c=count: self._record_status_var.set(f"Recording... {c} actions captured"))
+            time.sleep(0.02)
 
     def _apply_topmost(self) -> None:
         self.root.attributes("-topmost", self._topmost_var.get())
@@ -429,14 +563,26 @@ class VNCInputHelperApp:
 
         elif tab_idx == 2:
             # Auto Clicker
-            button = self._click_btn_var.get()
-            interval_ms = self._click_interval_var.get()
-            indefinite = self._click_indefinite_var.get()
-            count = 0 if indefinite else self._click_count_var.get()
-            
-            self._running = True
-            self._action_btn.config(text="⛔  Abort   (Esc)", bg=C["danger"])
-            threading.Thread(target=self._click_worker, args=(button, delay, interval_ms / 1000.0, count), daemon=True).start()
+            if self._click_mode_var.get() == "record":
+                # Record & Replay mode
+                if not self._recorded_actions:
+                    self._set_ui("⚠️ Record some actions first!", C["warning"], 0)
+                    return
+                speed = self._replay_speed_var.get()
+                loop = self._replay_loop_var.get()
+                loop_count = 0 if not loop else self._replay_count_var.get()
+                self._running = True
+                self._action_btn.config(text="⛔  Abort   (Esc)", bg=C["danger"])
+                threading.Thread(target=self._replay_worker, args=(delay, speed, loop_count), daemon=True).start()
+            else:
+                # Simple Click mode
+                button = self._click_btn_var.get()
+                interval_ms = self._click_interval_var.get()
+                indefinite = self._click_indefinite_var.get()
+                count = 0 if indefinite else self._click_count_var.get()
+                self._running = True
+                self._action_btn.config(text="⛔  Abort   (Esc)", bg=C["danger"])
+                threading.Thread(target=self._click_worker, args=(button, delay, interval_ms / 1000.0, count), daemon=True).start()
 
     # ── Workers ──────────────────────────────────────────────────────────────
 
@@ -541,6 +687,39 @@ class VNCInputHelperApp:
                     time.sleep(min(0.05, sleep_end - time.time()))
 
             self._finish("✅ Done!", C["success"])
+        except Exception as e:
+            self._finish(f"❌ Error: {e}", C["danger"])
+
+    def _replay_worker(self, delay: int, speed: float, loop_count: int) -> None:
+        """Replay recorded mouse actions with timing."""
+        if not self._run_countdown(delay):
+            return
+
+        try:
+            actions = list(self._recorded_actions)
+            total = len(actions)
+            loops = loop_count if loop_count > 0 else 1
+            self._set_ui(f"▶️  Replaying {total} actions ({loops}x)...", C["text"], 0)
+
+            for loop_idx in range(loops):
+                if self._abort_event.is_set():
+                    break
+                for i, (button, x, y, ts) in enumerate(actions):
+                    if self._abort_event.is_set():
+                        break
+                    if i > 0:
+                        prev_ts = actions[i - 1][3]
+                        wait = (ts - prev_ts) / speed
+                        sleep_end = time.time() + wait
+                        while time.time() < sleep_end and not self._abort_event.is_set():
+                            time.sleep(min(0.05, sleep_end - time.time()))
+
+                    mouse_click(button, x, y)
+                    progress = ((loop_idx * total + i + 1) / (loops * total)) * 100
+                    self._set_progress(progress)
+                    self._set_ui(f"▶️  Loop {loop_idx + 1}/{loops} — Action {i + 1}/{total}", C["text"], progress)
+
+            self._finish("✅ Replay done!", C["success"])
         except Exception as e:
             self._finish(f"❌ Error: {e}", C["danger"])
 
