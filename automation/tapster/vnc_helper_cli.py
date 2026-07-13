@@ -1,10 +1,10 @@
 """
-VNC Input Helper — Command Line Interface
-========================================
+Tapster — Command Line Interface
+================================
 Supports three automation modes:
-1. typer: Simulates typing text into a focused VNC session.
-2. hold: Simulates holding down a physical keyboard key.
-3. click: Simulates auto-clicking mouse buttons.
+1. typer: Simulates typing text into a focused window.
+2. hold: Simulates holding down a keyboard key or combo.
+3. click: Simulates auto-clicking with optional coordinate and hold-key support.
 
 Press 'Esc' at any time to abort the running operation.
 """
@@ -212,7 +212,7 @@ def run_clicker(button: str, interval: float, count: int, x: int = None, y: int 
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="VNC Input Helper CLI")
+    parser = argparse.ArgumentParser(description="Tapster CLI")
     parser.add_argument("-m", "--mode", choices=["typer", "hold", "click"], default="typer",
                         help="Automation mode (default: typer)")
     parser.add_argument("-d", "--delay", type=int, default=3,

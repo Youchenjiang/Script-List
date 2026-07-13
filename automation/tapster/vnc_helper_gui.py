@@ -1,11 +1,11 @@
 """
-VNC Input Helper – Persistent GUI
-=================================
-A tabbed, modern dark-themed helper application for VNC and VM sessions.
+Tapster – Persistent GUI
+========================
+A tabbed, modern dark-themed input automation tool.
 Includes:
-1. Auto Typer: Auto-typing pasted text character by character.
-2. Key Holder: Pressing and holding a keyboard key (with a grid of common keys).
-3. Auto Clicker: Fast mouse auto-clicking using ctypes Win32 API.
+1. Auto Typer: Auto-typing with clipboard paste and history.
+2. Key Holder: Visual keyboard with combo building, capture, and rotation.
+3. Auto Clicker: Record & replay, coordinate clicking, and hold-key during click.
 
 Features global "Always on top", hotkey cancellation (Esc), and safety releases.
 """
@@ -122,7 +122,7 @@ class VNCInputHelperApp:
         self._register_key_capture()
 
     def _configure_root(self) -> None:
-        self.root.title("VNC Input Helper")
+        self.root.title("Tapster")
         self.root.configure(bg=C["bg"])
         self.root.resizable(True, True)
         self.root.minsize(450, 580)
@@ -155,7 +155,7 @@ class VNCInputHelperApp:
         header = tk.Frame(self.root, bg=C["surface"], pady=10)
         header.grid(row=0, column=0, sticky="ew")
         
-        tk.Label(header, text="⌨  VNC Input Helper", bg=C["surface"], fg=C["text"],
+        tk.Label(header, text="⌨  Tapster", bg=C["surface"], fg=C["text"],
                  font=("Segoe UI", 13, "bold")).pack(side="left", padx=14)
                  
         tk.Checkbutton(header, text="Always on top", variable=self._topmost_var,

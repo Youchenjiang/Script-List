@@ -1,6 +1,6 @@
-# VNC Input Helper
+# Tapster
 
-A lightweight utility suite that assists keyboard and mouse inputs inside a VNC or virtual machine window when native copy-paste, modifier holding, or clicking is restricted (e.g. on secure platforms like CDX).
+Lightweight input automation tool supporting auto-typing, key holding (with combos and rotation), mouse clicking, and record & replay. Works in VNC, VMs, or any scenario requiring keyboard/mouse simulation.
 
 [閱讀繁體中文版](README.zh-TW.md)
 
