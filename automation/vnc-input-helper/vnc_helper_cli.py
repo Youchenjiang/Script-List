@@ -179,28 +179,36 @@ def run_hold(key: str, duration: float) -> None:
         _kb.release(key)
 
 
-def run_clicker(button: str, interval: float, count: int, x: int = None, y: int = None) -> None:
-    """Click mouse repeatedly at interval for count times or indefinitely.
-    If x and y are provided, click at that position; otherwise click at current cursor."""
+def run_clicker(button: str, interval: float, count: int, x: int = None, y: int = None, hold_key: str = None) -> None:
+    """Click mouse repeatedly, optionally holding a key combo during clicking.
+    hold_key: if provided, press and hold this key (e.g. 'ctrl', 'ctrl+shift') while clicking."""
     pos_str = f"at ({x}, {y})" if x is not None else "at cursor"
-    print(f"🖱️  Clicking '{button}' button {pos_str}... Press Esc to STOP.")
+    hold_str = f" with '{hold_key}' held" if hold_key else ""
+    print(f"🖱️  Clicking '{button}' button {pos_str}{hold_str}... Press Esc to STOP.")
+    
+    if hold_key and KEYBOARD_OK:
+        _kb.press(hold_key)
+    
     clicks_done = 0
     try:
         while True:
             if KEYBOARD_OK and _kb.is_pressed("esc"):
                 print("\n⛔ Clicker Aborted")
                 break
-                
+
             mouse_click(button, x, y)
             clicks_done += 1
-            
+
             if count > 0 and clicks_done >= count:
                 print(f"\n✅ Finished clicking {count} times")
                 break
-                
+
             time.sleep(interval)
     except KeyboardInterrupt:
         print("\n⛔ Clicker Aborted")
+    finally:
+        if hold_key and KEYBOARD_OK:
+            _kb.release(hold_key)
 
 
 def main() -> None:
@@ -217,7 +225,8 @@ def main() -> None:
                         help="Interval: s/char for typer, or s/click for clicker (default: 0.03/0.1)")
     
     # Hold args
-    parser.add_argument("-k", "--key", default="w", help="Key to hold down (for hold mode)")
+    parser.add_argument("-k", "--key", default="w",
+                        help="Key or combo to hold (e.g. 'w', 'ctrl', 'ctrl+shift+s'). (for hold mode)")
     parser.add_argument("-dur", "--duration", type=float, default=10.0,
                         help="Duration in seconds to hold key (0 for indefinite, default: 10.0)")
     
@@ -232,6 +241,8 @@ def main() -> None:
                         help="Interactive coordinate picker mode (Enter to confirm, Esc to cancel)")
     parser.add_argument("--now", action="store_true",
                         help="Skip startup delay and start immediately")
+    parser.add_argument("--hold-key", type=str, default=None,
+                        help="Hold this key combo while clicking (e.g. 'ctrl', 'ctrl+shift', 'alt')")
     
     args = parser.parse_args()
 
@@ -280,7 +291,7 @@ def main() -> None:
         # Clicker uses interval argument. If user didn't override the default typer interval (0.03),
         # click interval should ideally default to 0.1s. Let's make clicker default interval 0.1s if unmodified.
         click_interval = args.interval if args.interval != 0.03 else 0.1
-        run_clicker(args.button, click_interval, args.count, args.x, args.y)
+        run_clicker(args.button, click_interval, args.count, args.x, args.y, args.hold_key)
 
 
 if __name__ == "__main__":
