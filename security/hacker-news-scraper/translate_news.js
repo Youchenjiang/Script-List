@@ -323,6 +323,7 @@ async function translateFile(filePath, targetLang = 'zh-TW') {
 
 async function main() {
   const dirPath = process.argv[2] || path.join(__dirname, 'news_output', formatDate(new Date()));
+  const concurrency = parseInt(process.argv[3], 10) || 5; // parallel translation count
   if (!fs.existsSync(dirPath)) {
     console.error(`[Translate] Error: Directory does not exist: ${dirPath}`);
     process.exit(1);
@@ -379,11 +380,13 @@ async function main() {
 
   console.log(`[Translate] Found ${mdFiles.length} markdown files to translate.`);
 
+  // Build list of files that need translation
+  const toTranslate = [];
+  let skipped = 0;
   for (let i = 0; i < mdFiles.length; i++) {
     const filename = mdFiles[i];
     const sourcePath = path.join(dirPath, filename);
-    
-    // Read the source file to extract its URL
+
     let sourceUrl = '';
     try {
       const sourceContent = fs.readFileSync(sourcePath, 'utf8');
@@ -397,35 +400,58 @@ async function main() {
     }
 
     if (sourceUrl && translatedUrls.has(sourceUrl)) {
-      console.log(`[Translate] (${i + 1}/${mdFiles.length}) Skipping (already translated by URL): ${filename}`);
+      skipped++;
       continue;
     }
 
-    // Get the original date prefix (e.g. "2026-06-13 - ")
     const datePrefixMatch = /^(\d{4}-\d{2}-\d{2}\s+-\s+)/.exec(filename);
     const datePrefix = datePrefixMatch ? datePrefixMatch[1] : '';
 
-    console.log(`[Translate] (${i + 1}/${mdFiles.length}) Translating: ${filename}...`);
+    toTranslate.push({ filename, sourcePath, sourceUrl, datePrefix });
+  }
+
+  console.log(`[Translate] Skipped ${skipped} already translated. Translating ${toTranslate.length} files (concurrency: ${concurrency})...`);
+
+  // Parallel translation in batches
+  const failed = [];
+  let completed = 0;
+
+  async function translateOne(item) {
+    const { filename, sourcePath, sourceUrl, datePrefix } = item;
     try {
       const { translatedContent, translatedTitle } = await translateFile(sourcePath, 'zh-TW');
-      
       const sanitizedTitle = translatedTitle.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().substring(0, 85);
       const destFilename = `${datePrefix}${sanitizedTitle}.md`;
       const destPath = path.join(destDir, destFilename);
-
       fs.writeFileSync(destPath, translatedContent, 'utf8');
-      console.log(`[Translate] Saved translated version to: ${destPath}`);
-      if (sourceUrl) {
-        translatedUrls.add(sourceUrl);
-      }
+      completed++;
+      if (sourceUrl) translatedUrls.add(sourceUrl);
     } catch (err) {
       console.error(`[Translate] Error translating ${filename}: ${err.message}`);
+      failed.push({ filename, error: err.message });
     }
-    // Delay between files to be polite to the translation API
-    await sleep(2500);
   }
 
-  console.log('[Translate] All translations finished.');
+  // Process in batches
+  for (let i = 0; i < toTranslate.length; i += concurrency) {
+    const batch = toTranslate.slice(i, i + concurrency);
+    console.log(`[Translate] Batch ${Math.floor(i / concurrency) + 1}: translating ${batch.length} files...`);
+    await Promise.all(batch.map(item => translateOne(item)));
+    // Small delay between batches to avoid rate limiting
+    if (i + concurrency < toTranslate.length) {
+      await sleep(1000);
+    }
+  }
+
+  // Report failures
+  if (failed.length > 0) {
+    console.log(`\n[Translate] === Failed translations (${failed.length}) ===`);
+    for (const f of failed) {
+      console.log(`  - ${f.filename}: ${f.error}`);
+    }
+  }
+
+  console.log(`\n[Translate] Done! Translated ${completed}/${toTranslate.length} files (${failed.length} failed, ${skipped} skipped).`);
 }
 
 if (require.main === module) {

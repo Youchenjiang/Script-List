@@ -279,9 +279,9 @@ async function main() {
     await Promise.all(batch.map((article, j) => downloadArticle(article, i + j)));
   }
 
-  console.log(`\n[Scraper] Done! All articles saved under: ${CONFIG.outputDir}`);
+  console.log(`\n[Scraper] Done! Downloaded ${downloaded}/${articlesToFetch.length} articles (${downloadFailed} failed) under: ${CONFIG.outputDir}`);
 
-  // Trigger automatic translation
+  // Trigger automatic translation (parallel)
   console.log(`\n[Scraper] Starting automatic translation...`);
   try {
     const { translateFile } = require('./translate_news');
@@ -311,11 +311,12 @@ async function main() {
     const files = fs.readdirSync(CONFIG.outputDir);
     const mdFiles = files.filter(f => f.endsWith('.md') && fs.statSync(path.join(CONFIG.outputDir, f)).isFile());
     
+    // Build list of files needing translation
+    const toTranslate = [];
     for (let i = 0; i < mdFiles.length; i++) {
       const filename = mdFiles[i];
       const sourcePath = path.join(CONFIG.outputDir, filename);
       
-      // Read URL from source file
       let sourceUrl = '';
       try {
         const sourceContent = fs.readFileSync(sourcePath, 'utf8');
@@ -332,23 +333,44 @@ async function main() {
       const datePrefixMatch = /^(\d{4}-\d{2}-\d{2}\s+-\s+)/.exec(filename);
       const datePrefix = datePrefixMatch ? datePrefixMatch[1] : '';
 
-      console.log(`[Scraper] [Translate] (${i + 1}/${mdFiles.length}) Translating: ${filename}...`);
-      try {
-        const { translatedContent, translatedTitle } = await translateFile(sourcePath, 'zh-TW');
-        const sanitizedTitle = translatedTitle.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().substring(0, 85);
-        const destFilename = `${datePrefix}${sanitizedTitle}.md`;
-        const destPath = path.join(destDir, destFilename);
-
-        fs.writeFileSync(destPath, translatedContent, 'utf8');
-        if (sourceUrl) {
-          translatedUrls.add(sourceUrl);
-        }
-      } catch (err) {
-        console.error(`[Scraper] [Translate] Error translating ${filename}: ${err.message}`);
-      }
-      await sleep(2500);
+      toTranslate.push({ filename, sourcePath, sourceUrl, datePrefix });
     }
-    console.log(`[Scraper] [Translate] Automatic translation completed.`);
+
+    console.log(`[Scraper] [Translate] ${toTranslate.length} files to translate (${mdFiles.length - toTranslate.length} already done).`);
+
+    // Parallel translation in batches of 5
+    const TRANSLATE_BATCH = 5;
+    let translated = 0;
+    const translateFailed = [];
+
+    async function translateOne(item) {
+      try {
+        const { translatedContent, translatedTitle } = await translateFile(item.sourcePath, 'zh-TW');
+        const sanitizedTitle = translatedTitle.replace(/[\\/:*?"<>|]/g, '_').replace(/\s+/g, ' ').trim().substring(0, 85);
+        const destFilename = `${item.datePrefix}${sanitizedTitle}.md`;
+        const destPath = path.join(destDir, destFilename);
+        fs.writeFileSync(destPath, translatedContent, 'utf8');
+        translated++;
+        if (item.sourceUrl) translatedUrls.add(item.sourceUrl);
+      } catch (err) {
+        console.error(`[Scraper] [Translate] Error: ${item.filename}: ${err.message}`);
+        translateFailed.push(item.filename);
+      }
+    }
+
+    for (let i = 0; i < toTranslate.length; i += TRANSLATE_BATCH) {
+      const batch = toTranslate.slice(i, i + TRANSLATE_BATCH);
+      console.log(`[Scraper] [Translate] Batch ${Math.floor(i / TRANSLATE_BATCH) + 1}: ${batch.length} files...`);
+      await Promise.all(batch.map(item => translateOne(item)));
+    }
+
+    if (translateFailed.length > 0) {
+      console.log(`[Scraper] [Translate] Failed (${translateFailed.length}):`);
+      for (const f of translateFailed) {
+        console.log(`  - ${f}`);
+      }
+    }
+    console.log(`[Scraper] [Translate] Done! Translated ${translated}/${toTranslate.length} files.`);
   } catch (err) {
     console.error(`[Scraper] [Translate] Failed to run translation: ${err.message}`);
   }
