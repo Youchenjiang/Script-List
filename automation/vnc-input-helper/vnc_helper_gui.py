@@ -358,18 +358,73 @@ class VNCInputHelperApp:
 
         tk.Label(mode_frame, text="Hold Mode:", bg=C["bg"], fg=C["text"],
                  font=("Segoe UI", 9)).pack(side="left")
-        self._hold_indefinite_var = tk.BooleanVar(value=True)
-        tk.Radiobutton(mode_frame, text="Until Esc", variable=self._hold_indefinite_var, value=True,
-                       command=self._update_hold_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
-                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(8, 0))
-        tk.Radiobutton(mode_frame, text="Timed:", variable=self._hold_indefinite_var, value=False,
-                       command=self._update_hold_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
-                       activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(8, 0))
+        self._hold_mode_var = tk.StringVar(value="indefinite")
+        for val, label in [("indefinite", "Until Esc"), ("timed", "Timed"), ("rotation", "Rotation")]:
+            tk.Radiobutton(mode_frame, text=label, variable=self._hold_mode_var, value=val,
+                           command=self._update_hold_states, bg=C["bg"], fg=C["muted"], selectcolor=C["surface"],
+                           activebackground=C["bg"], activeforeground=C["text"], font=("Segoe UI", 9)).pack(side="left", padx=(8, 0))
+
+        # Timed duration (shown when timed mode)
+        self._timed_frame = tk.Frame(tab, bg=C["bg"])
+        self._timed_frame.pack(fill="x", padx=10, pady=2)
+        tk.Label(self._timed_frame, text="Duration (s):", bg=C["bg"], fg=C["text"],
+                 font=("Segoe UI", 9)).pack(side="left")
         self._hold_duration_var = tk.DoubleVar(value=10.0)
-        self._hold_spin = tk.Spinbox(mode_frame, from_=1.0, to=3600.0, increment=1.0, textvariable=self._hold_duration_var,
+        self._hold_spin = tk.Spinbox(self._timed_frame, from_=0.1, to=3600.0, increment=0.5, textvariable=self._hold_duration_var,
                                      width=5, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 9))
         self._hold_spin.pack(side="left", padx=(4, 0))
-        tk.Label(mode_frame, text="s", bg=C["bg"], fg=C["muted"], font=("Segoe UI", 9)).pack(side="left")
+
+        # Rotation panel (shown when rotation mode)
+        self._rotation_frame = tk.Frame(tab, bg=C["bg"])
+        self._rotation_frame.pack(fill="x", padx=10, pady=2)
+
+        # Rotation steps list
+        tk.Label(self._rotation_frame, text="Steps:", bg=C["bg"], fg=C["text"],
+                 font=("Segoe UI", 9)).pack(anchor="w")
+
+        list_frame = tk.Frame(self._rotation_frame, bg=C["border"], padx=1, pady=1)
+        list_frame.pack(fill="x", pady=(2, 4))
+
+        self._rotation_list_var = tk.StringVar()
+        self._rotation_listbox = tk.Listbox(list_frame, bg=C["input"], fg=C["text"], selectbackground=C["accent"],
+                                            font=("Consolas", 9), height=5, relief="flat", activestyle="none")
+        self._rotation_listbox.pack(fill="x")
+
+        # Rotation step controls
+        step_ctrl = tk.Frame(self._rotation_frame, bg=C["bg"])
+        step_ctrl.pack(fill="x", pady=2)
+
+        tk.Label(step_ctrl, text="Hold:", bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 8)).pack(side="left")
+        self._rotation_step_combo_var = tk.StringVar(value="(select keys above)")
+        tk.Label(step_ctrl, textvariable=self._rotation_step_combo_var, bg=C["bg"], fg=C["text"],
+                 font=("Consolas", 9, "bold"), width=16, anchor="w").pack(side="left", padx=(2, 6))
+
+        tk.Label(step_ctrl, text="for", bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 8)).pack(side="left")
+        self._rotation_step_dur_var = tk.DoubleVar(value=1.0)
+        tk.Spinbox(step_ctrl, from_=0.1, to=60.0, increment=0.1, textvariable=self._rotation_step_dur_var,
+                   width=4, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 9)).pack(side="left", padx=(2, 2))
+        tk.Label(step_ctrl, text="s", bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 8)).pack(side="left")
+
+        tk.Button(step_ctrl, text="+ Add", command=self._add_rotation_step, bg=C["success"], fg="white",
+                  font=("Segoe UI", 8, "bold"), relief="flat", padx=6, cursor="hand2").pack(side="left", padx=(8, 0))
+        tk.Button(step_ctrl, text="- Remove", command=self._remove_rotation_step, bg=C["surface"], fg=C["muted"],
+                  font=("Segoe UI", 8), relief="flat", padx=6, cursor="hand2").pack(side="left", padx=(4, 0))
+        tk.Button(step_ctrl, text="Clear", command=self._clear_rotation_steps, bg=C["surface"], fg=C["muted"],
+                  font=("Segoe UI", 8), relief="flat", padx=6, cursor="hand2").pack(side="left", padx=(4, 0))
+
+        # Loop option
+        loop_frame = tk.Frame(self._rotation_frame, bg=C["bg"])
+        loop_frame.pack(fill="x", pady=(2, 0))
+        self._rotation_loop_var = tk.BooleanVar(value=True)
+        tk.Checkbutton(loop_frame, text="Loop", variable=self._rotation_loop_var, bg=C["bg"], fg=C["muted"],
+                       selectcolor=C["surface"], activebackground=C["bg"], font=("Segoe UI", 9)).pack(side="left")
+
+        # Rotation state
+        self._rotation_steps = []  # [(combo_str, duration), ...]
+
         self._update_hold_states()
 
     def _toggle_hold_key(self, vk_name: str) -> None:
@@ -549,10 +604,46 @@ class VNCInputHelperApp:
         self._action_btn.pack(fill="x")
 
     def _update_hold_states(self) -> None:
-        if self._hold_indefinite_var.get():
-            self._hold_spin.config(state="disabled", fg=C["muted"])
-        else:
+        mode = self._hold_mode_var.get()
+        if mode == "timed":
+            self._timed_frame.pack(fill="x", padx=10, pady=2)
+            self._rotation_frame.pack_forget()
             self._hold_spin.config(state="normal", fg=C["text"])
+        elif mode == "rotation":
+            self._timed_frame.pack_forget()
+            self._rotation_frame.pack(fill="x", padx=10, pady=2)
+            self._update_rotation_step_label()
+        else:
+            self._timed_frame.pack_forget()
+            self._rotation_frame.pack_forget()
+
+    def _update_rotation_step_label(self) -> None:
+        if self._hold_selected_keys:
+            self._rotation_step_combo_var.set("+".join(self._hold_selected_keys))
+        else:
+            self._rotation_step_combo_var.set("(select keys above)")
+
+    def _add_rotation_step(self) -> None:
+        if not self._hold_selected_keys:
+            self._set_ui("⚠️ Click keys on the keyboard first!", C["warning"], 0)
+            return
+        combo = "+".join(self._hold_selected_keys)
+        dur = self._rotation_step_dur_var.get()
+        self._rotation_steps.append((combo, dur))
+        self._rotation_listbox.insert("end", f"{combo}  ({dur}s)")
+        self._set_ui(f"Added step: {combo} ({dur}s)", C["success"], 0)
+
+    def _remove_rotation_step(self) -> None:
+        sel = self._rotation_listbox.curselection()
+        if not sel:
+            return
+        idx = sel[0]
+        self._rotation_listbox.delete(idx)
+        self._rotation_steps.pop(idx)
+
+    def _clear_rotation_steps(self) -> None:
+        self._rotation_steps.clear()
+        self._rotation_listbox.delete(0, "end")
 
     def _update_click_states(self) -> None:
         if self._click_indefinite_var.get():
@@ -736,17 +827,25 @@ class VNCInputHelperApp:
 
         elif tab_idx == 1:
             # Key Holder
-            if not self._hold_selected_keys:
-                self._set_ui("⚠️ Click keys on the keyboard first!", C["warning"], 0)
-                return
-            key = "+".join(self._hold_selected_keys)
-            
-            indefinite = self._hold_indefinite_var.get()
-            duration = 0.0 if indefinite else self._hold_duration_var.get()
-            
-            self._running = True
-            self._action_btn.config(text="⛔  Abort   (Esc)", bg=C["danger"])
-            threading.Thread(target=self._hold_worker, args=(key, delay, duration), daemon=True).start()
+            hold_mode = self._hold_mode_var.get()
+
+            if hold_mode == "rotation":
+                if not self._rotation_steps:
+                    self._set_ui("⚠️ Add rotation steps first!", C["warning"], 0)
+                    return
+                loop = self._rotation_loop_var.get()
+                self._running = True
+                self._action_btn.config(text="⛔  Abort   (Esc)", bg=C["danger"])
+                threading.Thread(target=self._rotation_worker, args=(delay, loop), daemon=True).start()
+            else:
+                if not self._hold_selected_keys:
+                    self._set_ui("⚠️ Click keys on the keyboard first!", C["warning"], 0)
+                    return
+                key = "+".join(self._hold_selected_keys)
+                duration = 0.0 if hold_mode == "indefinite" else self._hold_duration_var.get()
+                self._running = True
+                self._action_btn.config(text="⛔  Abort   (Esc)", bg=C["danger"])
+                threading.Thread(target=self._hold_worker, args=(key, delay, duration), daemon=True).start()
 
         elif tab_idx == 2:
             # Auto Clicker
@@ -847,6 +946,55 @@ class VNCInputHelperApp:
             self._finish(f"❌ Error: {e}", C["danger"])
         finally:
             _kb.release(key)
+
+    def _rotation_worker(self, delay: int, loop: bool) -> None:
+        """Hold keys in rotation sequence."""
+        _release_modifiers()
+        if not KEYBOARD_OK:
+            self._finish("❌ Error: Keyboard library not loaded", C["danger"])
+            return
+
+        if not self._run_countdown(delay):
+            return
+
+        steps = list(self._rotation_steps)  # [(combo, duration), ...]
+        total_steps = len(steps)
+        try:
+            round_num = 0
+            while not self._abort_event.is_set():
+                round_num += 1
+                for i, (combo, dur) in enumerate(steps):
+                    if self._abort_event.is_set():
+                        break
+
+                    self._set_ui(f"🔒 Round {round_num} — Holding '{combo}' ({dur}s) [{i+1}/{total_steps}]",
+                                 C["text"], 0)
+                    _kb.press(combo)
+
+                    start = time.time()
+                    while not self._abort_event.is_set():
+                        elapsed = time.time() - start
+                        if elapsed >= dur:
+                            break
+                        progress = (elapsed / dur) * 100
+                        self._set_progress(progress)
+                        time.sleep(0.05)
+
+                    _kb.release(combo)
+
+                    if self._abort_event.is_set():
+                        break
+                    # Brief pause between steps
+                    time.sleep(0.05)
+
+                if not loop:
+                    break
+
+            self._finish("✅ Rotation done!", C["success"])
+        except Exception as e:
+            self._finish(f"❌ Error: {e}", C["danger"])
+        finally:
+            _release_modifiers()
 
     def _click_worker(self, button: str, delay: int, interval_s: float, count: int, hold_key: str = None) -> None:
         if not self._run_countdown(delay):
