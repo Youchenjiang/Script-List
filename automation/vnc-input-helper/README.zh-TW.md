@@ -88,6 +88,12 @@ python vnc_helper_cli.py --mode hold --key space --duration 0
 
 # 3. 滑鼠連點模式：連點滑鼠左鍵，每 0.5 秒點擊一次，共點擊 10 次
 python vnc_helper_cli.py --mode click --button left --interval 0.5 --count 10
+
+# 4. 指定坐標連點：在 (500, 300) 位置連點 50 次
+python vnc_helper_cli.py --mode click --x 500 --y 300 -c 50
+
+# 5. 滑鼠取點模式：跟蹤坐標，Enter 確認後開始連點
+python vnc_helper_cli.py --mode click --pick -c 0
 ```
 
 ### CLI 參數詳細說明
@@ -107,6 +113,10 @@ python vnc_helper_cli.py --mode click --button left --interval 0.5 --count 10
   -btn, --button {left,right,middle}
                         要連點的滑鼠按鍵 (連點模式適用) (預設: left)
   -c, --count COUNT     連點點擊次數 (0 為無限連點，預設: 100)
+  --x X                 目標 X 坐標 (連點模式適用)
+  --y Y                 目標 Y 坐標 (連點模式適用)
+  --pick                滑鼠取點模式：跟蹤坐標，Enter 確認
+  --now                 跳過延遲直接開始
 ```
 
 ---
