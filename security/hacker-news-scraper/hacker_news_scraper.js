@@ -89,7 +89,7 @@ function extractDivContent(html, searchRegExp) {
   return null;
 }
 
-// Helper: Strip HTML tags and format text to clean Markdown
+// Helper: Strip HTML tags and format text to clean Markdown (preserves images)
 function cleanHtmlToText(html) {
   if (!html) return '';
   return html
@@ -101,6 +101,15 @@ function cleanHtmlToText(html) {
     .replace(/<\/p>/gi, '\n\n')
     .replace(/<li[^>]*>/gi, '\n- ')
     .replace(/<\/li>/gi, '\n')
+    // Convert <img> to markdown before stripping tags
+    .replace(/<img[^>]+>/gi, (match) => {
+      const srcMatch = /src=["']([^"']+)["']/i.exec(match);
+      const altMatch = /alt=["']([^"']*)["']/i.exec(match);
+      const src = srcMatch ? srcMatch[1] : '';
+      const alt = altMatch ? altMatch[1] : '';
+      if (!src) return '';
+      return `\n![${alt}](${src})\n`;
+    })
     .replace(/<[^>]+>/g, '') // Strip all remaining tags
     .replace(/&nbsp;/g, ' ')
     .replace(/&amp;/g, '&')
