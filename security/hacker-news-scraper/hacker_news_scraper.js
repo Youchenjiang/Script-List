@@ -13,7 +13,8 @@ function formatDate(dateObj) {
 // Configuration
 const CONFIG = {
   baseUrl: 'https://thehackernews.com',
-  weeksLimit: 3,             // Limit crawling to the last 3 weeks of articles
+  weeksLimit: 3,             // Limit crawling to the last N weeks of articles
+  daysLimit: 0,              // Override: if > 0, limits to N days instead of weeks
   delayMs: 800,              // Delay between requests to prevent rate limits
   outputDir: path.join(__dirname, 'news_output', formatDate(new Date()))
 };
@@ -123,8 +124,12 @@ function cleanHtmlToText(html) {
 
 async function main() {
   const targetDateLimit = new Date();
-  targetDateLimit.setDate(targetDateLimit.getDate() - (CONFIG.weeksLimit * 7));
-  console.log(`[Scraper] Initializing... Target date limit: ${CONFIG.weeksLimit} weeks ago (${targetDateLimit.toLocaleDateString()})`);
+  if (CONFIG.daysLimit > 0) {
+    targetDateLimit.setDate(targetDateLimit.getDate() - CONFIG.daysLimit);
+  } else {
+    targetDateLimit.setDate(targetDateLimit.getDate() - (CONFIG.weeksLimit * 7));
+  }
+  console.log(`[Scraper] Initializing... Target date limit: ${CONFIG.daysLimit > 0 ? CONFIG.daysLimit + ' day(s)' : CONFIG.weeksLimit + ' weeks'} ago (${targetDateLimit.toLocaleDateString()})`);
 
   if (!fs.existsSync(CONFIG.outputDir)) {
     fs.mkdirSync(CONFIG.outputDir, { recursive: true });
