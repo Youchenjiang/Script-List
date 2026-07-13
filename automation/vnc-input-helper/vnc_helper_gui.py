@@ -234,7 +234,7 @@ class VNCInputHelperApp:
         tab.grid_columnconfigure(1, weight=1)
 
         # Row 0: Description
-        tk.Label(tab, text="Simulates holding a key down in the active VNC window.", bg=C["bg"], fg=C["muted"],
+        tk.Label(tab, text="Hold a key or combo (e.g. 'ctrl+shift+s') in the active VNC window.", bg=C["bg"], fg=C["muted"],
                  font=("Segoe UI", 9), anchor="w").grid(row=0, column=0, columnspan=2, sticky="ew", pady=(10, 8))
 
         # Row 1: Key field
@@ -349,6 +349,16 @@ class VNCInputHelperApp:
                                       width=8, bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 10))
         self._click_spin.pack(side="left", padx=(4, 0))
         self._update_click_states()
+
+        # Row 3: Hold key during click
+        tk.Label(sf, text="Hold key:", bg=C["bg"], fg=C["text"], font=("Segoe UI", 10)).grid(row=3, column=0, sticky="w", pady=6)
+        hold_frame = tk.Frame(sf, bg=C["bg"])
+        hold_frame.grid(row=3, column=1, sticky="w", pady=6)
+        self._click_hold_key_var = tk.StringVar(value="")
+        tk.Entry(hold_frame, textvariable=self._click_hold_key_var, bg=C["input"], fg=C["text"],
+                 insertbackground=C["text"], relief="flat", font=("Segoe UI", 10), width=14).pack(side="left")
+        tk.Label(hold_frame, text="(e.g. ctrl, alt, ctrl+shift)", bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 8)).pack(side="left", padx=(6, 0))
 
         # ── Record & Replay sub-panel ──
         self._click_record_frame = tk.Frame(tab, bg=C["bg"])
@@ -477,7 +487,7 @@ class VNCInputHelperApp:
         self._record_status_var.set("No actions recorded")
 
     def _record_worker(self) -> None:
-        """Record mouse click events: (button, x, y, timestamp_offset)."""
+        """Record mouse clicks AND keyboard presses with timestamps."""
         import ctypes
         user32 = ctypes.windll.user32
         VK_LBUTTON = 0x01
@@ -485,25 +495,52 @@ class VNCInputHelperApp:
         VK_MBUTTON = 0x04
         prev_left = prev_right = prev_middle = False
 
-        while self._recording:
-            point = ctypes.wintypes.POINT()
-            user32.GetCursorPos(ctypes.byref(point))
-            left = user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000 != 0
-            right = user32.GetAsyncKeyState(VK_RBUTTON) & 0x8000 != 0
-            middle = user32.GetAsyncKeyState(VK_MBUTTON) & 0x8000 != 0
+        # Track which keyboard keys are currently held for combo detection
+        held_keys = set()
 
-            if left and not prev_left:
-                self._recorded_actions.append(("left", point.x, point.y, time.time() - self._recording_start_time))
-            if right and not prev_right:
-                self._recorded_actions.append(("right", point.x, point.y, time.time() - self._recording_start_time))
-            if middle and not prev_middle:
-                self._recorded_actions.append(("middle", point.x, point.y, time.time() - self._recording_start_time))
+        def on_key_event(event):
+            if not self._recording:
+                return
+            # Skip Esc (used to stop recording) and modifier-only events
+            if event.name == "esc":
+                return
+            ts = time.time() - self._recording_start_time
+            if event.event_type == "down":
+                if event.name not in held_keys:
+                    held_keys.add(event.name)
+                    self._recorded_actions.append(("key_down", event.name, 0, 0, ts))
+            elif event.event_type == "up":
+                held_keys.discard(event.name)
+                self._recorded_actions.append(("key_up", event.name, 0, 0, ts))
 
-            prev_left, prev_right, prev_middle = left, right, middle
-            count = len(self._recorded_actions)
-            if count > 0:
-                self.root.after(0, lambda c=count: self._record_status_var.set(f"Recording... {c} actions captured"))
-            time.sleep(0.02)
+        kb_hook = None
+        if KEYBOARD_OK:
+            kb_hook = _kb.hook(on_key_event)
+
+        try:
+            while self._recording:
+                point = ctypes.wintypes.POINT()
+                user32.GetCursorPos(ctypes.byref(point))
+                left = user32.GetAsyncKeyState(VK_LBUTTON) & 0x8000 != 0
+                right = user32.GetAsyncKeyState(VK_RBUTTON) & 0x8000 != 0
+                middle = user32.GetAsyncKeyState(VK_MBUTTON) & 0x8000 != 0
+
+                ts = time.time() - self._recording_start_time
+                if left and not prev_left:
+                    self._recorded_actions.append(("mouse_click", "left", point.x, point.y, ts))
+                if right and not prev_right:
+                    self._recorded_actions.append(("mouse_click", "right", point.x, point.y, ts))
+                if middle and not prev_middle:
+                    self._recorded_actions.append(("mouse_click", "middle", point.x, point.y, ts))
+
+                prev_left, prev_right, prev_middle = left, right, middle
+                count = len(self._recorded_actions)
+                if count > 0:
+                    self.root.after(0, lambda c=count: self._record_status_var.set(f"Recording... {c} actions captured"))
+                time.sleep(0.02)
+        finally:
+            if kb_hook:
+                _kb.unhook(kb_hook)
 
     def _apply_topmost(self) -> None:
         self.root.attributes("-topmost", self._topmost_var.get())
@@ -580,9 +617,10 @@ class VNCInputHelperApp:
                 interval_ms = self._click_interval_var.get()
                 indefinite = self._click_indefinite_var.get()
                 count = 0 if indefinite else self._click_count_var.get()
+                hold_key = self._click_hold_key_var.get().strip() or None
                 self._running = True
                 self._action_btn.config(text="⛔  Abort   (Esc)", bg=C["danger"])
-                threading.Thread(target=self._click_worker, args=(button, delay, interval_ms / 1000.0, count), daemon=True).start()
+                threading.Thread(target=self._click_worker, args=(button, delay, interval_ms / 1000.0, count, hold_key), daemon=True).start()
 
     # ── Workers ──────────────────────────────────────────────────────────────
 
@@ -660,14 +698,18 @@ class VNCInputHelperApp:
         finally:
             _kb.release(key)
 
-    def _click_worker(self, button: str, delay: int, interval_s: float, count: int) -> None:
+    def _click_worker(self, button: str, delay: int, interval_s: float, count: int, hold_key: str = None) -> None:
         if not self._run_countdown(delay):
             return
 
+        hold_str = f" with '{hold_key}' held" if hold_key else ""
         try:
-            self._set_ui(f"🖱️  Clicking '{button}'...", C["text"], 100)
-            clicks_done = 0
+            self._set_ui(f"🖱️  Clicking '{button}'{hold_str}...", C["text"], 100)
             
+            if hold_key and KEYBOARD_OK:
+                _kb.press(hold_key)
+            
+            clicks_done = 0
             while not self._abort_event.is_set():
                 mouse_click(button)
                 clicks_done += 1
@@ -689,9 +731,12 @@ class VNCInputHelperApp:
             self._finish("✅ Done!", C["success"])
         except Exception as e:
             self._finish(f"❌ Error: {e}", C["danger"])
+        finally:
+            if hold_key and KEYBOARD_OK:
+                _kb.release(hold_key)
 
     def _replay_worker(self, delay: int, speed: float, loop_count: int) -> None:
-        """Replay recorded mouse actions with timing."""
+        """Replay recorded mouse + keyboard actions with timing."""
         if not self._run_countdown(delay):
             return
 
@@ -704,17 +749,32 @@ class VNCInputHelperApp:
             for loop_idx in range(loops):
                 if self._abort_event.is_set():
                     break
-                for i, (button, x, y, ts) in enumerate(actions):
+                for i, action in enumerate(actions):
                     if self._abort_event.is_set():
                         break
+                    # Wait for timing
+                    ts = action[4]
                     if i > 0:
-                        prev_ts = actions[i - 1][3]
+                        prev_ts = actions[i - 1][4]
                         wait = (ts - prev_ts) / speed
                         sleep_end = time.time() + wait
                         while time.time() < sleep_end and not self._abort_event.is_set():
                             time.sleep(min(0.05, sleep_end - time.time()))
 
-                    mouse_click(button, x, y)
+                    # Execute action
+                    act_type = action[0]
+                    if act_type == "mouse_click":
+                        _, button, x, y, _ = action
+                        mouse_click(button, x, y)
+                    elif act_type == "key_down":
+                        _, key, _, _, _ = action
+                        if KEYBOARD_OK:
+                            _kb.press(key)
+                    elif act_type == "key_up":
+                        _, key, _, _, _ = action
+                        if KEYBOARD_OK:
+                            _kb.release(key)
+
                     progress = ((loop_idx * total + i + 1) / (loops * total)) * 100
                     self._set_progress(progress)
                     self._set_ui(f"▶️  Loop {loop_idx + 1}/{loops} — Action {i + 1}/{total}", C["text"], progress)
