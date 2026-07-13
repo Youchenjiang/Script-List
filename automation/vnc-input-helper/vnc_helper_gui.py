@@ -201,7 +201,7 @@ class VNCInputHelperApp:
         tab.grid_columnconfigure(0, weight=1)
         tab.grid_rowconfigure(1, weight=1)
 
-        tk.Label(tab, text="Paste text to type into VNC:", bg=C["bg"], fg=C["muted"],
+        tk.Label(tab, text="Text to type into VNC:", bg=C["bg"], fg=C["muted"],
                  font=("Segoe UI", 9), anchor="w").grid(row=0, column=0, sticky="ew", padx=2, pady=(10, 2))
 
         outer = tk.Frame(tab, bg=C["border"], padx=1, pady=1)
@@ -212,22 +212,46 @@ class VNCInputHelperApp:
         vsb = tk.Scrollbar(outer, orient="vertical", command=self.text_area.yview)
         hsb = tk.Scrollbar(outer, orient="horizontal", command=self.text_area.xview)
         self.text_area.configure(yscrollcommand=vsb.set, xscrollcommand=hsb.set)
-        
+
         vsb.pack(side="right", fill="y")
         hsb.pack(side="bottom", fill="x")
         self.text_area.pack(fill="both", expand=True)
 
         # Settings sub-row
         row = tk.Frame(tab, bg=C["bg"])
-        row.grid(row=2, column=0, sticky="ew", pady=(2, 6))
-        
+        row.grid(row=2, column=0, sticky="ew", pady=(2, 4))
+
         tk.Label(row, text="Interval (s/char):", bg=C["bg"], fg=C["muted"], font=("Segoe UI", 9)).pack(side="left")
         self._interval_var = tk.DoubleVar(value=0.03)
         tk.Spinbox(row, from_=0.00, to=1.0, increment=0.01, textvariable=self._interval_var, width=6,
                    bg=C["input"], fg=C["text"], relief="flat", font=("Segoe UI", 9), format="%.2f").pack(side="left", padx=(4, 14))
 
-        tk.Button(row, text="Clear text", command=self._clear_text, bg=C["surface"], fg=C["muted"],
+        tk.Button(row, text="Paste", command=self._paste_clipboard, bg=C["surface"], fg=C["text"],
+                  font=("Segoe UI", 9), relief="flat", padx=10, cursor="hand2").pack(side="right", padx=(4, 0))
+        tk.Button(row, text="Clear", command=self._clear_text, bg=C["surface"], fg=C["muted"],
                   font=("Segoe UI", 9), relief="flat", padx=10, cursor="hand2").pack(side="right")
+
+        # History section
+        hist_label = tk.Frame(tab, bg=C["bg"])
+        hist_label.grid(row=3, column=0, sticky="ew", padx=2, pady=(4, 2))
+        tk.Label(hist_label, text="History:", bg=C["bg"], fg=C["muted"],
+                 font=("Segoe UI", 9)).pack(side="left")
+        tk.Button(hist_label, text="Clear history", command=self._clear_history, bg=C["bg"], fg=C["muted"],
+                  font=("Segoe UI", 8), relief="flat", padx=4, cursor="hand2").pack(side="right")
+
+        hist_outer = tk.Frame(tab, bg=C["border"], padx=1, pady=1)
+        hist_outer.grid(row=4, column=0, sticky="nsew", padx=2, pady=(0, 4))
+        tab.grid_rowconfigure(4, weight=0)
+
+        self._history_listbox = tk.Listbox(hist_outer, bg=C["input"], fg=C["text"], selectbackground=C["accent"],
+                                           font=("Consolas", 9), height=4, relief="flat", activestyle="none")
+        self._history_listbox.pack(fill="x")
+        self._history_listbox.bind("<Double-Button-1>", self._load_history_item)
+
+        # History state (loaded from file on startup)
+        self._history = []
+        self._history_file = os.path.join(os.path.expanduser("~"), ".vnc_helper_history.txt")
+        self._load_history_file()
 
     def _build_tab_holder(self) -> None:
         tab = self._tab_holder
@@ -745,8 +769,70 @@ class VNCInputHelperApp:
         self.root.attributes("-topmost", self._topmost_var.get())
 
     def _clear_text(self) -> None:
+        text = self.text_area.get("1.0", "end-1c").strip()
+        if text:
+            self._add_to_history(text)
         self.text_area.delete("1.0", "end")
         self._progress["value"] = 0
+
+    def _paste_clipboard(self) -> None:
+        if CLIPBOARD_OK:
+            text = pyperclip.paste()
+            if text:
+                self.text_area.delete("1.0", "end")
+                self.text_area.insert("1.0", text)
+                self._set_ui(f"Pasted {len(text)} chars from clipboard", C["success"], 0)
+            else:
+                self._set_ui("Clipboard is empty", C["warning"], 0)
+        else:
+            self._set_ui("pyperclip not available", C["warning"], 0)
+
+    def _add_to_history(self, text: str) -> None:
+        preview = text.replace("\n", " ")[:80]
+        # Remove duplicate if exists
+        self._history = [h for h in self._history if h != text]
+        self._history.insert(0, text)
+        # Keep max 20
+        self._history = self._history[:20]
+        self._refresh_history_list()
+        self._save_history_file()
+
+    def _refresh_history_list(self) -> None:
+        self._history_listbox.delete(0, "end")
+        for text in self._history:
+            preview = text.replace("\n", " ")[:80]
+            self._history_listbox.insert("end", preview)
+
+    def _load_history_item(self, event=None) -> None:
+        sel = self._history_listbox.curselection()
+        if not sel:
+            return
+        idx = sel[0]
+        if idx < len(self._history):
+            self.text_area.delete("1.0", "end")
+            self.text_area.insert("1.0", self._history[idx])
+
+    def _clear_history(self) -> None:
+        self._history.clear()
+        self._refresh_history_list()
+        self._save_history_file()
+
+    def _load_history_file(self) -> None:
+        try:
+            if os.path.exists(self._history_file):
+                with open(self._history_file, "r", encoding="utf-8") as f:
+                    self._history = [line.rstrip("\n") for line in f if line.strip()]
+                self._refresh_history_list()
+        except Exception:
+            self._history = []
+
+    def _save_history_file(self) -> None:
+        try:
+            with open(self._history_file, "w", encoding="utf-8") as f:
+                for text in self._history:
+                    f.write(text.replace("\n", "\\n") + "\n")
+        except Exception:
+            pass
 
     def _register_global_hotkey(self) -> None:
         if KEYBOARD_OK:
@@ -910,6 +996,7 @@ class VNCInputHelperApp:
                 self._set_progress((i + 1) / len(text) * 100)
 
             self._finish("✅ Done!", C["success"])
+            self.root.after(0, lambda t=text: self._add_to_history(t))
         except Exception as e:
             self._finish(f"❌ Error: {e}", C["danger"])
 
