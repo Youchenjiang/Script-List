@@ -14,9 +14,9 @@
 
 | 工具類型 | 適合情境 |
 |---|---|
-| `vnc_helper_gui.py` | **圖形化操作** — 支援分頁（Tab）切換、常駐且支援永遠置頂的 GUI 控制台。 |
-| `vnc_helper_cli.py` | **自動化/腳本化** — 純文字命令列工具，支援各種參數與背景排程。 |
-| **免安裝執行檔** | **快速啟動** — 單一打包檔案 `VNCInputHelper_Lite.exe`。 |
+| `tapster_gui.py` | **圖形化操作** — 支援分頁（Tab）切換、常駐且支援永遠置頂的 GUI 控制台。 |
+| `tapster_cli.py` | **自動化/腳本化** — 純文字命令列工具，支援各種參數與背景排程。 |
+| **免安裝執行檔** | **快速啟動** — 單一打包檔案 `Tapster_Lite.exe`。 |
 
 ---
 
@@ -31,12 +31,12 @@
    ```
 3. **執行白名單編譯指令**：
    ```bash
-   pyinstaller --clean VNCInputHelper_Lite.spec
+   pyinstaller --clean Tapster_Lite.spec
    ```
-4. 打包完成後，您將在 `dist/` 資料夾下找到 `VNCInputHelper_Lite.exe`。
+4. 打包完成後，您將在 `dist/` 資料夾下找到 `Tapster_Lite.exe`。
 
 > [!TIP]
-> **為什麼要用此方式打包？** 本專案包含一個客製化的 `VNCInputHelper_Lite.spec` 白名單打包設定檔。它會自動在打包過程中，將所有程式未使用的 Python 標準庫及 C 連結庫 (DLL) 過濾排除，只打包視窗 GUI、鍵盤模擬及 ctypes 滑鼠點擊所需的最小子集，從而將最終執行檔體積大幅壓縮至僅 ~8MB。
+> **為什麼要用此方式打包？** 本專案包含一個客製化的 `Tapster_Lite.spec` 白名單打包設定檔。它會自動在打包過程中，將所有程式未使用的 Python 標準庫及 C 連結庫 (DLL) 過濾排除，只打包視窗 GUI、鍵盤模擬及 ctypes 滑鼠點擊所需的最小子集，從而將最終執行檔體積大幅壓縮至僅 ~8MB。
 
 ---
 
@@ -48,11 +48,11 @@
 
 ---
 
-## GUI 工具 — `vnc_helper_gui.py` *(建議使用)*
+## GUI 工具 — `tapster_gui.py` *(建議使用)*
 
 執行圖形介面：
 ```bash
-python vnc_helper_gui.py
+python tapster_gui.py
 ```
 
 ### GUI 功能亮點與設計
@@ -66,34 +66,34 @@ python vnc_helper_gui.py
 
 ---
 
-## CLI 工具 — `vnc_helper_cli.py`
+## CLI 工具 — `tapster_cli.py`
 
 適合命令列操作或腳本自動化整合。
 
 ```bash
 # 1. 打字模式 (預設)：自動模擬打字輸入剪貼簿中的文字
-python vnc_helper_cli.py --mode typer
+python tapster_cli.py --mode typer
 
 # 輸入自訂字串
-python vnc_helper_cli.py --mode typer --text "echo 'Hello World'"
+python tapster_cli.py --mode typer --text "echo 'Hello World'"
 
 # 從檔案讀取並輸入
-python vnc_helper_cli.py --mode typer --file script.sh
+python tapster_cli.py --mode typer --file script.sh
 
 # 2. 按鍵長按模式：長按 'w' 鍵 10 秒
-python vnc_helper_cli.py --mode hold --key w --duration 10.0
+python tapster_cli.py --mode hold --key w --duration 10.0
 
 # 無限長按 (按下 Esc 鍵釋放按鍵)
-python vnc_helper_cli.py --mode hold --key space --duration 0
+python tapster_cli.py --mode hold --key space --duration 0
 
 # 3. 滑鼠連點模式：連點滑鼠左鍵，每 0.5 秒點擊一次，共點擊 10 次
-python vnc_helper_cli.py --mode click --button left --interval 0.5 --count 10
+python tapster_cli.py --mode click --button left --interval 0.5 --count 10
 
 # 4. 指定坐標連點：在 (500, 300) 位置連點 50 次
-python vnc_helper_cli.py --mode click --x 500 --y 300 -c 50
+python tapster_cli.py --mode click --x 500 --y 300 -c 50
 
 # 5. 滑鼠取點模式：跟蹤坐標，Enter 確認後開始連點
-python vnc_helper_cli.py --mode click --pick -c 0
+python tapster_cli.py --mode click --pick -c 0
 ```
 
 ### CLI 參數詳細說明
@@ -126,7 +126,7 @@ python vnc_helper_cli.py --mode click --pick -c 0
 - **字元被漏掉**：調高 **Interval (s/char)** 設定（如 `0.06` 或 `0.08`），以補償 VNC 遠端網路的延遲。
 - **大寫或按鍵卡死 (Keys Stuck)**：若發生鍵盤按鍵（如 Shift、Ctrl 或設定的長按鍵）在程式結束後被 Windows 認為依然被按著的情況，程式現在會在每次任務開始前自動重置所有按鍵狀態。另外，直接關閉 GUI 視窗也會自動釋放所有虛擬按鍵。
 - **macOS/Linux 滑鼠連點限制**：連點器為了保持輕量，在 Windows 下使用原生 `ctypes`。在 Linux 下會嘗試呼叫系統中的 `xdotool` 指令，若系統未安裝該指令則會跳過點擊。
-- **Linux 權限錯誤**：請改用 `sudo python vnc_helper_gui.py` 執行以提供實體鍵盤模擬權限。
+- **Linux 權限錯誤**：請改用 `sudo python tapster_gui.py` 執行以提供實體鍵盤模擬權限。
 
 ---
 

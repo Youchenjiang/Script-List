@@ -8,7 +8,7 @@ tmp_ret = collect_all('keyboard')
 datas += tmp_ret[0]; binaries += tmp_ret[1]; hiddenimports += tmp_ret[2]
 
 a = Analysis(
-    ['vnc_helper_gui.py'],
+    ['tapster_gui.py'],
     pathex=[],
     binaries=binaries,
     datas=datas,
@@ -24,7 +24,7 @@ a = Analysis(
 # ── STRICT WHITELIST FILTERING ────────────────────────────────────────────────
 whitelist = {
     # App code & core library dependencies
-    'vnc_helper_gui',
+    'tapster_gui',
     'keyboard',
     'pyperclip',
     'tkinter',
@@ -71,7 +71,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='VNCInputHelper_Lite',
+    name='Tapster',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

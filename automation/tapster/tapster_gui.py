@@ -105,7 +105,7 @@ def _release_modifiers() -> None:
 
 # ── GUI Application ──────────────────────────────────────────────────────────
 
-class VNCInputHelperApp:
+class TapsterApp:
     def __init__(self, root: tk.Tk) -> None:
         self.root = root
         self._running = False
@@ -250,7 +250,7 @@ class VNCInputHelperApp:
 
         # History state (loaded from file on startup)
         self._history = []
-        self._history_file = os.path.join(os.path.expanduser("~"), ".vnc_helper_history.txt")
+        self._history_file = os.path.join(os.path.expanduser("~"), ".tapster_history.txt")
         self._load_history_file()
 
     def _build_tab_holder(self) -> None:
@@ -1209,5 +1209,5 @@ class VNCInputHelperApp:
 
 if __name__ == "__main__":
     root = tk.Tk()
-    VNCInputHelperApp(root)
+    TapsterApp(root)
     root.mainloop()

@@ -14,9 +14,9 @@ Lightweight input automation tool supporting auto-typing, key holding (with comb
 
 | Tool | Best for |
 |---|---|
-| `vnc_helper_gui.py` | **Interactive GUI use** — A tabbed, persistent, always-on-top dashboard. |
-| `vnc_helper_cli.py` | **Scripted / automated use** — Pure console tool driven by command-line arguments. |
-| **Standalone EXE** | **No-install portability** — Single file `VNCInputHelper_Lite.exe`. |
+| `tapster_gui.py` | **Interactive GUI use** — A tabbed, persistent, always-on-top dashboard. |
+| `tapster_cli.py` | **Scripted / automated use** — Pure console tool driven by command-line arguments. |
+| **Standalone EXE** | **No-install portability** — Single file `Tapster_Lite.exe`. |
 
 ---
 
@@ -29,12 +29,12 @@ To keep the repository clean, we do not bundle the binaries directly. You can bu
    ```
 3. **Run the Whitelist Build Command**:
    ```bash
-   pyinstaller --clean VNCInputHelper_Lite.spec
+   pyinstaller --clean Tapster_Lite.spec
    ```
-4. The output binary will be generated in the `dist/` folder as `VNCInputHelper_Lite.exe`.
+4. The output binary will be generated in the `dist/` folder as `Tapster_Lite.exe`.
 
 > [!TIP]
-> **Why this command?** The project contains a custom `VNCInputHelper_Lite.spec` file that enforces strict whitelist-based packaging. It filters the Python standard library and DLLs programmatically so that only the minimum essential modules needed for GUI, key simulation, and ctypes mouse clicks are compiled. This keeps the final binary size at just ~8MB.
+> **Why this command?** The project contains a custom `Tapster_Lite.spec` file that enforces strict whitelist-based packaging. It filters the Python standard library and DLLs programmatically so that only the minimum essential modules needed for GUI, key simulation, and ctypes mouse clicks are compiled. This keeps the final binary size at just ~8MB.
 
 ---
 
@@ -46,11 +46,11 @@ To keep the repository clean, we do not bundle the binaries directly. You can bu
 
 ---
 
-## GUI Tool — `vnc_helper_gui.py` *(Recommended)*
+## GUI Tool — `tapster_gui.py` *(Recommended)*
 
 Launch the graphical dashboard:
 ```bash
-python vnc_helper_gui.py
+python tapster_gui.py
 ```
 
 ### GUI Layout & Features
@@ -63,28 +63,28 @@ python vnc_helper_gui.py
 
 ---
 
-## CLI Tool — `vnc_helper_cli.py`
+## CLI Tool — `tapster_cli.py`
 
 Driven by arguments, perfect for one-shot command-line usage or batch scripting.
 
 ```bash
 # 1. Typer Mode (Default): Types clipboard content
-python vnc_helper_cli.py --mode typer
+python tapster_cli.py --mode typer
 
 # Type inline text
-python vnc_helper_cli.py --mode typer --text "echo 'Hello World'"
+python tapster_cli.py --mode typer --text "echo 'Hello World'"
 
 # Type from a file
-python vnc_helper_cli.py --mode typer --file script.sh
+python tapster_cli.py --mode typer --file script.sh
 
 # 2. Key Holder Mode: Hold 'w' key down for 10 seconds (default)
-python vnc_helper_cli.py --mode hold --key w --duration 10.0
+python tapster_cli.py --mode hold --key w --duration 10.0
 
 # Indefinite hold (Press Esc to release)
-python vnc_helper_cli.py --mode hold --key space --duration 0
+python tapster_cli.py --mode hold --key space --duration 0
 
 # 3. Auto Clicker Mode: Double-click left mouse button every 500ms
-python vnc_helper_cli.py --mode click --button left --interval 0.5 --count 10
+python tapster_cli.py --mode click --button left --interval 0.5 --count 10
 ```
 
 ### CLI Arguments Reference
@@ -113,7 +113,7 @@ python vnc_helper_cli.py --mode click --button left --interval 0.5 --count 10
 - **Characters dropped**: Increase the **Interval (s/char)** setting (e.g. `0.06` or `0.08`) to compensate for VNC network latency.
 - **Sticky Keys**: If modifier keys (like Shift or Ctrl) get stuck, the application will automatically perform a modifier release reset at the start of any run. Alternatively, closing the GUI releases all virtual keys.
 - **Clicker issues on macOS/Linux**: The mouse auto-clicker relies on native Windows APIs (`ctypes`) to remain lightweight. On Linux, it falls back to calling `xdotool`. If `xdotool` is not installed, clicking will be skipped.
-- **Linux Permission Error**: Run the script with root permissions: `sudo python vnc_helper_gui.py`.
+- **Linux Permission Error**: Run the script with root permissions: `sudo python tapster_gui.py`.
 
 ---
 
