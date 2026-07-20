@@ -16,9 +16,9 @@ function fetchUrl(url) {
       if (res.statusCode !== 200) {
         return reject(new Error(`HTTP status ${res.statusCode} for URL: ${url}`));
       }
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     }).on('error', reject);
   });
 }
@@ -100,6 +100,114 @@ function extractTitle(html) {
   }
   
   return 'Untitled';
+}
+
+// Helper: Extract article image URLs from raw HTML (handles JS-rendered pages)
+function extractArticleImages(html, baseUrl) {
+  let parsedUrl;
+  try { parsedUrl = new URL(baseUrl); } catch { return []; }
+  const origin = parsedUrl.origin;
+  // Derive base dir from URL (e.g. /security-labs/ for /security-labs/article-name)
+  const urlDir = parsedUrl.pathname.replace(/\/[^/]*$/, '/');
+
+  const imgUrls = new Set();
+
+  // 1. <img src="..."> from the full HTML (for SSR pages like thehackernews.com)
+  for (const m of html.matchAll(/<img[^>]+src=["']([^"']+)["']/gi)) {
+    const u = m[1];
+    if (u.startsWith('data:') || u.endsWith('.svg')) continue;
+    imgUrls.add(u);
+  }
+
+  // 2. og:image / twitter:image
+  for (const m of html.matchAll(/(?:property|name)=["'](og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/gi)) {
+    imgUrls.add(m[2]);
+  }
+
+  // 3. Markdown image syntax embedded in page data (e.g. __NEXT_DATA__ or CMS JSON)
+  //    Pattern: ![alt](/path/to/image.png) or ![alt](https://...) or ![alt](/path "title")
+  for (const m of html.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+    let raw = m[1].trim();
+    // Strip title: ![alt](url "title") → url
+    const titleMatch = /^([^\s"]+)(?:\s+"[^"]*")?$/.exec(raw);
+    let u = titleMatch ? titleMatch[1] : raw.split(/\s+/)[0];
+    if (u.startsWith('data:') || u.endsWith('.svg')) continue;
+    if (u.includes('${')) continue;
+    // Resolve relative paths (relative to article directory, not root)
+    if (u.startsWith('/')) {
+      u = origin + urlDir.slice(0, -1) + u;
+    } else if (!u.startsWith('http')) {
+      u = origin + '/' + u;
+    }
+    imgUrls.add(u);
+  }
+
+  // 4. media:content / enclosure (RSS)
+  for (const m of html.matchAll(/<(?:media:content|enclosure)[^>]+url=["']([^"']+)["']/gi)) {
+    imgUrls.add(m[1]);
+  }
+
+  // Resolve and deduplicate
+  const resolved = [];
+  const seen = new Set();
+  for (let u of imgUrls) {
+    if (u.startsWith('//')) u = 'https:' + u;
+    const bare = u.split('?')[0];
+    if (seen.has(bare)) continue;
+    seen.add(bare);
+    const lower = bare.toLowerCase();
+    // Filter non-article images
+    if (lower.includes('logo') || lower.includes('favicon') || lower.includes('icon')) continue;
+    if (lower.includes('_next/static') || lower.endsWith('.svg')) continue;
+    if (/\/w\d+-h\d+-/.test(lower) || /\/s\d+-e\d+\//.test(lower)) continue;
+    if (lower.startsWith('data:')) continue;
+    if (u.includes('${')) continue;
+    resolved.push(u);
+  }
+
+  return resolved;
+}
+
+// Helper: Insert images into markdown body at natural break points
+function insertImagesIntoMarkdown(bodyMarkdown, images) {
+  if (!images.length) return bodyMarkdown;
+
+  let result = bodyMarkdown;
+  let imgIdx = 0;
+
+  // Strategy 1: "Below is an example..." followed by empty line
+  result = result.replace(/(Below is an example[^:\n]*:)\s*\n(?=\s*\n|$)/g, (match, prefix) => {
+    if (imgIdx < images.length) {
+      return `${prefix}\n\n![image](${images[imgIdx++]})\n\n`;
+    }
+    return match;
+  });
+
+  // Strategy 2: Empty paragraph between sections (double newline with nothing between)
+  result = result.replace(/\n\n\n+/g, (match) => {
+    if (imgIdx < images.length) {
+      return `\n\n![image](${images[imgIdx++]})\n\n`;
+    }
+    return match;
+  });
+
+  // Strategy 3: Remaining images before ## Conclusion or end of content
+  if (imgIdx < images.length) {
+    const conclusionIdx = result.indexOf('\n## Conclusion');
+    if (conclusionIdx !== -1) {
+      let extra = '';
+      while (imgIdx < images.length) {
+        extra += `\n![image](${images[imgIdx++]})\n\n`;
+      }
+      result = result.slice(0, conclusionIdx) + '\n' + extra + result.slice(conclusionIdx);
+    } else {
+      while (imgIdx < images.length) {
+        result += `\n\n![image](${images[imgIdx++]})\n`;
+      }
+    }
+  }
+
+  return result;
 }
 
 // Helper: Convert HTML tags and format text to clean Markdown
@@ -290,6 +398,13 @@ async function main() {
   if (!bodyMarkdown) {
     console.warn('[Warning] Main article body could not be parsed.');
     bodyMarkdown = '(Main article body content could not be parsed)';
+  }
+
+  // Extract article images from raw HTML and insert into markdown
+  const articleImages = extractArticleImages(html, url);
+  if (articleImages.length > 0) {
+    console.log(`[Scraper] Found ${articleImages.length} article images.`);
+    bodyMarkdown = insertImagesIntoMarkdown(bodyMarkdown, articleImages);
   }
 
   // Save the result
