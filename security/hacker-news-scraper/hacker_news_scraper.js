@@ -13,7 +13,7 @@ function formatDate(dateObj) {
 // Configuration
 const CONFIG = {
   baseUrl: 'https://thehackernews.com',
-  weeksLimit: 3,             // Limit crawling to the last N weeks of articles
+  weeksLimit: 2,             // Limit crawling to the last N weeks of articles
   daysLimit: 0,              // Override: if > 0, limits to N days instead of weeks
   delayMs: 800,              // Delay between requests to prevent rate limits
   outputDir: path.join(__dirname, 'news_output', formatDate(new Date()))
@@ -34,9 +34,9 @@ function fetchUrl(url) {
       if (res.statusCode !== 200) {
         return reject(new Error(`HTTP status ${res.statusCode} for URL: ${url}`));
       }
-      let data = '';
-      res.on('data', chunk => data += chunk);
-      res.on('end', () => resolve(data));
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
+      res.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     }).on('error', reject);
   });
 }
