@@ -29,9 +29,10 @@ function translateGoogleM(text, targetLang = 'zh-TW', retries = 3, delayMs = 100
       if (res.statusCode !== 200) {
         return reject(new Error(`HTTP status ${res.statusCode}`));
       }
-      let html = '';
-      res.on('data', chunk => html += chunk);
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
+        const html = Buffer.concat(chunks).toString('utf8');
         const match = html.match(/class="result-container">([\s\S]+?)<\/div>/) || html.match(/class="t0">([\s\S]+?)<\/div>/);
         if (match) {
           let translated = match[1]
@@ -91,10 +92,11 @@ function translateGoogle(text, targetLang = 'zh-TW', retries = 3, delayMs = 1000
       if (res.statusCode !== 200) {
         return reject(new Error(`HTTP status ${res.statusCode}`));
       }
-      let data = '';
-      res.on('data', chunk => data += chunk);
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
         try {
+          const data = Buffer.concat(chunks).toString('utf8');
           const parsed = JSON.parse(data);
           if (Array.isArray(parsed) && parsed[0]) {
             let translated = '';
@@ -146,10 +148,11 @@ function translateMyMemory(text, targetLang = 'zh-TW', retries = 3, delayMs = 10
       if (res.statusCode !== 200) {
         return reject(new Error(`MyMemory status ${res.statusCode}`));
       }
-      let data = '';
-      res.on('data', chunk => data += chunk);
+      const chunks = [];
+      res.on('data', chunk => chunks.push(chunk));
       res.on('end', () => {
         try {
+          const data = Buffer.concat(chunks).toString('utf8');
           const parsed = JSON.parse(data);
           if (parsed && parsed.responseData && parsed.responseData.translatedText) {
             resolve(parsed.responseData.translatedText);
@@ -275,6 +278,28 @@ function groupParagraphs(content, maxChunkSize = 2000) {
   return chunks;
 }
 
+// Helper: Extract markdown image patterns and replace with placeholders to protect URLs during translation
+function protectImages(text) {
+  const images = [];
+  // Match ![alt](url) — handles multi-line URLs caused by word-wrap
+  const protectedText = text.replace(/!\[[^\]]*\]\([^)]*\)/g, (match) => {
+    const idx = images.length;
+    images.push(match);
+    // Use XML-like tags that translation engines preserve as-is
+    return `<X IMG ${idx} X>`;
+  });
+  return { text: protectedText, images };
+}
+
+// Helper: Restore image placeholders back to original markdown
+function restoreImages(text, images) {
+  let result = text;
+  for (let i = 0; i < images.length; i++) {
+    result = result.replace(new RegExp(`<X IMG ${i} X>`, 'g'), images[i]);
+  }
+  return result;
+}
+
 // Helper: Translate a markdown file block-by-block to preserve layout and code blocks
 async function translateFile(filePath, targetLang = 'zh-TW') {
   const content = fs.readFileSync(filePath, 'utf8');
@@ -291,9 +316,13 @@ async function translateFile(filePath, targetLang = 'zh-TW') {
       continue;
     }
     
+    // Protect image markdown from translation corruption
+    const { text: safeText, images } = protectImages(chunk.text);
+    
     // Minor delay between chunks
     await sleep(300);
-    const translated = await translateChunk(chunk.text, targetLang);
+    const translatedRaw = await translateChunk(safeText, targetLang);
+    const translated = restoreImages(translatedRaw, images);
     translatedChunks.push(translated);
     
     // Extract translated title from the first translated chunk containing '#'
@@ -324,6 +353,7 @@ async function translateFile(filePath, targetLang = 'zh-TW') {
 async function main() {
   const dirPath = process.argv[2] || path.join(__dirname, 'news_output', formatDate(new Date()));
   const concurrency = parseInt(process.argv[3], 10) || 5; // parallel translation count
+  const outputSuffix = process.argv[4] || '[zh-TW]'; // custom output suffix
   if (!fs.existsSync(dirPath)) {
     console.error(`[Translate] Error: Directory does not exist: ${dirPath}`);
     process.exit(1);
@@ -332,7 +362,7 @@ async function main() {
   // Create the [zh-TW] sister directory
   const parentDir = path.dirname(dirPath);
   const dirName = path.basename(dirPath);
-  const destDir = path.join(parentDir, `${dirName} [zh-TW]`);
+  const destDir = path.join(parentDir, `${dirName} ${outputSuffix}`);
   if (!fs.existsSync(destDir)) {
     fs.mkdirSync(destDir, { recursive: true });
   }
