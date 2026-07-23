@@ -16,7 +16,7 @@ a = Analysis(
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=['multiprocessing'],
+    excludes=['multiprocessing', 'PyQt5', 'PyQt5.QtCore', 'PyQt5.QtWidgets', 'PyQt5.QtGui', 'sip', 'qtpy'],
     noarchive=False,
     optimize=0,
 )
@@ -29,7 +29,7 @@ whitelist = {
     'pyperclip',
     'tkinter',
     'ctypes',
-    
+
     # Standard library core modules required for Python boot, Tkinter, keyboard, and pyperclip
     'sys', 'os', 'time', 'threading', 'subprocess', 'select', 'selectors', 'signal',
     'encodings', 'codecs', 'io', 'abc', 'stat', 'ntpath', 'posixpath', 'genericpath',
@@ -38,12 +38,19 @@ whitelist = {
     'keyword', 'operator', 'reprlib', 'contextlib', 'importlib', 'struct', 'enum',
     'queue', 'atexit', 'platform', 'token', 'tokenize', 'inspect', 'dis', 'opcode',
     'bisect', 'shutil', 'tempfile', 'random', 'math', 'errno', 'pathlib', 'heapq',
-    '_collections_abc', 'ast', 'zipfile', 'urllib', 'ipaddress', 'pkgutil', 'typing'
+    '_collections_abc', 'ast', 'zipfile', 'urllib', 'ipaddress', 'pkgutil', 'typing',
 }
+
+# Explicitly reject Qt / PyQt5 modules (pulled in by hook-qtpy but never used)
+REJECT = {'PyQt5', 'sip', 'qtpy'}
+
 
 def is_whitelisted(module_name):
     parts = module_name.split('.')
-    return parts[0] in whitelist
+    root = parts[0]
+    if root in REJECT:
+        return False
+    return root in whitelist
 
 # Filter Python modules
 a.pure = [item for item in a.pure if is_whitelisted(item[0])]
@@ -55,8 +62,13 @@ allowed_binary_substrings = [
     'kernel32', 'user32', 'shell32', 'zlib', 'unicodedata'
 ]
 
+# Reject Qt DLLs
+REJECT_BINARY = ['qt5', 'qtcore', 'qtwidgets', 'qtgui', 'pyqt5', 'sip', 'd3dcompiler', 'opengl', 'libeay', 'ssleay']
+
 def is_binary_allowed(name):
     name_lower = name.lower()
+    if any(s in name_lower for s in REJECT_BINARY):
+        return False
     return any(s in name_lower for s in allowed_binary_substrings)
 
 # Filter binaries
