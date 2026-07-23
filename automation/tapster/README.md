@@ -16,7 +16,7 @@ Lightweight input automation tool supporting auto-typing, key holding (with comb
 |---|---|
 | `tapster_gui.py` | **Interactive GUI use** — A tabbed, persistent, always-on-top dashboard. |
 | `tapster_cli.py` | **Scripted / automated use** — Pure console tool driven by command-line arguments. |
-| **Standalone EXE** | **No-install portability** — Single file `Tapster_Lite.exe`. |
+| **Standalone EXE** | **No-install portability** — Single file `Tapster.exe` (~8MB). |
 
 ---
 
@@ -31,10 +31,12 @@ To keep the repository clean, we do not bundle the binaries directly. You can bu
    ```bash
    pyinstaller --clean Tapster_Lite.spec
    ```
-4. The output binary will be generated in the `dist/` folder as `Tapster_Lite.exe`.
+4. The output binary will be generated in the `dist/` folder as `Tapster.exe`.
 
 > [!TIP]
 > **Why this command?** The project contains a custom `Tapster_Lite.spec` file that enforces strict whitelist-based packaging. It filters the Python standard library and DLLs programmatically so that only the minimum essential modules needed for GUI, key simulation, and ctypes mouse clicks are compiled. This keeps the final binary size at just ~8MB.
+>
+> The spec also explicitly excludes PyQt5/sip/qtpy (pulled in by `hook-qtpy` via pyperclip dependency) since Tapster uses tkinter only. Without this exclusion, the exe would be ~10MB.
 
 ---
 

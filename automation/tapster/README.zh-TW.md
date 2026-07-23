@@ -16,7 +16,7 @@
 |---|---|
 | `tapster_gui.py` | **圖形化操作** — 支援分頁（Tab）切換、常駐且支援永遠置頂的 GUI 控制台。 |
 | `tapster_cli.py` | **自動化/腳本化** — 純文字命令列工具，支援各種參數與背景排程。 |
-| **免安裝執行檔** | **快速啟動** — 單一打包檔案 `Tapster_Lite.exe`。 |
+| **免安裝執行檔** | **快速啟動** — 單一打包檔案 `Tapster.exe` (~8MB)。 |
 
 ---
 
@@ -33,10 +33,12 @@
    ```bash
    pyinstaller --clean Tapster_Lite.spec
    ```
-4. 打包完成後，您將在 `dist/` 資料夾下找到 `Tapster_Lite.exe`。
+4. 打包完成後，您將在 `dist/` 資料夾下找到 `Tapster.exe`。
 
 > [!TIP]
 > **為什麼要用此方式打包？** 本專案包含一個客製化的 `Tapster_Lite.spec` 白名單打包設定檔。它會自動在打包過程中，將所有程式未使用的 Python 標準庫及 C 連結庫 (DLL) 過濾排除，只打包視窗 GUI、鍵盤模擬及 ctypes 滑鼠點擊所需的最小子集，從而將最終執行檔體積大幅壓縮至僅 ~8MB。
+>
+> Spec 也會明確排除 PyQt5/sip/qtpy（由 pyperclip 的依賴 `hook-qtpy` 自動引入），因為 Tapster 僅使用 tkinter。不排除的話執行檔會膨脹至 ~10MB。
 
 ---
 
