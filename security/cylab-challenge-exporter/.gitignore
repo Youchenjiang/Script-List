@@ -1,0 +1,5 @@
+# Generated files & exported datasets
+*.json
+*.csv
+output/
+challenges_checklist.md

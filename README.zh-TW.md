@@ -65,7 +65,8 @@ Script-List/
 │   ├── frida-apk-tool/         # Android APK 修補與 Frida Hook 工具組
 │   ├── cybersec-slide-downloader/ # CYBERSEC 2026 簡報下載器
 │   ├── hacker-news-scraper/    # Hacker News 新聞爬取器
-│   └── local-https-cert-helper/ # 本地 HTTPS 自簽憑證測試與生成助手
+│   ├── local-https-cert-helper/ # 本地 HTTPS 自簽憑證測試與生成助手
+│   └── cylab-challenge-exporter/ # CyLab Security Academy 題目匯出與刷題進度產生器
 └── text/                       # 文字轉換與編碼
     ├── text-converter-zh/      # 中文簡繁轉換工具
     ├── base64-converter/       # Base64 編解碼工具
@@ -105,6 +106,7 @@ Script-List/
 - **CYBERSEC 2026 簡報下載器** ([security/cybersec-slide-downloader/](security/cybersec-slide-downloader/)) - 用於從 CYBERSEC 2026 大會 API 爬取與批次下載所有議程簡報的 Node.js 實用工具。 → [詳細說明](security/cybersec-slide-downloader/README.zh-TW.md)
 - **Hacker News 新聞爬取器** ([security/hacker-news-scraper/](security/hacker-news-scraper/)) - 用於自動爬取 `thehackernews.com` 最近三週新聞內文並儲存為 Markdown 的 Node.js 實用工具。 → [詳細說明](security/hacker-news-scraper/README.zh-TW.md)
 - **本地 HTTPS 自簽憑證測試與生成助手** ([security/local-https-cert-helper/](security/local-https-cert-helper/)) - 一鍵生成本地開發用 HTTPS 憑證 (Root CA & Server Cert) 且提供測試伺服器的實用工具。 → [詳細說明](security/local-https-cert-helper/README.zh-TW.md)
+- **CyLab 題目匯出與刷題進度產生器** ([security/cylab-challenge-exporter/](security/cylab-challenge-exporter/)) - 導出 CyLab Security Academy (picoCTF) 全站題目並生成進度勾選清單。 → [詳細說明](security/cylab-challenge-exporter/README.zh-TW.md)
 
 ### 📝 文字轉換與編碼
 - **文字轉換工具 (簡繁中文)** ([text/text-converter-zh/](text/text-converter-zh/)) - 可選擇性的中文簡繁轉換工具組，提供轉換前審核工作流程與 JSON 設定。 → [詳細說明](text/text-converter-zh/README.md)
