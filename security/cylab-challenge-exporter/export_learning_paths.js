@@ -7,12 +7,13 @@
  * 3. Copy and paste this script into the Console and press Enter.
  *    (Ensure popup windows are allowed for this site if prompted).
  * 4. The script scans ALL pages (page=1, page=2, page=3...) to gather ALL Learning Path links,
- *    then opens popup windows to render each page, extract React DOM topics, and download
+ *    opens popup windows to render each page, extracts React DOM topics, formats clickable
+ *    Markdown links [Title](https://learn.cylabacademy.org/learning-paths/ID), and downloads
  *    a CyLab_All_Learning_Paths_and_Topics_YYYY-MM-DD.md file.
  */
 
 (async function crawlAllPagesLearningPaths() {
-    console.log("🚀 Starting multi-page scan for all Learning Paths & Topics...");
+    console.log("🚀 Starting multi-page scan for all Learning Paths & Topics with Clickable Links...");
 
     let allUniqueHrefs = [];
     let page = 1;
@@ -22,7 +23,6 @@
     while (hasMorePages) {
         console.log(`Scanning list page ${page}...`);
         try {
-            // Attempt API fetch
             let res = await fetch(`/api/learning-paths/?page=${page}&page_size=100`, {
                 headers: { 'Accept': 'application/json' }
             });
@@ -42,7 +42,6 @@
                     else page++;
                 }
             } else {
-                // DOM fallback for page N
                 const pageUrl = `/learning-paths?page=${page}`;
                 const htmlRes = await fetch(pageUrl);
                 if (htmlRes.ok) {
@@ -79,7 +78,7 @@
         return;
     }
 
-    // Phase 2: Popup crawler for detail topics
+    // Phase 2: Popup crawler for detail topics with Markdown links
     let finalMarkdown = `# CyLab Security Academy - All Learning Paths & Topics Overview\n\n`;
     finalMarkdown += `*Total Learning Paths: ${allUniqueHrefs.length}*\n`;
     finalMarkdown += `*Exported At: ${new Date().toLocaleString()}*\n\n---\n\n`;
@@ -100,19 +99,29 @@
         try {
             const doc = win.document;
 
-            const title = doc.querySelector('h1, h2, [class*="title"]')?.innerText?.trim() || `Learning Path (${href})`;
+            const rawTitle = doc.querySelector('h1, h2, [class*="title"]')?.innerText?.trim() || `Learning Path (${href})`;
             const description = doc.querySelector('[class*="description"], [class*="subtitle"], p')?.innerText?.trim() || '';
 
-            const topicNodes = doc.querySelectorAll('h2, h3, h4, [class*="topic"], [class*="module"], [class*="section"], [class*="chapter"], [class*="card"], li');
+            // Format clickable Markdown link for Learning Path Header
+            const headerLink = `[${rawTitle}](${fullUrl})`;
+
+            const topicNodes = doc.querySelectorAll('h2, h3, h4, [class*="topic"], [class*="module"], [class*="section"], [class*="chapter"], [class*="card"], a[href*="challenge"], a[href*="course"]');
             let topics = [];
             topicNodes.forEach(node => {
                 const text = node.innerText?.trim();
-                if (text && text.length > 2 && text.length < 150 && text !== title && !topics.includes(text) && !text.includes('CyLab') && !text.includes('Copyright')) {
-                    topics.push(text);
+                const linkHref = node.getAttribute('href') || node.querySelector('a')?.getAttribute('href');
+                if (text && text.length > 2 && text.length < 150 && text !== rawTitle && !text.includes('CyLab') && !text.includes('Copyright')) {
+                    if (linkHref) {
+                        const fullTopicUrl = linkHref.startsWith('http') ? linkHref : window.location.origin + linkHref;
+                        const formatted = `[${text}](${fullTopicUrl})`;
+                        if (!topics.includes(formatted)) topics.push(formatted);
+                    } else {
+                        if (!topics.includes(text)) topics.push(text);
+                    }
                 }
             });
 
-            finalMarkdown += `## ${i + 1}. ${title}\n`;
+            finalMarkdown += `## ${i + 1}. ${headerLink}\n`;
             if (description) finalMarkdown += `> ${description}\n\n`;
 
             if (topics.length > 0) {
@@ -133,7 +142,7 @@
         }
     }
 
-    console.log("%c🎉 Successfully exported all Learning Paths & Topics across all pages!", "color: #00ff00; font-weight: bold; font-size: 14px;");
+    console.log("%c🎉 Successfully exported all Learning Paths & Topics with clickable links!", "color: #00ff00; font-weight: bold; font-size: 14px;");
 
     const blob = new Blob([finalMarkdown], { type: 'text/markdown;charset=utf-8;' });
     const a = document.createElement('a');
