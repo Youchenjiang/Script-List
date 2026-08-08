@@ -1,25 +1,25 @@
 /**
- * CyLab Security Academy Learning Paths & Topics Multi-Page Exporter
+ * CyLab Security Academy Learning Paths & Topics Exporter with Full Clickable Links
  * 
  * Instructions:
  * 1. Open and log in to https://learn.cylabacademy.org/learning-paths?page=1
  * 2. Press F12 to open Developer Tools and select the "Console" tab.
  * 3. Copy and paste this script into the Console and press Enter.
  *    (Ensure popup windows are allowed for this site if prompted).
- * 4. The script scans ALL pages (page=1, page=2, page=3...) to gather ALL Learning Path links,
- *    opens popup windows to render each page, extracts React DOM topics, formats clickable
- *    Markdown links [Title](https://learn.cylabacademy.org/learning-paths/ID), and downloads
+ * 4. The script scans ALL list pages (page=1, page=2...), opens popups to render React DOM,
+ *    extracts all Learning Paths AND individual Topic/Challenge clickable links,
+ *    formatting them into standard Markdown [Title](URL) links, and downloads
  *    a CyLab_All_Learning_Paths_and_Topics_YYYY-MM-DD.md file.
  */
 
-(async function crawlAllPagesLearningPaths() {
-    console.log("🚀 Starting multi-page scan for all Learning Paths & Topics with Clickable Links...");
+(async function crawlAllPagesLearningPathsWithLinks() {
+    console.log("🚀 Starting multi-page scan for Learning Paths & Topics with FULL CLICKABLE LINKS...");
 
     let allUniqueHrefs = [];
     let page = 1;
     let hasMorePages = true;
 
-    // Phase 1: Multi-page scan to collect all Learning Path URLs
+    // Phase 1: Scan list pages for Learning Path URLs
     while (hasMorePages) {
         console.log(`Scanning list page ${page}...`);
         try {
@@ -71,15 +71,15 @@
     }
 
     allUniqueHrefs = [...new Set(allUniqueHrefs)];
-    console.log(`🎉 Finished multi-page list scan! Found ${allUniqueHrefs.length} total Learning Paths:`, allUniqueHrefs);
+    console.log(`🎉 Finished list scan! Found ${allUniqueHrefs.length} total Learning Paths:`, allUniqueHrefs);
 
     if (allUniqueHrefs.length === 0) {
         alert("⚠️ No Learning Path links found!");
         return;
     }
 
-    // Phase 2: Popup crawler for detail topics with Markdown links
-    let finalMarkdown = `# CyLab Security Academy - All Learning Paths & Topics Overview\n\n`;
+    // Phase 2: Popup crawler for detail topics & challenge links
+    let finalMarkdown = `# CyLab Security Academy - All Learning Paths & Topics Overview (With Links)\n\n`;
     finalMarkdown += `*Total Learning Paths: ${allUniqueHrefs.length}*\n`;
     finalMarkdown += `*Exported At: ${new Date().toLocaleString()}*\n\n---\n\n`;
 
@@ -102,32 +102,48 @@
             const rawTitle = doc.querySelector('h1, h2, [class*="title"]')?.innerText?.trim() || `Learning Path (${href})`;
             const description = doc.querySelector('[class*="description"], [class*="subtitle"], p')?.innerText?.trim() || '';
 
-            // Format clickable Markdown link for Learning Path Header
             const headerLink = `[${rawTitle}](${fullUrl})`;
 
-            const topicNodes = doc.querySelectorAll('h2, h3, h4, [class*="topic"], [class*="module"], [class*="section"], [class*="chapter"], [class*="card"], a[href*="challenge"], a[href*="course"]');
-            let topics = [];
-            topicNodes.forEach(node => {
-                const text = node.innerText?.trim();
-                const linkHref = node.getAttribute('href') || node.querySelector('a')?.getAttribute('href');
-                if (text && text.length > 2 && text.length < 150 && text !== rawTitle && !text.includes('CyLab') && !text.includes('Copyright')) {
-                    if (linkHref) {
-                        const fullTopicUrl = linkHref.startsWith('http') ? linkHref : window.location.origin + linkHref;
-                        const formatted = `[${text}](${fullTopicUrl})`;
-                        if (!topics.includes(formatted)) topics.push(formatted);
-                    } else {
-                        if (!topics.includes(text)) topics.push(text);
+            // Extract all clickable links inside the detail page (challenges, topics, modules, resources)
+            const allLinks = Array.from(doc.querySelectorAll('a[href]'));
+            let topicItems = [];
+            let seenTexts = new Set();
+
+            allLinks.forEach(link => {
+                const text = link.innerText?.trim();
+                const linkHref = link.getAttribute('href');
+                
+                // Exclude site-wide nav headers/footers
+                const isNavOrFooter = ['Dashboard', 'Resources', 'Learn', 'Classroom', 'Events', 'Learning Paths', 'Community', 'About', 'Get Started', 'Privacy', 'Terms', 'More'].includes(text);
+                
+                if (text && text.length > 2 && text.length < 150 && text !== rawTitle && !isNavOrFooter && !text.includes('CyLab') && !text.includes('Copyright')) {
+                    if (!seenTexts.has(text)) {
+                        seenTexts.add(text);
+                        let absoluteUrl = linkHref.startsWith('http') ? linkHref : window.location.origin + linkHref;
+                        topicItems.push(`[${text}](${absoluteUrl})`);
                     }
                 }
             });
 
+            // Fallback to topic headings if no specific links found
+            if (topicItems.length === 0) {
+                const topicNodes = doc.querySelectorAll('h2, h3, h4, [class*="topic"], [class*="module"], [class*="section"], [class*="card"]');
+                topicNodes.forEach(node => {
+                    const text = node.innerText?.trim();
+                    if (text && text.length > 2 && text.length < 150 && text !== rawTitle && !seenTexts.has(text) && !text.includes('CyLab')) {
+                        seenTexts.add(text);
+                        topicItems.push(text);
+                    }
+                });
+            }
+
             finalMarkdown += `## ${i + 1}. ${headerLink}\n`;
             if (description) finalMarkdown += `> ${description}\n\n`;
 
-            if (topics.length > 0) {
-                finalMarkdown += `### 📌 Topics / Modules:\n`;
-                topics.forEach((t, idx) => {
-                    finalMarkdown += `${idx + 1}. ${t}\n`;
+            if (topicItems.length > 0) {
+                finalMarkdown += `### 📌 Topics / Challenges / Links:\n`;
+                topicItems.forEach((item, idx) => {
+                    finalMarkdown += `${idx + 1}. ${item}\n`;
                 });
             } else {
                 const bodyPreview = doc.body.innerText.split('\n').filter(line => line.trim().length > 3).slice(0, 15).join('\n- ');
@@ -142,18 +158,18 @@
         }
     }
 
-    console.log("%c🎉 Successfully exported all Learning Paths & Topics with clickable links!", "color: #00ff00; font-weight: bold; font-size: 14px;");
+    console.log("%c🎉 Successfully exported all Learning Paths & Topics with FULL CLICKABLE LINKS!", "color: #00ff00; font-weight: bold; font-size: 14px;");
 
     const blob = new Blob([finalMarkdown], { type: 'text/markdown;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `CyLab_All_Learning_Paths_and_Topics_${new Date().toISOString().slice(0, 10)}.md`;
+    a.download = `CyLab_All_Learning_Paths_and_Topics_With_Links_${new Date().toISOString().slice(0, 10)}.md`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
 
     try {
         await navigator.clipboard.writeText(finalMarkdown);
-        console.log("📋 Exported Markdown copied to clipboard!");
+        console.log("📋 Exported Markdown with links copied to clipboard!");
     } catch (e) {}
 })();
