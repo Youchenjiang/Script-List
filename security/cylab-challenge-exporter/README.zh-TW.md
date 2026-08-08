@@ -4,7 +4,8 @@
 
 ## 功能特點
 
-- **瀏覽器 Session 授權導出器 (`export_challenges.js`)**：直接在瀏覽器 F12 Console 貼上執行，自動使用當前登入 Session 權限，完美繞過 Cloudflare 防護與 HTTP 403 阻擋。
+- **瀏覽器 Session 題目導出器 (`export_challenges.js`)**：直接在瀏覽器 F12 Console 貼上執行，自動使用當前登入 Session 權限，完美繞過 Cloudflare 防護與 HTTP 403 阻擋。
+- **Learning Paths & Topics 自動爬蟲 (`export_learning_paths.js`)**：利用同源 Popup 子視窗（成功繞過 `X-Frame-Options` 限制）自動遍歷所有 Learning Path 內頁，解析 React DOM 並匯出完整的 Markdown 階層清單 (`CyLab_Learning_Paths_and_Topics_YYYY-MM-DD.md`)。
 - **全自動分頁連線抓取**：自動發送分頁請求，一次性完整撈取全站數百題題目。
 - **雙重格式匯出**：同時產生原始 `JSON`（供程式分析）與帶有 UTF-8 BOM 的 `CSV` 檔案（可直接使用 Excel 開啟且中文絕不亂碼）。
 - **離線 Markdown 刷題清單產生器 (`process_challenges.py`)**：自動解析匯出的 JSON，按領域分類與難易度分組，生成帶有勾選框 (`[x]`/`[ ]`) 的進度統計清單。

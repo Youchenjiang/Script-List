@@ -4,7 +4,8 @@ A toolkit for exporting, analyzing, and generating progress checklists for all c
 
 ## Features
 
-- **Session-Authenticated Browser Exporter (`export_challenges.js`)**: Bypasses Cloudflare protection and authentication by running directly inside the browser F12 Console using your active session.
+- **Session-Authenticated Challenge Exporter (`export_challenges.js`)**: Bypasses Cloudflare protection and authentication by running directly inside the browser F12 Console using your active session.
+- **Learning Paths & Topics Crawler (`export_learning_paths.js`)**: Automatically navigates through all Learning Path detail pages via popup windows (bypassing `X-Frame-Options` headers), extracts rendered React DOM topics, and exports a structured Markdown overview (`CyLab_Learning_Paths_and_Topics_YYYY-MM-DD.md`).
 - **Automated Pagination & Bulk Fetch**: Automatically iterates through all challenge API pages to harvest complete challenge data.
 - **Dual Export Formats**: Exports raw `JSON` (for program analysis) and UTF-8 BOM `CSV` (ready to open directly in Microsoft Excel without encoding glitches).
 - **Offline Markdown Checklist Generator (`process_challenges.py`)**: Parses exported JSON files to generate a structured Markdown checklist grouped by category, showing completion status, points, and difficulty metrics.
