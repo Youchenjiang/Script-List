@@ -10,12 +10,11 @@
     "test": "node --test"
   },
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "discord.js": "^14.24.2",
     "dotenv": "^17.2.3",
-    "openai": "^7.4.0",
     "pg": "^8.23.0"
   }
 }

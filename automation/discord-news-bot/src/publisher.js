@@ -89,7 +89,7 @@ function createPublisher({
         rejected: 0,
         errors: 0,
         skipped: true,
-        reason: 'AI 篩選未啟用或缺少 OPENAI_API_KEY',
+        reason: 'AI 篩選未啟用或缺少 AI_BASE_URL、AI_API_KEY、AI_MODEL',
         ruleVersion: rule.version,
         at,
       };
@@ -103,13 +103,14 @@ function createPublisher({
     const evaluationCap = config.maxAiEvaluationsPerRun || 10;
 
     for (const article of eligible) {
-      let decision = await stateStore.getEvaluation(article.id, config.channelId, rule.version);
+      const evaluationId = `${aiFilter.evaluatorId}:${article.id}`;
+      let decision = await stateStore.getEvaluation(evaluationId, config.channelId, rule.version);
       if (!decision) {
         if (evaluated >= evaluationCap) continue;
         try {
           decision = await aiFilter.evaluate(article, rule);
           evaluated += 1;
-          await stateStore.saveEvaluation(article.id, config.channelId, rule.version, decision);
+          await stateStore.saveEvaluation(evaluationId, config.channelId, rule.version, decision);
         } catch (error) {
           evaluated += 1;
           errors += 1;
