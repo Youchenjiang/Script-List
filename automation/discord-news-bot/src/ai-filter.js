@@ -91,6 +91,27 @@ function parseDecisionContent(content) {
   }
 }
 
+function extractCompletionContent(message) {
+  if (typeof message?.content === 'string') return message.content;
+  if (!Array.isArray(message?.content)) return '';
+  return message.content
+    .filter((part) => part?.type === 'text' && typeof part.text === 'string')
+    .map((part) => part.text)
+    .join('\n');
+}
+
+function emptyCompletionError(payload) {
+  const choice = payload?.choices?.[0];
+  const details = [];
+  if (choice?.finish_reason) details.push(`finish_reason=${choice.finish_reason}`);
+  if (typeof choice?.message?.refusal === 'string' && choice.message.refusal.trim()) {
+    details.push(`refusal=${choice.message.refusal.trim()}`);
+  }
+  const preview = JSON.stringify(payload).replace(/\s+/g, ' ').slice(0, 500);
+  if (preview) details.push(`response=${preview}`);
+  return new Error(`AI endpoint returned no chat completion content${details.length ? `: ${details.join('; ')}` : ''}`);
+}
+
 function chatCompletionsUrl(baseUrl) {
   const normalized = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
   return new URL('chat/completions', normalized).toString();
@@ -114,7 +135,7 @@ async function requestCompletion(config, messages, fetchImpl) {
     body: JSON.stringify({
       model: config.aiModel,
       messages,
-      max_tokens: 300,
+      max_tokens: config.aiMaxOutputTokens || 800,
       response_format: {
         type: 'json_schema',
         json_schema: {
@@ -132,10 +153,8 @@ async function requestCompletion(config, messages, fetchImpl) {
     throw new Error(`AI endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
   }
   const payload = await response.json();
-  const content = payload?.choices?.[0]?.message?.content;
-  if (typeof content !== 'string' || !content.trim()) {
-    throw new Error('AI endpoint returned no chat completion content');
-  }
+  const content = extractCompletionContent(payload?.choices?.[0]?.message);
+  if (!content.trim()) throw emptyCompletionError(payload);
   const decision = parseDecisionContent(content);
   if (!validateDecision(decision)) {
     throw new Error('AI endpoint response did not match the required decision schema');
@@ -219,6 +238,7 @@ module.exports = {
   chatCompletionsUrl,
   DECISION_SCHEMA,
   FILTER_CONTRACT_VERSION,
+  extractCompletionContent,
   parseDecisionContent,
   validateDecision,
 };
