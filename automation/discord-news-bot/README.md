@@ -1,12 +1,18 @@
 # Discord 自動新聞推送 Bot
 
-定時抓取 The Hacker News，將最新資安新聞用 Discord Embed 推送到指定頻道。專案沿用 `Script-List/security/hacker-news-scraper` 的 Blogger JSON Feed 抓取方式，以及 `loss-found-app-bot` 的 `discord.js` Bot／slash command 架構。
+定時抓取 The Hacker News，由 AI 依 Discord 頻道中設定的規則篩選，再將符合條件的資安新聞用 Discord Embed 推送到指定頻道。專案沿用 `Script-List/security/hacker-news-scraper` 的 Blogger JSON Feed 抓取方式，以及 `loss-found-app-bot` 的 `discord.js` Bot／slash command 架構。
+
+互動式規則設定的使用流程、欄位與判斷契約請見 [Discord AI 新聞規則設定規格](./docs/ai-rule-setup-spec.md)。
 
 ## 功能
 
 - 預設每 30 分鐘抓取一次新聞
-- 只推送指定時間範圍內的新文章，並以 `data/state.json` 永久去重
+- 由 AI 根據頻道規則判斷，只推送符合條件的文章
+- 只處理指定時間範圍內的新文章，並永久保存推送及判斷紀錄
 - 每輪限制推送數量，避免第一次啟動洗版
+- `/news_rule setup`：由 Bot 列出選項並逐步設定篩選規則
+- `/news_rule show`：查看目前規則
+- `/news_rule clear`：清除規則並停止推送
 - `/news_now`：具「管理伺服器」權限者可立即檢查
 - `/news_status`：查看上次檢查與推送數量
 - `/ping`：檢查 Bot 延遲
@@ -15,7 +21,7 @@
 
 ## 安裝
 
-需求：Node.js 18 以上。
+需求：Node.js 22 以上（OpenAI SDK 需求）。
 
 ```bash
 npm install
@@ -31,6 +37,7 @@ DISCORD_TOKEN=機器人權杖
 DISCORD_CLIENT_ID=Application_ID
 DISCORD_GUILD_ID=測試伺服器_ID
 DISCORD_CHANNEL_ID=新聞頻道_ID
+OPENAI_API_KEY=OpenAI_API_Key
 ```
 
 伺服器、頻道 ID 可在 Discord 開啟「開發者模式」後，以右鍵複製。
@@ -46,9 +53,19 @@ npm start
 
 若不希望啟動時立刻抓取，將 `PUSH_ON_START=false`。其他設定及預設值可參考 [.env.example](./.env.example)。
 
+啟動後，具「管理伺服器」權限者需在指定新聞頻道執行：
+
+```text
+/news_rule setup
+```
+
+Bot 會先顯示所有設定面向，使用者可直接採用建議設定，或依序選擇主題、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。
+
+沒有規則、缺少 `OPENAI_API_KEY` 或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。`OPENAI_MODEL` 預設為 `gpt-5.4-nano`；每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇，OpenAI API 使用量會另外計費。
+
 ## PostgreSQL 與雲端部署
 
-設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state` 資料表，並將已推送文章與上次檢查時間保存於 PostgreSQL。未設定時則使用本機的 `data/state.json`。
+設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations` 資料表，保存已推送文章、頻道規則及 AI 判斷快取。未設定時則使用本機 JSON 檔案。
 
 第一次從既有本機 Bot 搬到雲端時，建議設定：
 
@@ -65,7 +82,9 @@ PUBLISH_INITIAL_ARTICLES=false
 
 1. 從 Blogger JSON Feed 讀取文章標題、摘要、日期、分類與連結。
 2. 僅保留 `LOOKBACK_HOURS` 內且未出現在狀態檔的文章。
-3. 按發布時間由舊至新推送，成功送出一篇就立刻寫入 PostgreSQL 或 JSON 狀態，降低中途當機造成重複推送的機率。
-4. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
+3. 使用目前頻道規則與文章資料呼叫 AI，取得固定格式的符合／拒絕判斷。
+4. AI 結果會依「文章、頻道、規則版本」快取；更新規則會增加版本，使近期文章可按新規則重新判斷。
+5. 只推送符合規則的文章，成功送出一篇就立刻保存狀態，降低中途當機造成重複推送的機率。
+6. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
 
 `NEWS_FEED_URL` 目前預期為 Blogger JSON Feed 格式；預設值已指向 The Hacker News。
