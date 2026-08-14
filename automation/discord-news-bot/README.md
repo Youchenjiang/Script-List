@@ -67,7 +67,7 @@ npm start
 
 Bot 會先顯示所有設定面向，使用者可直接採用建議設定，或依序選擇主題、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。
 
-沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇。
+沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens，避免推理型模型在產生 JSON 前耗盡輸出額度。
 
 Bot 使用通用的 OpenAI-compatible `chat/completions` 協定，不綁定特定供應商。更換服務時只需修改 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。所選模型必須支援 `response_format` 的 JSON Schema structured outputs，例如：
 
