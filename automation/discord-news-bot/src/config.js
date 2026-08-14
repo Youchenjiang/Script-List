@@ -35,6 +35,11 @@ function loadConfig() {
     maxArticlesPerRun: readPositiveInteger('MAX_ARTICLES_PER_RUN', 5),
     pushOnStart: readBoolean('PUSH_ON_START', true),
     publishInitialArticles: readBoolean('PUBLISH_INITIAL_ARTICLES', true),
+    aiFilteringEnabled: readBoolean('AI_FILTER_ENABLED', true),
+    maxAiEvaluationsPerRun: readPositiveInteger('MAX_AI_EVALUATIONS_PER_RUN', 10),
+    openaiApiKey: process.env.OPENAI_API_KEY?.trim() || '',
+    openaiBaseUrl: process.env.OPENAI_BASE_URL?.trim() || '',
+    openaiModel: process.env.OPENAI_MODEL?.trim() || 'gpt-5.4-nano',
     feedUrl: process.env.NEWS_FEED_URL?.trim()
       || 'https://thehackernews.com/feeds/posts/default?alt=json&redirect=false&max-results=50',
     sourceName: process.env.NEWS_SOURCE_NAME?.trim() || 'The Hacker News',
