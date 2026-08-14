@@ -210,3 +210,41 @@ test('publisher enforces confidence, evidence, topic, and exclusion gates', () =
   assert.equal(passesDecision({ ...valid, severity: 'medium' }, rule), false);
   assert.equal(passesDecision({ ...valid, regionRelevance: 'other' }, rule), false);
 });
+
+test('publisher checks the AI provider without reading or writing state', async () => {
+  let checks = 0;
+  const stateStore = {
+    kind: 'test',
+    load: async () => { throw new Error('state should not be loaded'); },
+    save: async () => { throw new Error('state should not be saved'); },
+    close: async () => {},
+  };
+  const publisher = createPublisher({
+    channel: { send: async () => {} },
+    config: {
+      aiBaseUrl: 'https://provider.example/v1',
+      aiModel: 'provider-model',
+    },
+    stateStore,
+    aiFilter: {
+      evaluatorId: 'test-evaluator',
+      async check() {
+        checks += 1;
+        return {
+          httpStatus: 200,
+          decision: { reason: 'Provider response' },
+        };
+      },
+    },
+  });
+
+  const result = await publisher.checkAiProvider();
+  assert.equal(checks, 1);
+  assert.equal(result.ok, true);
+  assert.equal(result.httpStatus, 200);
+  assert.equal(result.providerMessage, 'Provider response');
+  assert.equal(result.endpoint, 'provider.example');
+  assert.equal(result.model, 'provider-model');
+  assert.equal(result.evaluatorId, 'test-evaluator');
+  assert.ok(result.latencyMs >= 0);
+});

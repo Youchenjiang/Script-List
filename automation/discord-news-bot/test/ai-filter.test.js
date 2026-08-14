@@ -76,6 +76,79 @@ test('AI filter fingerprint changes with endpoint or model', () => {
   assert.notEqual(first.evaluatorId, third.evaluatorId);
 });
 
+test('AI filter provider check returns HTTP status and provider message', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          choices: [{
+            message: {
+              content: JSON.stringify({
+                matches: true,
+                confidence: 0.95,
+                severity: 'critical',
+                regionRelevance: 'global_major',
+                reason: 'Synthetic check passed',
+                matchedCriteria: ['critical_vulnerability'],
+                matchedExclusions: [],
+                evidence: ['The summary states active exploitation'],
+              }),
+            },
+          }],
+        };
+      },
+    };
+  });
+
+  const result = await filter.check();
+  assert.equal(calls, 1);
+  assert.equal(result.httpStatus, 200);
+  assert.equal(result.decision.reason, 'Synthetic check passed');
+});
+
+test('AI filter rejects provider output that violates the decision schema', async () => {
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        choices: [{ message: { content: JSON.stringify({ matches: 'yes' }) } }],
+      };
+    },
+  }));
+
+  await assert.rejects(filter.check(), /required decision schema/);
+});
+
+test('AI filter preserves provider HTTP errors and response messages', async () => {
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: false,
+    status: 429,
+    text: async () => '{"error":"rate limit reached"}',
+  }));
+
+  await assert.rejects(filter.check(), /HTTP 429.*rate limit reached/);
+});
+
 test('AI filter is unavailable when a required generic setting is missing', () => {
   const complete = {
     aiFilteringEnabled: true,
