@@ -48,6 +48,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.equal(request.url, 'https://provider.example/v1/chat/completions');
   assert.equal(request.options.headers.authorization, 'Bearer test-key');
   assert.equal(request.body.model, 'provider-model');
+  assert.equal(request.body.max_tokens, 800);
   assert.equal(request.body.response_format.type, 'json_schema');
   assert.equal(request.body.response_format.json_schema.strict, true);
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
@@ -161,6 +162,57 @@ test('AI filter preserves invalid model content in parse errors', async () => {
   }));
 
   await assert.rejects(filter.check(), /invalid JSON content: I cannot produce/);
+});
+
+test('AI filter accepts text content parts from compatible endpoints', async () => {
+  const decision = {
+    matches: false,
+    confidence: 0.8,
+    severity: 'unknown',
+    regionRelevance: 'unknown',
+    reason: 'No match',
+    matchedCriteria: [],
+    matchedExclusions: [],
+    evidence: ['Synthetic evidence'],
+  };
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        choices: [{ message: { content: [{ type: 'text', text: JSON.stringify(decision) }] } }],
+      };
+    },
+  }));
+
+  assert.deepEqual((await filter.check()).decision, decision);
+});
+
+test('AI filter preserves finish reason and payload when completion content is empty', async () => {
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        choices: [{
+          finish_reason: 'length',
+          message: { content: '', reasoning_content: 'Still reasoning' },
+        }],
+      };
+    },
+  }));
+
+  await assert.rejects(filter.check(), /finish_reason=length.*reasoning_content/);
 });
 
 test('AI filter rejects provider output that violates the decision schema', async () => {
