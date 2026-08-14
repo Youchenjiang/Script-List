@@ -115,6 +115,54 @@ test('AI filter provider check returns HTTP status and provider message', async 
   assert.equal(result.decision.reason, 'Synthetic check passed');
 });
 
+test('AI filter accepts a complete JSON decision wrapped in a Markdown fence', async () => {
+  const decision = {
+    matches: true,
+    confidence: 0.95,
+    severity: 'critical',
+    regionRelevance: 'global_major',
+    reason: 'Fenced response',
+    matchedCriteria: ['critical_vulnerability'],
+    matchedExclusions: [],
+    evidence: ['Synthetic evidence'],
+  };
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        choices: [{ message: { content: `\`\`\`json\n${JSON.stringify(decision)}\n\`\`\`` } }],
+      };
+    },
+  }));
+
+  assert.deepEqual((await filter.check()).decision, decision);
+});
+
+test('AI filter preserves invalid model content in parse errors', async () => {
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        choices: [{ message: { content: 'I cannot produce the requested JSON.' } }],
+      };
+    },
+  }));
+
+  await assert.rejects(filter.check(), /invalid JSON content: I cannot produce/);
+});
+
 test('AI filter rejects provider output that violates the decision schema', async () => {
   const filter = createAiFilter({
     aiFilteringEnabled: true,
