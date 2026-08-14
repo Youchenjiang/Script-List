@@ -14,6 +14,7 @@
 - `/news_rule show`：查看目前規則
 - `/news_rule clear`：清除規則並停止推送
 - `/news_now`：具「管理伺服器」權限者可立即檢查
+- `/news_ai_check`：實際測試 AI 供應商連線與結構化輸出
 - `/news_status`：查看上次檢查與推送數量
 - `/ping`：檢查 Bot 延遲
 - Feed、頻道、週期、回溯時間及單輪上限均可由環境變數設定
@@ -50,8 +51,11 @@ AI_MODEL=供應商的模型_ID
 
 ```bash
 npm run deploy
+npm run deploy:branding
 npm start
 ```
+
+`npm run deploy:branding` 會將 Bot 顯示名稱更新為 `Cyber News Sentinel`，並套用專案內的資安新聞守望者頭像。Discord 對 Bot 使用者名稱變更有較嚴格的頻率限制，不應在每次服務啟動時執行。
 
 若不希望啟動時立刻抓取，將 `PUSH_ON_START=false`。其他設定及預設值可參考 [.env.example](./.env.example)。
 
@@ -80,6 +84,8 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 ```
 
 實際免費額度、模型 ID 與 structured outputs 支援會隨供應商調整，應以供應商文件為準。
+
+部署後，具「管理伺服器」權限者可執行 `/news_ai_check`。Bot 會送出一筆合成新聞測試請求，確認端點、API key、模型及 structured output 契約皆可使用，並顯示供應商回傳的 HTTP status 與訊息。結果只對執行者顯示，不會顯示 API key，也不會讀寫新聞狀態或推送文章；測試仍可能計入供應商用量。
 
 ## PostgreSQL 與雲端部署
 
