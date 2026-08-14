@@ -50,3 +50,32 @@ test('first run does not leak capped backlog into later polling cycles', async (
   assert.equal((await publisher.run()).published, 0);
   assert.equal(sentMessages.length, 2);
 });
+
+test('publisher can mark initial articles as seen without sending them', async () => {
+  const sentMessages = [];
+  const savedStates = [];
+  const stateStore = {
+    kind: 'test',
+    load: async () => ({ sentIds: [], lastCheckedAt: null }),
+    save: async (state) => savedStates.push(state),
+    close: async () => {},
+  };
+  const article = {
+    id: 'existing', url: 'https://example.com/existing', title: 'Existing', summary: '',
+    published: new Date('2026-08-14T08:00:00Z'), author: '', categories: [], imageUrl: '',
+  };
+  const publisher = createPublisher({
+    channel: { send: async (message) => sentMessages.push(message) },
+    config: {
+      feedUrl: 'unused', sourceName: 'Test', lookbackMs: 86_400_000,
+      maxArticlesPerRun: 5, publishInitialArticles: false,
+    },
+    fetchNewsImpl: async () => [article],
+    now: () => new Date('2026-08-14T12:00:00Z'),
+    stateStore,
+  });
+
+  assert.equal((await publisher.run()).published, 0);
+  assert.equal(sentMessages.length, 0);
+  assert.deepEqual(savedStates.at(-1).sentIds, ['existing']);
+});
