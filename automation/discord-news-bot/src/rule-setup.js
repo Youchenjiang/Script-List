@@ -3,6 +3,7 @@ const {
   ActionRowBuilder,
   ButtonBuilder,
   ButtonStyle,
+  MessageFlags,
   ModalBuilder,
   StringSelectMenuBuilder,
   StringSelectMenuOptionBuilder,
@@ -215,7 +216,7 @@ function createRuleSetupManager({ channelId, saveRule }) {
     const content = resolved?.forbidden
       ? '這個設定流程屬於另一位使用者。'
       : '設定流程已逾時，請重新執行 `/news_rule setup`。';
-    await interaction.reply({ content, ephemeral: true });
+    await interaction.reply({ content, flags: MessageFlags.Ephemeral });
   }
 
   return {
@@ -223,12 +224,12 @@ function createRuleSetupManager({ channelId, saveRule }) {
       if (interaction.channelId !== channelId) {
         await interaction.reply({
           content: `請在指定的新聞頻道 <#${channelId}> 設定規則。`,
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
       const session = createSession(interaction);
-      await interaction.reply({ ...overview(session), ephemeral: true });
+      await interaction.reply({ ...overview(session), flags: MessageFlags.Ephemeral });
     },
 
     async handle(interaction) {

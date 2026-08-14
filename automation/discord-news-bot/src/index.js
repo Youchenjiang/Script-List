@@ -4,6 +4,7 @@ const {
   Client,
   Events,
   GatewayIntentBits,
+  MessageFlags,
   PermissionFlagsBits,
 } = require('discord.js');
 const { loadConfig } = require('./config');
@@ -67,7 +68,7 @@ async function main() {
       } catch (error) {
         console.error(`[Rule setup] ${error.stack || error.message}`);
         if (!interaction.replied && !interaction.deferred) {
-          await interaction.reply({ content: `規則設定失敗：${error.message}`, ephemeral: true });
+          await interaction.reply({ content: `規則設定失敗：${error.message}`, flags: MessageFlags.Ephemeral });
         }
       }
       return;
@@ -75,7 +76,7 @@ async function main() {
     if (!interaction.isChatInputCommand()) return;
 
     if (interaction.commandName === 'ping') {
-      await interaction.reply({ content: `Pong! ${client.ws.ping}ms`, ephemeral: true });
+      await interaction.reply({ content: `Pong! ${client.ws.ping}ms`, flags: MessageFlags.Ephemeral });
       return;
     }
 
@@ -90,24 +91,24 @@ async function main() {
           latest.reason ? `狀態：${latest.reason}` : null,
         ].filter(Boolean).join('\n')
         : '尚未完成任何一次新聞檢查。';
-      await interaction.reply({ content: text, ephemeral: true });
+      await interaction.reply({ content: text, flags: MessageFlags.Ephemeral });
       return;
     }
 
     if (interaction.commandName === 'news_rule') {
       if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-        await interaction.reply({ content: '你需要「管理伺服器」權限。', ephemeral: true });
+        await interaction.reply({ content: '你需要「管理伺服器」權限。', flags: MessageFlags.Ephemeral });
         return;
       }
       if (interaction.channelId !== config.channelId) {
         await interaction.reply({
           content: `請在指定的新聞頻道 <#${config.channelId}> 設定規則。`,
-          ephemeral: true,
+          flags: MessageFlags.Ephemeral,
         });
         return;
       }
       if (!publisher) {
-        await interaction.reply({ content: 'Bot 尚未完成啟動，請稍後再試。', ephemeral: true });
+        await interaction.reply({ content: 'Bot 尚未完成啟動，請稍後再試。', flags: MessageFlags.Ephemeral });
         return;
       }
 
@@ -117,7 +118,7 @@ async function main() {
         return;
       }
 
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         if (action === 'show') {
           const rule = await publisher.getFilterRule();
@@ -139,15 +140,15 @@ async function main() {
 
     if (interaction.commandName === 'news_ai_check') {
       if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-        await interaction.reply({ content: '你需要「管理伺服器」權限。', ephemeral: true });
+        await interaction.reply({ content: '你需要「管理伺服器」權限。', flags: MessageFlags.Ephemeral });
         return;
       }
       if (!publisher) {
-        await interaction.reply({ content: 'Bot 尚未準備完成，請稍後再試。', ephemeral: true });
+        await interaction.reply({ content: 'Bot 尚未準備完成，請稍後再試。', flags: MessageFlags.Ephemeral });
         return;
       }
 
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         const result = await publisher.checkAiProvider();
         if (!result.ok) {
@@ -177,14 +178,14 @@ async function main() {
 
     if (interaction.commandName === 'news_now') {
       if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-        await interaction.reply({ content: '你需要「管理伺服器」權限。', ephemeral: true });
+        await interaction.reply({ content: '你需要「管理伺服器」權限。', flags: MessageFlags.Ephemeral });
         return;
       }
       if (!publisher) {
-        await interaction.reply({ content: 'Bot 尚未完成啟動，請稍後再試。', ephemeral: true });
+        await interaction.reply({ content: 'Bot 尚未完成啟動，請稍後再試。', flags: MessageFlags.Ephemeral });
         return;
       }
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       try {
         const result = await runPublisher('command');
         await interaction.editReply(result.skipped
