@@ -34,9 +34,11 @@ function loadConfig() {
     lookbackMs: readPositiveInteger('LOOKBACK_HOURS', 48) * 60 * 60_000,
     maxArticlesPerRun: readPositiveInteger('MAX_ARTICLES_PER_RUN', 5),
     pushOnStart: readBoolean('PUSH_ON_START', true),
+    publishInitialArticles: readBoolean('PUBLISH_INITIAL_ARTICLES', true),
     feedUrl: process.env.NEWS_FEED_URL?.trim()
       || 'https://thehackernews.com/feeds/posts/default?alt=json&redirect=false&max-results=50',
     sourceName: process.env.NEWS_SOURCE_NAME?.trim() || 'The Hacker News',
+    databaseUrl: process.env.DATABASE_URL?.trim() || '',
     statePath: path.join(__dirname, '..', 'data', 'state.json'),
   };
 }

@@ -1,6 +1,6 @@
 const { EmbedBuilder } = require('discord.js');
 const { fetchNews } = require('./news-feed');
-const { loadState, saveState } = require('./state-store');
+const { createStateStore } = require('./state-store');
 
 function createNewsEmbed(article, sourceName) {
   const embed = new EmbedBuilder()
@@ -19,7 +19,13 @@ function createNewsEmbed(article, sourceName) {
   return embed;
 }
 
-function createPublisher({ channel, config, fetchNewsImpl = fetchNews, now = () => new Date() }) {
+function createPublisher({
+  channel,
+  config,
+  fetchNewsImpl = fetchNews,
+  now = () => new Date(),
+  stateStore = createStateStore(config),
+}) {
   let running = false;
   let latestResult = null;
 
@@ -28,7 +34,7 @@ function createPublisher({ channel, config, fetchNewsImpl = fetchNews, now = () 
     running = true;
 
     try {
-      const state = await loadState(config.statePath);
+      const state = await stateStore.load();
       const articles = await fetchNewsImpl(config.feedUrl);
       const cutoff = now().getTime() - config.lookbackMs;
       const sent = new Set(state.sentIds);
@@ -36,15 +42,17 @@ function createPublisher({ channel, config, fetchNewsImpl = fetchNews, now = () 
         .filter((article) => force || article.published.getTime() >= cutoff)
         .filter((article) => !sent.has(article.id))
         .sort((a, b) => a.published - b.published);
-      const pending = eligible.slice(-config.maxArticlesPerRun);
       const isFirstRun = !state.lastCheckedAt;
+      const pending = isFirstRun && config.publishInitialArticles === false
+        ? []
+        : eligible.slice(-config.maxArticlesPerRun);
 
       let published = 0;
       for (const article of pending) {
         await channel.send({ embeds: [createNewsEmbed(article, config.sourceName)] });
         sent.add(article.id);
         published += 1;
-        await saveState(config.statePath, {
+        await stateStore.save({
           sentIds: [...sent],
           lastCheckedAt: state.lastCheckedAt,
         });
@@ -56,7 +64,7 @@ function createPublisher({ channel, config, fetchNewsImpl = fetchNews, now = () 
       if (isFirstRun) {
         for (const article of eligible) sent.add(article.id);
       }
-      await saveState(config.statePath, {
+      await stateStore.save({
         sentIds: [...sent],
         lastCheckedAt: now().toISOString(),
       });
@@ -68,7 +76,11 @@ function createPublisher({ channel, config, fetchNewsImpl = fetchNews, now = () 
     }
   }
 
-  return { run, getStatus: () => ({ running, latestResult }) };
+  return {
+    run,
+    close: () => stateStore.close(),
+    getStatus: () => ({ running, latestResult, stateStore: stateStore.kind }),
+  };
 }
 
 module.exports = { createNewsEmbed, createPublisher };

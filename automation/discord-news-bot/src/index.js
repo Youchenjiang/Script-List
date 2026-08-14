@@ -22,6 +22,7 @@ async function main() {
       }
 
       publisher = createPublisher({ channel, config });
+      console.log(`[Bot] State store: ${config.databaseUrl ? 'PostgreSQL' : 'local file'}`);
       if (config.pushOnStart) await runPublisher('startup').catch(() => {});
       setInterval(() => {
         void runPublisher('schedule').catch(() => {});
@@ -80,8 +81,17 @@ async function main() {
     }
   });
 
-  process.once('SIGINT', () => client.destroy());
-  process.once('SIGTERM', () => client.destroy());
+  let shuttingDown = false;
+  async function shutdown(signal) {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`[Bot] Received ${signal}, shutting down`);
+    client.destroy();
+    await publisher?.close();
+  }
+
+  process.once('SIGINT', () => void shutdown('SIGINT'));
+  process.once('SIGTERM', () => void shutdown('SIGTERM'));
   await client.login(config.token);
 }
 
