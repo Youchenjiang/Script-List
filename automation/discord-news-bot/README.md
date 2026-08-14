@@ -21,7 +21,7 @@
 
 ## 安裝
 
-需求：Node.js 22 以上（OpenAI SDK 需求）。
+需求：Node.js 18 以上。
 
 ```bash
 npm install
@@ -37,7 +37,9 @@ DISCORD_TOKEN=機器人權杖
 DISCORD_CLIENT_ID=Application_ID
 DISCORD_GUILD_ID=測試伺服器_ID
 DISCORD_CHANNEL_ID=新聞頻道_ID
-OPENAI_API_KEY=OpenAI_API_Key
+AI_BASE_URL=供應商的_OpenAI_相容端點
+AI_API_KEY=供應商的_API_Key
+AI_MODEL=供應商的模型_ID
 ```
 
 伺服器、頻道 ID 可在 Discord 開啟「開發者模式」後，以右鍵複製。
@@ -61,7 +63,23 @@ npm start
 
 Bot 會先顯示所有設定面向，使用者可直接採用建議設定，或依序選擇主題、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。
 
-沒有規則、缺少 `OPENAI_API_KEY` 或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。`OPENAI_MODEL` 預設為 `gpt-5.4-nano`；每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇，OpenAI API 使用量會另外計費。
+沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇。
+
+Bot 使用通用的 OpenAI-compatible `chat/completions` 協定，不綁定特定供應商。更換服務時只需修改 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。所選模型必須支援 `response_format` 的 JSON Schema structured outputs，例如：
+
+```dotenv
+# Google Gemini
+AI_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai/
+AI_MODEL=gemini-3.5-flash-lite
+
+# Groq
+AI_BASE_URL=https://api.groq.com/openai/v1/
+
+# OpenRouter
+AI_BASE_URL=https://openrouter.ai/api/v1/
+```
+
+實際免費額度、模型 ID 與 structured outputs 支援會隨供應商調整，應以供應商文件為準。
 
 ## PostgreSQL 與雲端部署
 
@@ -83,7 +101,7 @@ PUBLISH_INITIAL_ARTICLES=false
 1. 從 Blogger JSON Feed 讀取文章標題、摘要、日期、分類與連結。
 2. 僅保留 `LOOKBACK_HOURS` 內且未出現在狀態檔的文章。
 3. 使用目前頻道規則與文章資料呼叫 AI，取得固定格式的符合／拒絕判斷。
-4. AI 結果會依「文章、頻道、規則版本」快取；更新規則會增加版本，使近期文章可按新規則重新判斷。
+4. AI 結果會依「文章、頻道、規則版本、Base URL、模型、判斷契約版本」快取；更新規則或切換供應商／模型後會重新判斷。
 5. 只推送符合規則的文章，成功送出一篇就立刻保存狀態，降低中途當機造成重複推送的機率。
 6. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
 
