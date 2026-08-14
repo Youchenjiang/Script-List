@@ -10,6 +10,10 @@ function buildCommands() {
       .setDescription('立即執行一次新聞檢查')
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
     new SlashCommandBuilder()
+      .setName('news_ai_check')
+      .setDescription('測試 AI 供應商連線與結構化輸出')
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
+    new SlashCommandBuilder()
       .setName('news_rule')
       .setDescription('管理這個新聞頻道的 AI 篩選規則')
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)

@@ -137,6 +137,44 @@ async function main() {
       return;
     }
 
+    if (interaction.commandName === 'news_ai_check') {
+      if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+        await interaction.reply({ content: '你需要「管理伺服器」權限。', ephemeral: true });
+        return;
+      }
+      if (!publisher) {
+        await interaction.reply({ content: 'Bot 尚未準備完成，請稍後再試。', ephemeral: true });
+        return;
+      }
+
+      await interaction.deferReply({ ephemeral: true });
+      try {
+        const result = await publisher.checkAiProvider();
+        if (!result.ok) {
+          await interaction.editReply(`AI 供應商檢查未執行：${result.reason}`);
+          return;
+        }
+        await interaction.editReply({
+          content: [
+            'AI 供應商連線成功',
+            `HTTP：${result.httpStatus}`,
+            `端點：${result.endpoint}`,
+            `模型：${result.model}`,
+            'Structured Output：通過',
+            `供應商訊息：${result.providerMessage}`,
+            `耗時：${result.latencyMs} ms`,
+          ].join('\n'),
+          allowedMentions: { parse: [] },
+        });
+      } catch (error) {
+        await interaction.editReply({
+          content: `AI 供應商檢查失敗：${error.message}`,
+          allowedMentions: { parse: [] },
+        });
+      }
+      return;
+    }
+
     if (interaction.commandName === 'news_now') {
       if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
         await interaction.reply({ content: '你需要「管理伺服器」權限。', ephemeral: true });

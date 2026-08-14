@@ -1,5 +1,5 @@
 const { createHash } = require('node:crypto');
-const { toAiRule } = require('./rule-options');
+const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
 const FILTER_CONTRACT_VERSION = 'news-filter-v1';
 const DECISION_SCHEMA = {
@@ -44,6 +44,39 @@ const DECISION_SCHEMA = {
   ],
   additionalProperties: false,
 };
+
+const DECISION_KEYS = Object.freeze([...DECISION_SCHEMA.required].sort());
+const SEVERITIES = new Set(DECISION_SCHEMA.properties.severity.enum);
+const REGIONS = new Set(DECISION_SCHEMA.properties.regionRelevance.enum);
+const PROVIDER_CHECK_ARTICLE = Object.freeze({
+  id: 'provider-health-check',
+  title: 'Critical remote code execution vulnerability actively exploited',
+  summary: 'A critical remote code execution vulnerability is actively exploited in the wild.',
+  categories: ['Vulnerability'],
+  url: 'https://example.invalid/provider-health-check',
+  published: new Date('2026-01-01T00:00:00Z'),
+});
+
+function isStringArray(value) {
+  return Array.isArray(value)
+    && value.length <= 5
+    && value.every((item) => typeof item === 'string');
+}
+
+function validateDecision(decision) {
+  if (!decision || typeof decision !== 'object' || Array.isArray(decision)) return false;
+  if (JSON.stringify(Object.keys(decision).sort()) !== JSON.stringify(DECISION_KEYS)) return false;
+  return typeof decision.matches === 'boolean'
+    && Number.isFinite(decision.confidence)
+    && decision.confidence >= 0
+    && decision.confidence <= 1
+    && SEVERITIES.has(decision.severity)
+    && REGIONS.has(decision.regionRelevance)
+    && typeof decision.reason === 'string'
+    && isStringArray(decision.matchedCriteria)
+    && isStringArray(decision.matchedExclusions)
+    && isStringArray(decision.evidence);
+}
 
 function chatCompletionsUrl(baseUrl) {
   const normalized = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
@@ -90,7 +123,16 @@ async function requestCompletion(config, messages, fetchImpl) {
   if (typeof content !== 'string' || !content.trim()) {
     throw new Error('AI endpoint returned no chat completion content');
   }
-  return JSON.parse(content);
+  let decision;
+  try {
+    decision = JSON.parse(content);
+  } catch {
+    throw new Error('AI endpoint returned invalid JSON content');
+  }
+  if (!validateDecision(decision)) {
+    throw new Error('AI endpoint response did not match the required decision schema');
+  }
+  return { decision, httpStatus: response.status };
 }
 
 function createAiFilter(config, fetchImpl = fetch) {
@@ -99,10 +141,8 @@ function createAiFilter(config, fetchImpl = fetch) {
       || !config.aiBaseUrl
       || !config.aiModel) return null;
 
-  return {
-    evaluatorId: evaluatorId(config),
-    async evaluate(article, rule) {
-      return requestCompletion(config, [
+  async function evaluate(article, rule) {
+    const result = await requestCompletion(config, [
         {
           role: 'system',
           content: [
@@ -128,8 +168,37 @@ function createAiFilter(config, fetchImpl = fetch) {
             },
           }),
         },
-      ], fetchImpl);
-    },
+    ], fetchImpl);
+    return result.decision;
+  }
+
+  async function check() {
+    const result = await requestCompletion(config, [
+      {
+        role: 'system',
+        content: 'Evaluate the synthetic article using the supplied rule and return the required JSON decision.',
+      },
+      {
+        role: 'user',
+        content: JSON.stringify({
+          filterRule: toAiRule(cloneDefaultRule()),
+          article: {
+            title: PROVIDER_CHECK_ARTICLE.title,
+            summary: PROVIDER_CHECK_ARTICLE.summary,
+            categories: PROVIDER_CHECK_ARTICLE.categories,
+            sourceUrl: PROVIDER_CHECK_ARTICLE.url,
+            publishedAt: PROVIDER_CHECK_ARTICLE.published.toISOString(),
+          },
+        }),
+      },
+    ], fetchImpl);
+    return result;
+  }
+
+  return {
+    evaluatorId: evaluatorId(config),
+    evaluate,
+    check,
   };
 }
 
@@ -138,4 +207,5 @@ module.exports = {
   chatCompletionsUrl,
   DECISION_SCHEMA,
   FILTER_CONTRACT_VERSION,
+  validateDecision,
 };

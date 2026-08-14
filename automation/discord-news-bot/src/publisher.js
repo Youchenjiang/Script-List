@@ -204,8 +204,30 @@ function createPublisher({
     }
   }
 
+  async function checkAiProvider() {
+    if (!aiFilter) {
+      return {
+        ok: false,
+        reason: 'AI 篩選未啟用，或缺少 AI_BASE_URL、AI_API_KEY、AI_MODEL',
+      };
+    }
+
+    const startedAt = Date.now();
+    const checkResult = await aiFilter.check();
+    return {
+      ok: true,
+      httpStatus: checkResult.httpStatus,
+      providerMessage: checkResult.decision.reason.slice(0, 500) || '(空白)',
+      endpoint: new URL(config.aiBaseUrl).host,
+      model: config.aiModel,
+      latencyMs: Date.now() - startedAt,
+      evaluatorId: aiFilter.evaluatorId,
+    };
+  }
+
   return {
     run,
+    checkAiProvider,
     getFilterRule: () => stateStore.getFilterRule(config.channelId),
     setFilterRule: (ruleConfig, updatedBy) => (
       stateStore.setFilterRule(config.channelId, ruleConfig, updatedBy)
