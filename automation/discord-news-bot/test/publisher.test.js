@@ -116,13 +116,15 @@ test('AI filtering only publishes matching articles and reuses cached decisions'
       maxArticlesPerRun: 5,
       maxAiEvaluationsPerRun: 10,
       aiFilteringEnabled: true,
-      openaiApiKey: 'test-key',
-      openaiModel: 'test-model',
+      aiApiKey: 'test-key',
+      aiBaseUrl: 'https://provider.example/v1',
+      aiModel: 'test-model',
     },
     fetchNewsImpl: async () => articles,
     now: () => new Date('2026-08-14T12:00:00Z'),
     stateStore,
     aiFilter: {
+      evaluatorId: 'test-evaluator',
       async evaluate(article) {
         evaluations += 1;
         return {
@@ -169,13 +171,17 @@ test('AI filtering fails closed when no channel rule exists', async () => {
       lookbackMs: 86_400_000,
       maxArticlesPerRun: 5,
       aiFilteringEnabled: true,
-      openaiApiKey: 'test-key',
-      openaiModel: 'test-model',
+      aiApiKey: 'test-key',
+      aiBaseUrl: 'https://provider.example/v1',
+      aiModel: 'test-model',
     },
     fetchNewsImpl: async () => [],
     now: () => new Date('2026-08-14T12:00:00Z'),
     stateStore,
-    aiFilter: { evaluate: async () => { throw new Error('should not run'); } },
+    aiFilter: {
+      evaluatorId: 'test-evaluator',
+      evaluate: async () => { throw new Error('should not run'); },
+    },
   });
 
   const result = await publisher.run();
