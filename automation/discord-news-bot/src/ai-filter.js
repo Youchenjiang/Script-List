@@ -48,6 +48,7 @@ const DECISION_SCHEMA = {
 const DECISION_KEYS = Object.freeze([...DECISION_SCHEMA.required].sort());
 const SEVERITIES = new Set(DECISION_SCHEMA.properties.severity.enum);
 const REGIONS = new Set(DECISION_SCHEMA.properties.regionRelevance.enum);
+const JSON_ONLY_INSTRUCTION = '只輸出符合指定 schema 的 JSON；不得加入 Markdown code fence 或任何說明文字。';
 const PROVIDER_CHECK_ARTICLE = Object.freeze({
   id: 'provider-health-check',
   title: 'Critical remote code execution vulnerability actively exploited',
@@ -76,6 +77,18 @@ function validateDecision(decision) {
     && isStringArray(decision.matchedCriteria)
     && isStringArray(decision.matchedExclusions)
     && isStringArray(decision.evidence);
+}
+
+function parseDecisionContent(content) {
+  const trimmed = content.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  const candidate = fenced ? fenced[1].trim() : trimmed;
+  try {
+    return JSON.parse(candidate);
+  } catch {
+    const detail = trimmed.replace(/\s+/g, ' ').slice(0, 300);
+    throw new Error(`AI endpoint returned invalid JSON content${detail ? `: ${detail}` : ''}`);
+  }
 }
 
 function chatCompletionsUrl(baseUrl) {
@@ -123,12 +136,7 @@ async function requestCompletion(config, messages, fetchImpl) {
   if (typeof content !== 'string' || !content.trim()) {
     throw new Error('AI endpoint returned no chat completion content');
   }
-  let decision;
-  try {
-    decision = JSON.parse(content);
-  } catch {
-    throw new Error('AI endpoint returned invalid JSON content');
-  }
+  const decision = parseDecisionContent(content);
   if (!validateDecision(decision)) {
     throw new Error('AI endpoint response did not match the required decision schema');
   }
@@ -153,6 +161,7 @@ function createAiFilter(config, fetchImpl = fetch) {
             '沒有明確證據時 severity 或 regionRelevance 必須使用 unknown。',
             'evidence 必須是文章資料中可核對的簡短依據，不得捏造。',
             'reason 與 evidence 使用繁體中文，保持簡短。',
+            JSON_ONLY_INSTRUCTION,
           ].join('\n'),
         },
         {
@@ -176,7 +185,10 @@ function createAiFilter(config, fetchImpl = fetch) {
     const result = await requestCompletion(config, [
       {
         role: 'system',
-        content: 'Evaluate the synthetic article using the supplied rule and return the required JSON decision.',
+        content: [
+          'Evaluate the synthetic article using the supplied rule.',
+          'Return only the JSON object required by the schema, without Markdown fences or explanatory text.',
+        ].join(' '),
       },
       {
         role: 'user',
@@ -207,5 +219,6 @@ module.exports = {
   chatCompletionsUrl,
   DECISION_SCHEMA,
   FILTER_CONTRACT_VERSION,
+  parseDecisionContent,
   validateDecision,
 };
