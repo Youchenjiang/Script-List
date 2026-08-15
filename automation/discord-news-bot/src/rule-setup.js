@@ -15,6 +15,7 @@ const {
   EXCLUSIONS,
   REGIONS,
   SEVERITIES,
+  TECHNOLOGIES,
   TOPICS,
   cloneDefaultRule,
   formatRuleConfig,
@@ -69,7 +70,7 @@ function overview(session) {
   return {
     content: [
       '**AI 新聞規則設定**',
-      '接下來可設定：關注主題、嚴重程度、地區、排除內容、AI 信心門檻與補充條件。',
+      '接下來可設定：事件類型、技術領域、嚴重程度、地區、排除內容、AI 信心門檻與補充條件。',
       '你可以直接使用建議設定，或由 Bot 一步一步列出選項。',
     ].join('\n'),
     components: [buttonRow([
@@ -82,7 +83,7 @@ function overview(session) {
 
 function topicsStep(session) {
   return {
-    content: '**步驟 1/6：想接收哪些新聞主題？**\n可複選；每個選項都附有說明。',
+    content: '**步驟 1/7：想接收哪些事件類型？**\n可複選；這裡描述「發生什麼事」。',
     components: [
       selectRow(
         session,
@@ -97,9 +98,26 @@ function topicsStep(session) {
   };
 }
 
+function technologiesStep(session) {
+  return {
+    content: '**步驟 2/7：關注哪些技術領域？**\n可複選；這裡描述「影響什麼技術」。選擇「不限」會忽略其他技術選項。',
+    components: [
+      selectRow(
+        session,
+        'technologies',
+        '選擇一個或多個技術領域',
+        TECHNOLOGIES,
+        session.draft.technologies,
+        { min: 1, max: TECHNOLOGIES.length },
+      ),
+      keepSelectionRow(session, 'technologies'),
+    ],
+  };
+}
+
 function severityStep(session) {
   return {
-    content: '**步驟 2/6：最低嚴重程度？**\nAI 只能依文章中的明確證據判斷，不會猜測 CVSS。',
+    content: '**步驟 3/7：最低嚴重程度？**\nAI 只能依文章中的明確證據判斷，不會猜測 CVSS。',
     components: [
       selectRow(
         session,
@@ -115,7 +133,7 @@ function severityStep(session) {
 
 function regionStep(session) {
   return {
-    content: '**步驟 3/6：關注哪些地區？**',
+    content: '**步驟 4/7：關注哪些地區？**',
     components: [
       selectRow(
         session,
@@ -136,7 +154,7 @@ function exclusionsStep(session) {
   ];
   const selected = session.draft.exclusions.length ? session.draft.exclusions : ['none'];
   return {
-    content: '**步驟 4/6：要排除哪些內容？**\n可複選；選擇「不排除」會清空其他排除項目。',
+    content: '**步驟 5/7：要排除哪些內容？**\n可複選；選擇「不排除」會清空其他排除項目。',
     components: [
       selectRow(
         session,
@@ -153,7 +171,7 @@ function exclusionsStep(session) {
 
 function confidenceStep(session) {
   return {
-    content: '**步驟 5/6：AI 判斷至少要多有把握？**',
+    content: '**步驟 6/7：AI 判斷至少要多有把握？**',
     components: [
       selectRow(
         session,
@@ -185,7 +203,7 @@ function notesStep(session) {
   });
   buttons.push({ customId: actionId(session, 'cancel'), label: '取消', style: ButtonStyle.Secondary });
   return {
-    content: '**步驟 6/6：是否加入補充條件？**\n這是選填項目，主要規則仍由前面的結構化選項控制。',
+    content: '**步驟 7/7：是否加入補充條件？**\n這是選填項目，主要規則仍由前面的結構化選項控制。',
     components: [buttonRow(buttons)],
   };
 }
@@ -286,8 +304,15 @@ function createRuleSetupManager({ channelId, saveRule }) {
         await interaction.update(topicsStep(session));
       } else if (action === 'topics') {
         session.draft.topics = [...interaction.values];
-        await interaction.update(severityStep(session));
+        await interaction.update(technologiesStep(session));
       } else if (action === 'keep_topics') {
+        await interaction.update(technologiesStep(session));
+      } else if (action === 'technologies') {
+        session.draft.technologies = interaction.values.includes('any')
+          ? ['any']
+          : [...interaction.values];
+        await interaction.update(severityStep(session));
+      } else if (action === 'keep_technologies') {
         await interaction.update(severityStep(session));
       } else if (action === 'severity') {
         [session.draft.minimumSeverity] = interaction.values;
