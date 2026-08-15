@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v1';
+const FILTER_CONTRACT_VERSION = 'news-filter-v2';
 const DECISION_SCHEMA = {
   type: 'object',
   properties: {
@@ -17,6 +17,11 @@ const DECISION_SCHEMA = {
     },
     reason: { type: 'string' },
     matchedCriteria: {
+      type: 'array',
+      items: { type: 'string' },
+      maxItems: 5,
+    },
+    matchedTechnologies: {
       type: 'array',
       items: { type: 'string' },
       maxItems: 5,
@@ -39,6 +44,7 @@ const DECISION_SCHEMA = {
     'regionRelevance',
     'reason',
     'matchedCriteria',
+    'matchedTechnologies',
     'matchedExclusions',
     'evidence',
   ],
@@ -75,6 +81,7 @@ function validateDecision(decision) {
     && REGIONS.has(decision.regionRelevance)
     && typeof decision.reason === 'string'
     && isStringArray(decision.matchedCriteria)
+    && isStringArray(decision.matchedTechnologies)
     && isStringArray(decision.matchedExclusions)
     && isStringArray(decision.evidence);
 }
@@ -176,7 +183,9 @@ function createAiFilter(config, fetchImpl = fetch) {
             '你是嚴格的資安新聞篩選器。',
             '只能根據提供的標題、摘要、分類與規則判斷，不可猜測文章未提及的內容。',
             '規則不明確或證據不足時，matches 必須為 false。',
-            'matchedCriteria 與 matchedExclusions 只能填入規則中提供的 id。',
+            'matchedCriteria、matchedTechnologies 與 matchedExclusions 只能填入規則中提供的 id。',
+            'matchedCriteria 描述事件類型；matchedTechnologies 描述文章明確影響的技術領域。',
+            '技術規則為 any 時仍須辨識明確技術，但不可將 any 放入 matchedTechnologies。',
             '沒有明確證據時 severity 或 regionRelevance 必須使用 unknown。',
             'evidence 必須是文章資料中可核對的簡短依據，不得捏造。',
             'reason 與 evidence 使用繁體中文，保持簡短。',

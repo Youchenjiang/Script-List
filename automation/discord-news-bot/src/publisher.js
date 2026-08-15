@@ -13,6 +13,13 @@ function passesDecision(decision, ruleConfig) {
   if (!Array.isArray(decision.matchedCriteria)) return false;
   const allowedTopics = new Set(ruleConfig.topics);
   if (!decision.matchedCriteria.some((criterion) => allowedTopics.has(criterion))) return false;
+  if (!Array.isArray(decision.matchedTechnologies)) return false;
+  if (!ruleConfig.technologies.includes('any')) {
+    const allowedTechnologies = new Set(ruleConfig.technologies);
+    if (!decision.matchedTechnologies.some((technology) => allowedTechnologies.has(technology))) {
+      return false;
+    }
+  }
 
   const allowedSeverities = {
     critical_only: ['critical'],
