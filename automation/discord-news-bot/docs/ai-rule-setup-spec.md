@@ -18,7 +18,8 @@ AI 僅負責依固定規則判斷文章；最終是否推送仍由程式檢查�
 
 Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道會設定：
 
-- 關注主題
+- 事件類型
+- 技術領域
 - 嚴重程度
 - 地區範圍
 - 排除內容
@@ -35,7 +36,7 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 
 每一步都必須直接列出可選項與簡短說明，不要求使用者自行猜測允許值。
 
-#### 步驟 1：關注主題（可複選）
+#### 步驟 1：事件類型（可複選）
 
 - `zero_day`：零日漏洞或尚無完整修補的攻擊
 - `critical_vulnerability`：重大或高風險漏洞
@@ -43,12 +44,28 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 - `data_breach`：資料外洩或大規模帳號暴露
 - `supply_chain`：軟體、套件或服務供應鏈攻擊
 - `apt`：APT 或國家級威脅活動
-- `cloud_identity`：雲端、身分、存取權與憑證安全
+- `identity_compromise`：帳號接管、憑證竊取、權限濫用或身分系統遭入侵
 - `malware_campaign`：具實際影響的惡意程式活動
 
 至少選擇一項。
 
-#### 步驟 2：嚴重程度（單選）
+#### 步驟 2：技術領域（可複選）
+
+- `any`：不限技術領域
+- `endpoint_os`：Windows、Linux、macOS 與端點裝置
+- `identity_access`：IAM、Active Directory、SSO、OAuth 與憑證
+- `cloud_containers`：公有雲、Kubernetes、Docker、Serverless 與雲端控制面
+- `web_api`：網站、Web 應用、API、瀏覽器與應用伺服器
+- `network_infrastructure`：路由器、防火牆、VPN、DNS、郵件與邊界設備
+- `developer_ecosystem`：程式語言、套件管理器、CI/CD、原始碼與開發工具
+- `data_platform`：資料庫、搜尋、儲存、分析與資料處理平台
+- `mobile`：Android、iOS 與行動應用程式
+- `ai_ml`：模型、推論服務、Agent、MLOps 與 AI 開發框架
+- `iot_ot`：物聯網、工控、醫療設備與嵌入式系統
+
+至少選擇一項；選擇 `any` 時忽略其他技術選項。事件類型描述「發生什麼事」，技術領域描述「影響什麼技術」，兩者必須分開判斷。
+
+#### 步驟 3：嚴重程度（單選）
 
 - `critical_only`：只接收重大事件
 - `high_or_above`：高風險以上（建議）
@@ -57,13 +74,13 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 
 嚴重程度只在文章提供足夠證據時使用，不得由 AI 猜測 CVSS 或影響程度。
 
-#### 步驟 3：地區範圍（單選）
+#### 步驟 4：地區範圍（單選）
 
 - `taiwan_priority`：台灣相關事件，以及全球重大事件（建議）
 - `taiwan_only`：必須明確影響台灣
 - `global`：全球事件，不限制地區
 
-#### 步驟 4：排除內容（可複選）
+#### 步驟 5：排除內容（可複選）
 
 - `advertisement`：產品廣告或置入內容
 - `event_promotion`：活動、研討會或課程宣傳
@@ -73,13 +90,13 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 
 提供 `使用建議排除項目` 與 `不排除` 選項。
 
-#### 步驟 5：AI 信心門檻（單選）
+#### 步驟 6：AI 信心門檻（單選）
 
 - `0.90`：嚴格，推送較少
 - `0.80`：平衡（建議）
 - `0.70`：寬鬆，可能增加誤判
 
-#### 步驟 6：補充條件（選填）
+#### 步驟 7：補充條件（選填）
 
 提供 `新增補充條件` 與 `略過`。只有選擇新增時才開啟文字輸入框，例如：
 
@@ -94,7 +111,8 @@ CISA 已知遭利用漏洞一律推送；排除只影響已停止支援產品的
 儲存前顯示完整摘要：
 
 ```text
-主題：零日漏洞、重大漏洞、勒索軟體、供應鏈攻擊
+事件類型：零日漏洞、重大漏洞、勒索軟體、供應鏈攻擊
+技術領域：雲端與容器、Web 與 API
 嚴重度：高風險以上
 地區：台灣優先＋全球重大事件
 排除：廣告、活動宣傳、一般產品更新
@@ -120,6 +138,7 @@ AI 信心門檻：80%
     "ransomware",
     "supply_chain"
   ],
+  "technologies": ["any"],
   "minimumSeverity": "high_or_above",
   "regionScope": "taiwan_priority",
   "exclusions": [
@@ -138,8 +157,9 @@ AI 信心門檻：80%
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "topics": ["zero_day", "supply_chain"],
+  "technologies": ["cloud_containers", "developer_ecosystem"],
   "minimumSeverity": "high_or_above",
   "regionScope": "taiwan_priority",
   "exclusions": ["advertisement", "routine_update"],
@@ -164,6 +184,7 @@ AI 必須回傳固定格式：
   "severity": "critical",
   "regionRelevance": "global_major",
   "matchedCriteria": ["zero_day"],
+  "matchedTechnologies": ["cloud_containers"],
   "matchedExclusions": [],
   "evidence": ["摘要指出漏洞已遭實際利用"],
   "reason": "符合零日漏洞與高風險條件"
@@ -175,10 +196,11 @@ AI 必須回傳固定格式：
 1. `matches` 為 `true`
 2. `confidence` 大於或等於規則門檻
 3. `matchedCriteria` 至少包含一個使用者選擇的主題
-4. `severity` 通過使用者選擇的嚴重程度門檻
-5. `regionRelevance` 通過使用者選擇的地區範圍
-6. `evidence` 至少包含一項文章內可驗證的依據
-7. 未命中任何使用者選擇的排除條件
+4. 技術領域不是 `any` 時，`matchedTechnologies` 至少包含一個使用者選擇的技術
+5. `severity` 通過使用者選擇的嚴重程度門檻
+6. `regionRelevance` 通過使用者選擇的地區範圍
+7. `evidence` 至少包含一項文章內可驗證的依據
+8. 未命中任何使用者選擇的排除條件
 
 任何欄位缺失、格式錯誤、AI 呼叫失敗或證據不足，結果均視為拒絕。
 
