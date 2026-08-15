@@ -13,6 +13,7 @@ const {
 const {
   CONFIDENCE_LEVELS,
   EXCLUSIONS,
+  RESEARCH_AREAS,
   REGIONS,
   SEVERITIES,
   TECHNOLOGIES,
@@ -70,7 +71,7 @@ function overview(session) {
   return {
     content: [
       '**AI 新聞規則設定**',
-      '接下來可設定：事件類型、技術領域、嚴重程度、地區、排除內容、AI 信心門檻與補充條件。',
+      '接下來可設定：事件類型、技術領域、共用研究方向、嚴重程度、地區、排除內容、AI 信心門檻與補充條件。',
       '你可以直接使用建議設定，或由 Bot 一步一步列出選項。',
     ].join('\n'),
     components: [buttonRow([
@@ -83,7 +84,7 @@ function overview(session) {
 
 function topicsStep(session) {
   return {
-    content: '**步驟 1/7：想接收哪些事件類型？**\n可複選；這裡描述「發生什麼事」。',
+    content: '**步驟 1/8：想接收哪些事件類型？**\n可複選；這裡描述「發生什麼事」。',
     components: [
       selectRow(
         session,
@@ -100,7 +101,7 @@ function topicsStep(session) {
 
 function technologiesStep(session) {
   return {
-    content: '**步驟 2/7：關注哪些技術領域？**\n可複選；這裡描述「影響什麼技術」。選擇「不限」會忽略其他技術選項。',
+    content: '**步驟 2/8：關注哪些技術領域？**\n可複選；這裡描述「影響什麼技術」。選擇「不限」會忽略其他技術選項。',
     components: [
       selectRow(
         session,
@@ -115,9 +116,26 @@ function technologiesStep(session) {
   };
 }
 
+function researchAreasStep(session) {
+  return {
+    content: '**步驟 3/8：讀書會有哪些共用研究方向？**\n可複選；新聞卡會分別標示與這些方向的關聯程度。',
+    components: [
+      selectRow(
+        session,
+        'research_areas',
+        '選擇一個或多個研究方向',
+        RESEARCH_AREAS,
+        session.draft.researchAreas,
+        { min: 1, max: RESEARCH_AREAS.length },
+      ),
+      keepSelectionRow(session, 'research_areas'),
+    ],
+  };
+}
+
 function severityStep(session) {
   return {
-    content: '**步驟 3/7：最低嚴重程度？**\nAI 只能依文章中的明確證據判斷，不會猜測 CVSS。',
+    content: '**步驟 4/8：最低嚴重程度？**\nAI 只能依文章中的明確證據判斷，不會猜測 CVSS。',
     components: [
       selectRow(
         session,
@@ -133,7 +151,7 @@ function severityStep(session) {
 
 function regionStep(session) {
   return {
-    content: '**步驟 4/7：關注哪些地區？**',
+    content: '**步驟 5/8：關注哪些地區？**',
     components: [
       selectRow(
         session,
@@ -154,7 +172,7 @@ function exclusionsStep(session) {
   ];
   const selected = session.draft.exclusions.length ? session.draft.exclusions : ['none'];
   return {
-    content: '**步驟 5/7：要排除哪些內容？**\n可複選；選擇「不排除」會清空其他排除項目。',
+    content: '**步驟 6/8：要排除哪些內容？**\n可複選；選擇「不排除」會清空其他排除項目。',
     components: [
       selectRow(
         session,
@@ -171,7 +189,7 @@ function exclusionsStep(session) {
 
 function confidenceStep(session) {
   return {
-    content: '**步驟 6/7：AI 判斷至少要多有把握？**',
+    content: '**步驟 7/8：AI 判斷至少要多有把握？**',
     components: [
       selectRow(
         session,
@@ -203,7 +221,7 @@ function notesStep(session) {
   });
   buttons.push({ customId: actionId(session, 'cancel'), label: '取消', style: ButtonStyle.Secondary });
   return {
-    content: '**步驟 7/7：是否加入補充條件？**\n這是選填項目，主要規則仍由前面的結構化選項控制。',
+    content: '**步驟 8/8：是否加入補充條件？**\n這是選填項目，主要規則仍由前面的結構化選項控制。',
     components: [buttonRow(buttons)],
   };
 }
@@ -234,7 +252,7 @@ function notesModal(session) {
     .addComponents(new ActionRowBuilder().addComponents(input));
 }
 
-function createRuleSetupManager({ channelId, saveRule }) {
+function createRuleSetupManager({ channelId, saveRule, announceRule = async () => {} }) {
   const sessions = new Map();
 
   function createSession(interaction) {
@@ -311,8 +329,13 @@ function createRuleSetupManager({ channelId, saveRule }) {
         session.draft.technologies = interaction.values.includes('any')
           ? ['any']
           : [...interaction.values];
-        await interaction.update(severityStep(session));
+        await interaction.update(researchAreasStep(session));
       } else if (action === 'keep_technologies') {
+        await interaction.update(researchAreasStep(session));
+      } else if (action === 'research_areas') {
+        session.draft.researchAreas = [...interaction.values];
+        await interaction.update(severityStep(session));
+      } else if (action === 'keep_research_areas') {
         await interaction.update(severityStep(session));
       } else if (action === 'severity') {
         [session.draft.minimumSeverity] = interaction.values;
@@ -350,9 +373,10 @@ function createRuleSetupManager({ channelId, saveRule }) {
         const rule = await saveRule(normalizeRuleConfig(session.draft), interaction.user.id);
         sessions.delete(session.id);
         await interaction.update({
-          content: `已儲存規則版本 ${rule.version}。\n${formatRuleConfig(rule.config)}`,
+          content: `已儲存規則版本 ${rule.version}，並將設定摘要公布到頻道。\n${formatRuleConfig(rule.config)}`,
           components: [],
         });
+        await announceRule(rule, interaction.user.id);
       } else if (action === 'cancel') {
         sessions.delete(session.id);
         await interaction.update({ content: '已取消設定，原有規則沒有變更。', components: [] });

@@ -11,6 +11,7 @@ test('recommended rule is valid and has a readable summary', () => {
   const rule = cloneDefaultRule();
   assert.equal(rule.confidenceThreshold, 0.8);
   assert.deepEqual(rule.technologies, ['any']);
+  assert.ok(rule.researchAreas.length > 1);
   assert.match(formatRuleConfig(rule), /零日漏洞/);
   assert.match(formatRuleConfig(rule), /80%/);
   assert.match(formatRuleConfig(rule), /不限技術領域/);
@@ -35,6 +36,8 @@ test('legacy rules default to unrestricted technologies', () => {
   const legacy = { ...cloneDefaultRule() };
   delete legacy.technologies;
   assert.deepEqual(normalizeRuleConfig(legacy).technologies, ['any']);
+  delete legacy.researchAreas;
+  assert.ok(normalizeRuleConfig(legacy).researchAreas.length > 0);
 });
 
 test('rules separate event types from technologies and migrate the legacy identity topic', () => {

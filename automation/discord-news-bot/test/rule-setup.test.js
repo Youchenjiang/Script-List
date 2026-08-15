@@ -78,19 +78,21 @@ test('custom setup walks through every choice and optional notes modal', async (
   };
 
   await interact(1);
-  assert.match(message.content, /步驟 1\/7/);
+  assert.match(message.content, /步驟 1\/8/);
   await interact(0, ['zero_day', 'supply_chain']);
-  assert.match(message.content, /步驟 2\/7/);
+  assert.match(message.content, /步驟 2\/8/);
   await interact(0, ['cloud_containers', 'web_api']);
-  assert.match(message.content, /步驟 3\/7/);
+  assert.match(message.content, /步驟 3\/8/);
+  await interact(0, ['vulnerability_research', 'cloud_identity_security']);
+  assert.match(message.content, /步驟 4\/8/);
   await interact(0, ['critical_only']);
-  assert.match(message.content, /步驟 4\/7/);
+  assert.match(message.content, /步驟 5\/8/);
   await interact(0, ['taiwan_only']);
-  assert.match(message.content, /步驟 5\/7/);
+  assert.match(message.content, /步驟 6\/8/);
   await interact(0, ['advertisement']);
-  assert.match(message.content, /步驟 6\/7/);
+  assert.match(message.content, /步驟 7\/8/);
   await interact(0, ['0.90']);
-  assert.match(message.content, /步驟 7\/7/);
+  assert.match(message.content, /步驟 8\/8/);
   await interact(0);
   assert.equal(modal.toJSON().title, 'AI 新聞補充條件');
 
@@ -103,6 +105,7 @@ test('custom setup walks through every choice and optional notes modal', async (
   });
   assert.match(message.content, /CISA KEV 一律推送/);
   assert.match(message.content, /雲端與容器、Web 與 API/);
+  assert.match(message.content, /漏洞研究與利用、雲端與身分安全/);
   assert.match(message.content, /90%/);
 });
 
@@ -125,12 +128,12 @@ test('returning to edit can keep every current selection and continue', async ()
   await click(firstCustomId(message));
   assert.match(message.content, /儲存前預覽/);
   await click(firstCustomId(message, 1));
-  assert.match(message.content, /步驟 1\/7/);
+  assert.match(message.content, /步驟 1\/8/);
 
-  for (const nextStep of [2, 3, 4, 5, 6, 7]) {
+  for (const nextStep of [2, 3, 4, 5, 6, 7, 8]) {
     assert.match(customIdAt(message, 1), /keep_/);
     await click(customIdAt(message, 1));
-    assert.match(message.content, new RegExp(`步驟 ${nextStep}\\/7`));
+    assert.match(message.content, new RegExp(`步驟 ${nextStep}\\/8`));
   }
 
   await click(firstCustomId(message, 1));

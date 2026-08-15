@@ -23,6 +23,19 @@ const TECHNOLOGIES = [
   { value: 'iot_ot', label: 'IoT 與 OT', description: '物聯網、工控、醫療設備與嵌入式系統' },
 ];
 
+const RESEARCH_AREAS = [
+  { value: 'vulnerability_research', label: '漏洞研究與利用', description: '漏洞成因、利用技術、PoC 與攻擊面分析' },
+  { value: 'threat_intelligence', label: '威脅情報', description: '攻擊者、攻擊活動、TTP 與情資關聯' },
+  { value: 'malware_reverse', label: '惡意程式與逆向', description: '惡意程式行為、逆向工程與樣本分析' },
+  { value: 'detection_engineering', label: '偵測工程', description: '日誌、偵測規則、獵捕方法與可觀測性' },
+  { value: 'incident_response', label: '事件應變與鑑識', description: '應變流程、調查證據、鑑識與復原' },
+  { value: 'application_security', label: '應用程式安全', description: 'Web、API、供應鏈與安全開發生命週期' },
+  { value: 'cloud_identity_security', label: '雲端與身分安全', description: '雲端控制面、IAM、SSO 與權限治理' },
+  { value: 'security_engineering', label: '安全架構與工程', description: '防禦架構、系統設計、工具與自動化' },
+  { value: 'governance_risk', label: '治理、風險與法規', description: '風險管理、政策、法規與組織衝擊' },
+  { value: 'ai_security', label: 'AI 安全', description: '模型、Agent、提示攻擊與 AI 系統防護' },
+];
+
 const SEVERITIES = [
   { value: 'critical_only', label: '只限重大', description: '只接收具有重大影響證據的事件' },
   { value: 'high_or_above', label: '高風險以上', description: '高風險或重大事件（建議）' },
@@ -51,9 +64,19 @@ const CONFIDENCE_LEVELS = [
 ];
 
 const DEFAULT_RULE = Object.freeze({
-  schemaVersion: 2,
+  schemaVersion: 3,
   topics: ['zero_day', 'critical_vulnerability', 'ransomware', 'supply_chain'],
   technologies: ['any'],
+  researchAreas: [
+    'vulnerability_research',
+    'threat_intelligence',
+    'malware_reverse',
+    'detection_engineering',
+    'incident_response',
+    'application_security',
+    'cloud_identity_security',
+    'security_engineering',
+  ],
   minimumSeverity: 'high_or_above',
   regionScope: 'taiwan_priority',
   exclusions: ['advertisement', 'event_promotion', 'routine_update'],
@@ -68,6 +91,7 @@ function findLabel(options, value) {
 function normalizeRuleConfig(input = {}) {
   const topicValues = new Set(TOPICS.map(({ value }) => value));
   const technologyValues = new Set(TECHNOLOGIES.map(({ value }) => value));
+  const researchAreaValues = new Set(RESEARCH_AREAS.map(({ value }) => value));
   const severityValues = new Set(SEVERITIES.map(({ value }) => value));
   const regionValues = new Set(REGIONS.map(({ value }) => value));
   const exclusionValues = new Set(EXCLUSIONS.map(({ value }) => value));
@@ -79,20 +103,27 @@ function normalizeRuleConfig(input = {}) {
   const validTechnologies = [...new Set(requestedTechnologies || [])]
     .filter((value) => technologyValues.has(value));
   const technologies = validTechnologies.includes('any') ? ['any'] : validTechnologies;
+  const requestedResearchAreas = input.researchAreas === undefined
+    ? DEFAULT_RULE.researchAreas
+    : input.researchAreas;
+  const researchAreas = [...new Set(requestedResearchAreas || [])]
+    .filter((value) => researchAreaValues.has(value));
   const exclusions = [...new Set(input.exclusions || [])]
     .filter((value) => exclusionValues.has(value));
   const confidenceThreshold = Number(input.confidenceThreshold);
 
   if (topics.length === 0) throw new Error('至少要選擇一個新聞主題');
   if (technologies.length === 0) throw new Error('至少要選擇一個技術領域');
+  if (researchAreas.length === 0) throw new Error('至少要選擇一個研究方向');
   if (!severityValues.has(input.minimumSeverity)) throw new Error('嚴重程度設定無效');
   if (!regionValues.has(input.regionScope)) throw new Error('地區範圍設定無效');
   if (!confidenceValues.has(confidenceThreshold)) throw new Error('AI 信心門檻設定無效');
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     topics,
     technologies,
+    researchAreas,
     minimumSeverity: input.minimumSeverity,
     regionScope: input.regionScope,
     exclusions,
@@ -110,6 +141,7 @@ function formatRuleConfig(config) {
   return [
     `事件類型：${rule.topics.map((value) => findLabel(TOPICS, value)).join('、')}`,
     `技術領域：${rule.technologies.map((value) => findLabel(TECHNOLOGIES, value)).join('、')}`,
+    `研究方向：${rule.researchAreas.map((value) => findLabel(RESEARCH_AREAS, value)).join('、')}`,
     `嚴重度：${findLabel(SEVERITIES, rule.minimumSeverity)}`,
     `地區：${findLabel(REGIONS, rule.regionScope)}`,
     `排除：${rule.exclusions.length
@@ -130,6 +162,10 @@ function toAiRule(config) {
     technologies: rule.technologies.map((value) => ({
       id: value,
       description: TECHNOLOGIES.find((option) => option.value === value).description,
+    })),
+    researchAreas: rule.researchAreas.map((value) => ({
+      id: value,
+      description: RESEARCH_AREAS.find((option) => option.value === value).description,
     })),
     minimumSeverity: {
       id: rule.minimumSeverity,
@@ -152,6 +188,7 @@ module.exports = {
   DEFAULT_RULE,
   EXCLUSIONS,
   REGIONS,
+  RESEARCH_AREAS,
   SEVERITIES,
   TECHNOLOGIES,
   TOPICS,
