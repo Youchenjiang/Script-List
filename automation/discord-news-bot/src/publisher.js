@@ -2,6 +2,40 @@ const { EmbedBuilder } = require('discord.js');
 const { createAiFilter } = require('./ai-filter');
 const { fetchNews } = require('./news-feed');
 const { createStateStore } = require('./state-store');
+const { RESEARCH_AREAS, TECHNOLOGIES, TOPICS } = require('./rule-options');
+
+const RECOMMENDATION_LABELS = {
+  must_read: '🔴 必讀',
+  recommended: '🟠 建議閱讀',
+  skim: '🟡 快速瀏覽',
+  skip: '⚪ 可略過',
+};
+const DIFFICULTY_LABELS = {
+  beginner: '入門',
+  intermediate: '中階',
+  advanced: '進階',
+  specialist: '專家',
+};
+const RELEVANCE_LABELS = { high: '高度', medium: '中度', low: '低度' };
+const RELEVANCE_ICONS = { high: '●', medium: '◐', low: '○' };
+
+function optionLabel(options, value) {
+  return options.find((option) => option.value === value)?.label || value;
+}
+
+function clipped(value, maximum = 1024) {
+  const text = String(value || '').trim();
+  if (text.length <= maximum) return text;
+  return `${text.slice(0, maximum - 1)}…`;
+}
+
+function scoreBar(score) {
+  return `${'★'.repeat(score)}${'☆'.repeat(5 - score)}`;
+}
+
+function hashtag(value) {
+  return `#${String(value).replace(/[\s／、・/]+/g, '').replace(/[^\p{L}\p{N}_]/gu, '')}`;
+}
 
 function passesDecision(decision, ruleConfig) {
   if (!decision || decision.matches !== true) return false;
@@ -10,6 +44,7 @@ function passesDecision(decision, ruleConfig) {
   if (!Array.isArray(decision.evidence)
       || !decision.evidence.some((item) => typeof item === 'string' && item.trim())) return false;
   if (!Array.isArray(decision.matchedExclusions) || decision.matchedExclusions.length > 0) return false;
+  if (decision.readingRecommendation === 'skip') return false;
   if (!Array.isArray(decision.matchedCriteria)) return false;
   const allowedTopics = new Set(ruleConfig.topics);
   if (!decision.matchedCriteria.some((criterion) => allowedTopics.has(criterion))) return false;
@@ -37,21 +72,92 @@ function passesDecision(decision, ruleConfig) {
   return allowedRegions[ruleConfig.regionScope]?.includes(decision.regionRelevance) === true;
 }
 
-function createNewsEmbed(article, sourceName) {
+function createNewsEmbed(article, sourceName, decision = null, ruleConfig = null) {
   const embed = new EmbedBuilder()
     .setColor(0xD93025)
     .setTitle(article.title.slice(0, 256))
     .setURL(article.url)
-    .setDescription(article.summary || '此文章沒有摘要。')
+    .setDescription(decision?.summaryBullets?.length
+      ? clipped(decision.summaryBullets.map((item) => `- ${item}`).join('\n'), 1200)
+      : article.summary || '此文章沒有摘要。')
     .setTimestamp(article.published)
     .setFooter({ text: sourceName });
 
   if (article.author) embed.setAuthor({ name: article.author.slice(0, 256) });
-  if (article.categories.length) {
+  if (decision) {
+    const recommendation = RECOMMENDATION_LABELS[decision.readingRecommendation]
+      || decision.readingRecommendation;
+    const difficulty = DIFFICULTY_LABELS[decision.difficulty] || decision.difficulty;
+    const contentBasis = article.contentDepth === 'feed_content' ? 'Feed 文章內容' : '來源摘要';
+    embed.setColor({ must_read: 0xD93025, recommended: 0xF29900, skim: 0xF2C94C }[
+      decision.readingRecommendation
+    ] || 0x6B7280);
+    embed.addFields({
+      name: '閱讀判斷',
+      value: `${recommendation}｜難度：${difficulty}｜AI 信心：${Math.round(decision.confidence * 100)}%\n分析依據：${contentBasis}`,
+    });
+    if (decision.whyRead) {
+      embed.addFields({ name: '為什麼值得讀', value: clipped(decision.whyRead, 700) });
+    }
+    const selectedAreas = new Set(ruleConfig?.researchAreas || []);
+    const relevance = (decision.researchRelevance || [])
+      .filter((item) => selectedAreas.size === 0 || selectedAreas.has(item.area))
+      .map((item) => `${RELEVANCE_ICONS[item.relevance] || '○'} **${optionLabel(RESEARCH_AREAS, item.area)}：${RELEVANCE_LABELS[item.relevance] || item.relevance}相關** — ${item.reason}`)
+      .join('\n');
+    if (relevance) embed.addFields({ name: '讀書會研究方向', value: clipped(relevance, 1000) });
+    if (decision.scores) {
+      embed.addFields({
+        name: '閱讀價值',
+        value: [
+          `實務價值 ${scoreBar(decision.scores.practicalValue)}`,
+          `技術深度 ${scoreBar(decision.scores.technicalDepth)}`,
+          `新穎程度 ${scoreBar(decision.scores.novelty)}`,
+          `討論價值 ${scoreBar(decision.scores.discussionValue)}`,
+        ].join('\n'),
+        inline: true,
+      });
+    }
+    embed.addFields({
+      name: '先備知識',
+      value: clipped(
+        decision.prerequisites?.length ? decision.prerequisites.join('、') : '無特別要求',
+        500,
+      ),
+      inline: true,
+    });
+    if (decision.discussionQuestions?.length) {
+      embed.addFields({
+        name: '讀書會討論',
+        value: clipped(
+          decision.discussionQuestions.map((item, index) => `${index + 1}. ${item}`).join('\n'),
+          700,
+        ),
+      });
+    }
+  } else if (article.categories.length) {
     embed.addFields({ name: '分類', value: article.categories.join('、').slice(0, 1024) });
   }
   if (article.imageUrl) embed.setImage(article.imageUrl);
   return embed;
+}
+
+function createNewsMessage(article, sourceName, decision, ruleConfig) {
+  if (!decision) return { embeds: [createNewsEmbed(article, sourceName)] };
+  const tags = new Set([
+    hashtag(RECOMMENDATION_LABELS[decision.readingRecommendation]?.replace(/^\S+\s/, '')
+      || decision.readingRecommendation),
+    hashtag(DIFFICULTY_LABELS[decision.difficulty] || decision.difficulty),
+    ...(decision.matchedCriteria || []).map((value) => hashtag(optionLabel(TOPICS, value))),
+    ...(decision.matchedTechnologies || []).map((value) => hashtag(optionLabel(TECHNOLOGIES, value))),
+    ...(decision.researchRelevance || [])
+      .filter((item) => item.relevance !== 'low')
+      .map((item) => hashtag(optionLabel(RESEARCH_AREAS, item.area))),
+  ]);
+  return {
+    content: [...tags].filter((value) => value !== '#').join(' ').slice(0, 2000),
+    embeds: [createNewsEmbed(article, sourceName, decision, ruleConfig)],
+    allowedMentions: { parse: [] },
+  };
 }
 
 function createPublisher({
@@ -71,7 +177,7 @@ function createPublisher({
 
   async function runFiltered(articles, eligible, state, sent) {
     const at = now().toISOString();
-    const rule = await stateStore.getFilterRule(config.channelId);
+    const rule = await stateStore.getFilterRule(config.channelId, config.guildId);
     if (!rule) {
       await saveCheckpoint(sent, at);
       return {
@@ -117,7 +223,13 @@ function createPublisher({
         try {
           decision = await aiFilter.evaluate(article, rule);
           evaluated += 1;
-          await stateStore.saveEvaluation(evaluationId, config.channelId, rule.version, decision);
+          await stateStore.saveEvaluation(
+            evaluationId,
+            config.channelId,
+            rule.version,
+            decision,
+            config.guildId,
+          );
         } catch (error) {
           evaluated += 1;
           errors += 1;
@@ -133,7 +245,7 @@ function createPublisher({
       matched += 1;
       if (published >= config.maxArticlesPerRun) continue;
 
-      await channel.send({ embeds: [createNewsEmbed(article, config.sourceName)] });
+      await channel.send(createNewsMessage(article, config.sourceName, decision, rule.config));
       sent.add(article.id);
       published += 1;
       await saveCheckpoint(sent, state.lastCheckedAt);
@@ -235,13 +347,13 @@ function createPublisher({
   return {
     run,
     checkAiProvider,
-    getFilterRule: () => stateStore.getFilterRule(config.channelId),
+    getFilterRule: () => stateStore.getFilterRule(config.channelId, config.guildId),
     setFilterRule: (ruleConfig, updatedBy) => (
-      stateStore.setFilterRule(config.channelId, ruleConfig, updatedBy)
+      stateStore.setFilterRule(config.channelId, ruleConfig, updatedBy, config.guildId)
     ),
     close: () => stateStore.close(),
     getStatus: () => ({ running, latestResult, stateStore: stateStore.kind }),
   };
 }
 
-module.exports = { createNewsEmbed, createPublisher, passesDecision };
+module.exports = { createNewsEmbed, createNewsMessage, createPublisher, passesDecision };

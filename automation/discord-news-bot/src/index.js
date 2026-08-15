@@ -35,6 +35,14 @@ async function main() {
       ruleSetup = createRuleSetupManager({
         channelId: config.channelId,
         saveRule: (ruleConfig, userId) => publisher.setFilterRule(ruleConfig, userId),
+        announceRule: (rule, userId) => channel.send({
+          content: [
+            `📌 **新聞頻道共用規則已更新（版本 ${rule.version}）**`,
+            `更新者：<@${userId}>`,
+            formatRuleConfig(rule.config),
+          ].join('\n'),
+          allowedMentions: { users: [userId] },
+        }),
       });
       console.log(`[Bot] State store: ${config.databaseUrl ? 'PostgreSQL' : 'local file'}`);
       console.log(`[Bot] AI filtering: ${config.aiFilteringEnabled ? 'enabled' : 'disabled'}`);
@@ -96,10 +104,6 @@ async function main() {
     }
 
     if (interaction.commandName === 'news_rule') {
-      if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
-        await interaction.reply({ content: '你需要「管理伺服器」權限。', flags: MessageFlags.Ephemeral });
-        return;
-      }
       if (interaction.channelId !== config.channelId) {
         await interaction.reply({
           content: `請在指定的新聞頻道 <#${config.channelId}> 設定規則。`,
@@ -113,12 +117,17 @@ async function main() {
       }
 
       const action = interaction.options.getSubcommand();
+      if (action !== 'show'
+          && !interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+        await interaction.reply({ content: '你需要「管理伺服器」權限。', flags: MessageFlags.Ephemeral });
+        return;
+      }
       if (action === 'setup') {
         await ruleSetup.start(interaction);
         return;
       }
 
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      await interaction.deferReply(action === 'show' ? {} : { flags: MessageFlags.Ephemeral });
       try {
         if (action === 'show') {
           const rule = await publisher.getFilterRule();

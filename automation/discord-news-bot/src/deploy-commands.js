@@ -16,7 +16,6 @@ function buildCommands() {
     new SlashCommandBuilder()
       .setName('news_rule')
       .setDescription('管理這個新聞頻道的 AI 篩選規則')
-      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
       .addSubcommand((subcommand) => subcommand
         .setName('setup')
         .setDescription('由 Bot 逐步引導設定 AI 篩選規則'))

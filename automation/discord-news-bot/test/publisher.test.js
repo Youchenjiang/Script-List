@@ -3,8 +3,33 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
-const { createPublisher, passesDecision } = require('../src/publisher');
+const { createNewsMessage, createPublisher, passesDecision } = require('../src/publisher');
 const { cloneDefaultRule } = require('../src/rule-options');
+
+function richDecision(overrides = {}) {
+  return {
+    matches: true,
+    confidence: 0.95,
+    severity: 'critical',
+    regionRelevance: 'global_major',
+    reason: '符合重大漏洞條件',
+    readingRecommendation: 'must_read',
+    difficulty: 'advanced',
+    summaryBullets: ['漏洞已遭實際利用', '文章包含緩解與偵測資訊'],
+    whyRead: '能理解攻擊面與可採取的防禦措施',
+    prerequisites: ['Web 安全基礎'],
+    researchRelevance: [{
+      area: 'vulnerability_research', relevance: 'high', reason: '提供漏洞成因資訊',
+    }],
+    discussionQuestions: ['如何在環境中驗證曝險？'],
+    scores: { practicalValue: 5, technicalDepth: 4, novelty: 3, discussionValue: 4 },
+    matchedCriteria: ['critical_vulnerability'],
+    matchedTechnologies: ['endpoint_os'],
+    matchedExclusions: [],
+    evidence: ['文章指出漏洞已遭利用'],
+    ...overrides,
+  };
+}
 
 test('publisher sends unseen articles once and saves state', async () => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'news-bot-'));
@@ -127,17 +152,7 @@ test('AI filtering only publishes matching articles and reuses cached decisions'
       evaluatorId: 'test-evaluator',
       async evaluate(article) {
         evaluations += 1;
-        return {
-          matches: article.id === 'match',
-          confidence: 1,
-          severity: 'critical',
-          regionRelevance: 'global_major',
-          reason: 'test',
-          matchedCriteria: ['critical_vulnerability'],
-          matchedTechnologies: ['endpoint_os'],
-          matchedExclusions: [],
-          evidence: ['test evidence'],
-        };
+        return richDecision({ matches: article.id === 'match', confidence: 1 });
       },
     },
   });
@@ -216,6 +231,35 @@ test('publisher enforces confidence, evidence, topic, and exclusion gates', () =
   const cloudRule = { ...rule, technologies: ['cloud_containers'] };
   assert.equal(passesDecision(valid, cloudRule), false);
   assert.equal(passesDecision({ ...valid, matchedTechnologies: ['cloud_containers'] }, cloudRule), true);
+});
+
+test('publisher renders a searchable cybersecurity study card', () => {
+  const article = {
+    url: 'https://example.com/article',
+    title: 'Critical OAuth vulnerability',
+    summary: 'Original summary',
+    published: new Date('2026-08-14T08:00:00Z'),
+    author: 'Researcher',
+    categories: ['Security'],
+    imageUrl: '',
+    contentDepth: 'feed_content',
+  };
+  const rule = cloneDefaultRule();
+  const message = createNewsMessage(article, 'Test', richDecision({
+    matchedTechnologies: ['identity_access'],
+    researchRelevance: [{
+      area: 'cloud_identity_security', relevance: 'high', reason: '涉及 OAuth 權杖驗證',
+    }],
+  }), rule);
+  const embed = message.embeds[0].toJSON();
+
+  assert.match(message.content, /#必讀/);
+  assert.match(message.content, /#身分與存取/);
+  assert.match(message.content, /#雲端與身分安全/);
+  assert.match(embed.description, /漏洞已遭實際利用/);
+  assert.ok(embed.fields.some((field) => field.name === '閱讀價值'));
+  assert.ok(embed.fields.some((field) => field.name === '讀書會研究方向'));
+  assert.ok(embed.fields.some((field) => field.name === '讀書會討論'));
 });
 
 test('publisher checks the AI provider without reading or writing state', async () => {
