@@ -262,6 +262,21 @@ test('publisher renders a searchable cybersecurity study card', () => {
   assert.ok(embed.fields.some((field) => field.name === '讀書會討論'));
 });
 
+test('publisher states when an article has no clear shared research relevance', () => {
+  const article = {
+    url: 'https://example.com/article', title: 'Security news', summary: 'Summary',
+    published: new Date('2026-08-14T08:00:00Z'), author: '', categories: [], imageUrl: '',
+    contentDepth: 'summary_only',
+  };
+  const message = createNewsMessage(article, 'Test', richDecision({
+    researchRelevance: [],
+  }), cloneDefaultRule());
+  const field = message.embeds[0].toJSON().fields
+    .find((item) => item.name === '讀書會研究方向');
+
+  assert.match(field.value, /沒有明確關聯/);
+});
+
 test('publisher checks the AI provider without reading or writing state', async () => {
   let checks = 0;
   const stateStore = {

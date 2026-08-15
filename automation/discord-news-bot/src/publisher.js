@@ -104,7 +104,12 @@ function createNewsEmbed(article, sourceName, decision = null, ruleConfig = null
       .filter((item) => selectedAreas.size === 0 || selectedAreas.has(item.area))
       .map((item) => `${RELEVANCE_ICONS[item.relevance] || '○'} **${optionLabel(RESEARCH_AREAS, item.area)}：${RELEVANCE_LABELS[item.relevance] || item.relevance}相關** — ${item.reason}`)
       .join('\n');
-    if (relevance) embed.addFields({ name: '讀書會研究方向', value: clipped(relevance, 1000) });
+    embed.addFields({
+      name: '讀書會研究方向',
+      value: relevance
+        ? clipped(relevance, 1000)
+        : '與目前設定的研究方向沒有明確關聯。',
+    });
     if (decision.scores) {
       embed.addFields({
         name: '閱讀價值',
