@@ -13,6 +13,7 @@ test('parseBloggerFeed normalizes valid entries and ignores invalid ones', () =>
       title: { $t: 'Security &amp; AI' },
       published: { $t: '2026-08-14T08:00:00Z' },
       summary: { $t: '<p>Hello world</p><img src="https://example.com/image.jpg">' },
+      content: { $t: '<article>Full technical analysis of the vulnerability.</article><img src="https://example.com/image.jpg">' },
       link: [{ rel: 'alternate', type: 'text/html', href: 'http://example.com/post' }],
       author: [{ name: { $t: 'Reporter' } }],
       category: [{ term: 'Security' }],
@@ -24,4 +25,18 @@ test('parseBloggerFeed normalizes valid entries and ignores invalid ones', () =>
   assert.equal(articles[0].title, 'Security & AI');
   assert.equal(articles[0].url, 'https://example.com/post');
   assert.equal(articles[0].imageUrl, 'https://example.com/image.jpg');
+  assert.equal(articles[0].analysisText, 'Full technical analysis of the vulnerability.');
+  assert.equal(articles[0].contentDepth, 'feed_content');
+});
+
+test('parseBloggerFeed marks summary-only analysis honestly', () => {
+  const [article] = parseBloggerFeed({ feed: { entry: [{
+    title: { $t: 'Summary only' },
+    published: { $t: '2026-08-14T08:00:00Z' },
+    summary: { $t: '<p>Short source summary</p>' },
+    link: [{ rel: 'alternate', type: 'text/html', href: 'https://example.com/summary' }],
+  }] } });
+
+  assert.equal(article.analysisText, 'Short source summary');
+  assert.equal(article.contentDepth, 'summary_only');
 });

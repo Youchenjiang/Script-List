@@ -28,16 +28,20 @@ function parseBloggerFeed(payload) {
     const canonicalUrl = link.replace(/^http:\/\//i, 'https://');
     const id = entry.id?.$t || canonicalUrl;
     const summaryHtml = entry.summary?.$t || entry.content?.$t || '';
+    const analysisHtml = entry.content?.$t || entry.summary?.$t || '';
+    const analysisText = decodeHtml(analysisHtml).slice(0, 8_000);
 
     return [{
       id,
       url: canonicalUrl,
       title: decodeHtml(entry.title?.$t || 'Untitled'),
       summary: decodeHtml(summaryHtml).slice(0, 380),
+      analysisText,
+      contentDepth: entry.content?.$t ? 'feed_content' : 'summary_only',
       published,
       author: decodeHtml(entry.author?.[0]?.name?.$t || ''),
       categories: (entry.category || []).map((item) => item.term).filter(Boolean).slice(0, 5),
-      imageUrl: extractImage(summaryHtml),
+      imageUrl: extractImage(analysisHtml),
     }];
   });
 }

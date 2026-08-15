@@ -1,7 +1,18 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v2';
+const FILTER_CONTRACT_VERSION = 'news-filter-v3';
+const SCORE_SCHEMA = {
+  type: 'object',
+  properties: {
+    practicalValue: { type: 'integer', minimum: 1, maximum: 5 },
+    technicalDepth: { type: 'integer', minimum: 1, maximum: 5 },
+    novelty: { type: 'integer', minimum: 1, maximum: 5 },
+    discussionValue: { type: 'integer', minimum: 1, maximum: 5 },
+  },
+  required: ['practicalValue', 'technicalDepth', 'novelty', 'discussionValue'],
+  additionalProperties: false,
+};
 const DECISION_SCHEMA = {
   type: 'object',
   properties: {
@@ -16,6 +27,46 @@ const DECISION_SCHEMA = {
       enum: ['taiwan', 'global_major', 'other', 'unknown'],
     },
     reason: { type: 'string' },
+    readingRecommendation: {
+      type: 'string',
+      enum: ['must_read', 'recommended', 'skim', 'skip'],
+    },
+    difficulty: {
+      type: 'string',
+      enum: ['beginner', 'intermediate', 'advanced', 'specialist'],
+    },
+    summaryBullets: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: 2,
+      maxItems: 4,
+    },
+    whyRead: { type: 'string' },
+    prerequisites: {
+      type: 'array',
+      items: { type: 'string' },
+      maxItems: 4,
+    },
+    researchRelevance: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          area: { type: 'string' },
+          relevance: { type: 'string', enum: ['high', 'medium', 'low'] },
+          reason: { type: 'string' },
+        },
+        required: ['area', 'relevance', 'reason'],
+        additionalProperties: false,
+      },
+      maxItems: 10,
+    },
+    discussionQuestions: {
+      type: 'array',
+      items: { type: 'string' },
+      maxItems: 2,
+    },
+    scores: SCORE_SCHEMA,
     matchedCriteria: {
       type: 'array',
       items: { type: 'string' },
@@ -43,6 +94,14 @@ const DECISION_SCHEMA = {
     'severity',
     'regionRelevance',
     'reason',
+    'readingRecommendation',
+    'difficulty',
+    'summaryBullets',
+    'whyRead',
+    'prerequisites',
+    'researchRelevance',
+    'discussionQuestions',
+    'scores',
     'matchedCriteria',
     'matchedTechnologies',
     'matchedExclusions',
@@ -54,6 +113,9 @@ const DECISION_SCHEMA = {
 const DECISION_KEYS = Object.freeze([...DECISION_SCHEMA.required].sort());
 const SEVERITIES = new Set(DECISION_SCHEMA.properties.severity.enum);
 const REGIONS = new Set(DECISION_SCHEMA.properties.regionRelevance.enum);
+const RECOMMENDATIONS = new Set(DECISION_SCHEMA.properties.readingRecommendation.enum);
+const DIFFICULTIES = new Set(DECISION_SCHEMA.properties.difficulty.enum);
+const RELEVANCE_LEVELS = new Set(['high', 'medium', 'low']);
 const JSON_ONLY_INSTRUCTION = '只輸出符合指定 schema 的 JSON；不得加入 Markdown code fence 或任何說明文字。';
 const PROVIDER_CHECK_ARTICLE = Object.freeze({
   id: 'provider-health-check',
@@ -70,6 +132,26 @@ function isStringArray(value) {
     && value.every((item) => typeof item === 'string');
 }
 
+function isScore(value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+  if (JSON.stringify(Object.keys(value).sort())
+      !== JSON.stringify(SCORE_SCHEMA.required.slice().sort())) return false;
+  return SCORE_SCHEMA.required.every((key) => Number.isInteger(value[key])
+    && value[key] >= 1 && value[key] <= 5);
+}
+
+function isResearchRelevance(value) {
+  return Array.isArray(value)
+    && value.length <= 10
+    && value.every((item) => item
+      && typeof item === 'object'
+      && !Array.isArray(item)
+      && JSON.stringify(Object.keys(item).sort()) === JSON.stringify(['area', 'reason', 'relevance'])
+      && typeof item.area === 'string'
+      && RELEVANCE_LEVELS.has(item.relevance)
+      && typeof item.reason === 'string');
+}
+
 function validateDecision(decision) {
   if (!decision || typeof decision !== 'object' || Array.isArray(decision)) return false;
   if (JSON.stringify(Object.keys(decision).sort()) !== JSON.stringify(DECISION_KEYS)) return false;
@@ -80,6 +162,15 @@ function validateDecision(decision) {
     && SEVERITIES.has(decision.severity)
     && REGIONS.has(decision.regionRelevance)
     && typeof decision.reason === 'string'
+    && RECOMMENDATIONS.has(decision.readingRecommendation)
+    && DIFFICULTIES.has(decision.difficulty)
+    && isStringArray(decision.summaryBullets)
+    && decision.summaryBullets.length >= 2
+    && typeof decision.whyRead === 'string'
+    && isStringArray(decision.prerequisites)
+    && isResearchRelevance(decision.researchRelevance)
+    && isStringArray(decision.discussionQuestions)
+    && isScore(decision.scores)
     && isStringArray(decision.matchedCriteria)
     && isStringArray(decision.matchedTechnologies)
     && isStringArray(decision.matchedExclusions)
@@ -142,7 +233,7 @@ async function requestCompletion(config, messages, fetchImpl) {
     body: JSON.stringify({
       model: config.aiModel,
       messages,
-      max_tokens: config.aiMaxOutputTokens || 800,
+      max_tokens: config.aiMaxOutputTokens || 1600,
       response_format: {
         type: 'json_schema',
         json_schema: {
@@ -180,15 +271,21 @@ function createAiFilter(config, fetchImpl = fetch) {
         {
           role: 'system',
           content: [
-            '你是嚴格的資安新聞篩選器。',
-            '只能根據提供的標題、摘要、分類與規則判斷，不可猜測文章未提及的內容。',
+            '你是嚴格的資安新聞篩選器與資安讀書會編輯。',
+            '只能根據提供的標題、文章內容、分類與規則判斷，不可猜測文章未提及的內容。',
             '規則不明確或證據不足時，matches 必須為 false。',
             'matchedCriteria、matchedTechnologies 與 matchedExclusions 只能填入規則中提供的 id。',
             'matchedCriteria 描述事件類型；matchedTechnologies 描述文章明確影響的技術領域。',
             '技術規則為 any 時仍須辨識明確技術，但不可將 any 放入 matchedTechnologies。',
             '沒有明確證據時 severity 或 regionRelevance 必須使用 unknown。',
             'evidence 必須是文章資料中可核對的簡短依據，不得捏造。',
-            'reason 與 evidence 使用繁體中文，保持簡短。',
+            'researchRelevance 只能使用規則提供的研究方向 id；僅列出確實相關的方向。',
+            'summaryBullets 要讓成員快速掌握事件、技術重點與影響，不得只是改寫標題。',
+            'whyRead 說明投入閱讀時間能得到什麼；資訊不足時應明確說明限制。',
+            'difficulty 依理解文章所需的先備知識判斷；prerequisites 列出必要知識。',
+            'scores 的每一項使用 1 到 5 分；不得因 matches=true 就一律給高分。',
+            'discussionQuestions 必須能促進技術討論，最多兩題。',
+            '所有自然語言欄位使用繁體中文，保持具體而簡短。',
             JSON_ONLY_INSTRUCTION,
           ].join('\n'),
         },
@@ -199,6 +296,8 @@ function createAiFilter(config, fetchImpl = fetch) {
             article: {
               title: article.title,
               summary: article.summary,
+              content: article.analysisText || article.summary,
+              contentDepth: article.contentDepth || 'summary_only',
               categories: article.categories,
               sourceUrl: article.url,
               publishedAt: article.published.toISOString(),
@@ -225,6 +324,8 @@ function createAiFilter(config, fetchImpl = fetch) {
           article: {
             title: PROVIDER_CHECK_ARTICLE.title,
             summary: PROVIDER_CHECK_ARTICLE.summary,
+            content: PROVIDER_CHECK_ARTICLE.summary,
+            contentDepth: 'summary_only',
             categories: PROVIDER_CHECK_ARTICLE.categories,
             sourceUrl: PROVIDER_CHECK_ARTICLE.url,
             publishedAt: PROVIDER_CHECK_ARTICLE.published.toISOString(),

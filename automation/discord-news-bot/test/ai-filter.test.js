@@ -3,6 +3,31 @@ const assert = require('node:assert/strict');
 const { createAiFilter } = require('../src/ai-filter');
 const { cloneDefaultRule } = require('../src/rule-options');
 
+function completeDecision(overrides = {}) {
+  return {
+    matches: true,
+    confidence: 0.95,
+    severity: 'critical',
+    regionRelevance: 'global_major',
+    reason: '符合重大漏洞規則',
+    readingRecommendation: 'must_read',
+    difficulty: 'advanced',
+    summaryBullets: ['存在重大遠端程式碼執行漏洞', '文章提供可核對的技術與影響資訊'],
+    whyRead: '可用於理解漏洞風險與防禦方式',
+    prerequisites: ['網路安全基礎'],
+    researchRelevance: [{
+      area: 'vulnerability_research', relevance: 'high', reason: '包含漏洞技術細節',
+    }],
+    discussionQuestions: ['如何驗證既有防禦能否阻擋此攻擊？'],
+    scores: { practicalValue: 5, technicalDepth: 4, novelty: 3, discussionValue: 4 },
+    matchedCriteria: ['critical_vulnerability'],
+    matchedTechnologies: ['endpoint_os'],
+    matchedExclusions: [],
+    evidence: ['摘要指出遠端程式碼執行漏洞'],
+    ...overrides,
+  };
+}
+
 test('AI filter uses a generic chat completions endpoint and strict JSON schema', async () => {
   let request;
   const fetchImpl = async (url, options) => {
@@ -13,17 +38,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
         return {
           choices: [{
             message: {
-              content: JSON.stringify({
-                matches: true,
-                confidence: 0.92,
-                severity: 'critical',
-                regionRelevance: 'global_major',
-                reason: '符合重大漏洞規則',
-                matchedCriteria: ['critical_vulnerability'],
-                matchedTechnologies: ['endpoint_os'],
-                matchedExclusions: [],
-                evidence: ['摘要指出遠端程式碼執行漏洞'],
-              }),
+              content: JSON.stringify(completeDecision({ confidence: 0.92 })),
             },
           }],
         };
@@ -49,11 +64,11 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.equal(request.url, 'https://provider.example/v1/chat/completions');
   assert.equal(request.options.headers.authorization, 'Bearer test-key');
   assert.equal(request.body.model, 'provider-model');
-  assert.equal(request.body.max_tokens, 800);
+  assert.equal(request.body.max_tokens, 1600);
   assert.equal(request.body.response_format.type, 'json_schema');
   assert.equal(request.body.response_format.json_schema.strict, true);
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v2:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v3:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -94,17 +109,10 @@ test('AI filter provider check returns HTTP status and provider message', async 
         return {
           choices: [{
             message: {
-              content: JSON.stringify({
-                matches: true,
-                confidence: 0.95,
-                severity: 'critical',
-                regionRelevance: 'global_major',
+              content: JSON.stringify(completeDecision({
                 reason: 'Synthetic check passed',
-                matchedCriteria: ['critical_vulnerability'],
-                matchedTechnologies: ['endpoint_os'],
-                matchedExclusions: [],
                 evidence: ['The summary states active exploitation'],
-              }),
+              })),
             },
           }],
         };
@@ -119,17 +127,7 @@ test('AI filter provider check returns HTTP status and provider message', async 
 });
 
 test('AI filter accepts a complete JSON decision wrapped in a Markdown fence', async () => {
-  const decision = {
-    matches: true,
-    confidence: 0.95,
-    severity: 'critical',
-    regionRelevance: 'global_major',
-    reason: 'Fenced response',
-    matchedCriteria: ['critical_vulnerability'],
-    matchedTechnologies: ['endpoint_os'],
-    matchedExclusions: [],
-    evidence: ['Synthetic evidence'],
-  };
+  const decision = completeDecision({ reason: 'Fenced response', evidence: ['Synthetic evidence'] });
   const filter = createAiFilter({
     aiFilteringEnabled: true,
     aiApiKey: 'test-key',
@@ -168,17 +166,16 @@ test('AI filter preserves invalid model content in parse errors', async () => {
 });
 
 test('AI filter accepts text content parts from compatible endpoints', async () => {
-  const decision = {
+  const decision = completeDecision({
     matches: false,
-    confidence: 0.8,
     severity: 'unknown',
     regionRelevance: 'unknown',
     reason: 'No match',
+    readingRecommendation: 'skip',
     matchedCriteria: [],
     matchedTechnologies: [],
-    matchedExclusions: [],
-    evidence: ['Synthetic evidence'],
-  };
+    researchRelevance: [],
+  });
   const filter = createAiFilter({
     aiFilteringEnabled: true,
     aiApiKey: 'test-key',
