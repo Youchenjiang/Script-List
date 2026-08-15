@@ -20,6 +20,7 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 
 - 事件類型
 - 技術領域
+- 讀書會共用研究方向
 - 嚴重程度
 - 地區範圍
 - 排除內容
@@ -65,7 +66,22 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 
 至少選擇一項；選擇 `any` 時忽略其他技術選項。事件類型描述「發生什麼事」，技術領域描述「影響什麼技術」，兩者必須分開判斷。
 
-#### 步驟 3：嚴重程度（單選）
+#### 步驟 3：讀書會共用研究方向（可複選）
+
+- `vulnerability_research`：漏洞成因、利用技術、PoC 與攻擊面分析
+- `threat_intelligence`：攻擊者、攻擊活動、TTP 與情資關聯
+- `malware_reverse`：惡意程式行為、逆向工程與樣本分析
+- `detection_engineering`：日誌、偵測規則、獵捕方法與可觀測性
+- `incident_response`：應變流程、調查證據、鑑識與復原
+- `application_security`：Web、API、供應鏈與安全開發生命週期
+- `cloud_identity_security`：雲端控制面、IAM、SSO 與權限治理
+- `security_engineering`：防禦架構、系統設計、工具與自動化
+- `governance_risk`：風險管理、政策、法規與組織衝擊
+- `ai_security`：模型、Agent、提示攻擊與 AI 系統防護
+
+至少選擇一項。這些方向不取代新聞過濾條件，而是讓公開閱讀卡呈現文章與讀書會各研究方向的關聯程度。
+
+#### 步驟 4：嚴重程度（單選）
 
 - `critical_only`：只接收重大事件
 - `high_or_above`：高風險以上（建議）
@@ -74,13 +90,13 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 
 嚴重程度只在文章提供足夠證據時使用，不得由 AI 猜測 CVSS 或影響程度。
 
-#### 步驟 4：地區範圍（單選）
+#### 步驟 5：地區範圍（單選）
 
 - `taiwan_priority`：台灣相關事件，以及全球重大事件（建議）
 - `taiwan_only`：必須明確影響台灣
 - `global`：全球事件，不限制地區
 
-#### 步驟 5：排除內容（可複選）
+#### 步驟 6：排除內容（可複選）
 
 - `advertisement`：產品廣告或置入內容
 - `event_promotion`：活動、研討會或課程宣傳
@@ -90,13 +106,13 @@ Bot 先以 ephemeral 訊息顯示設定總覽，讓使用者在開始前知道�
 
 提供 `使用建議排除項目` 與 `不排除` 選項。
 
-#### 步驟 6：AI 信心門檻（單選）
+#### 步驟 7：AI 信心門檻（單選）
 
 - `0.90`：嚴格，推送較少
 - `0.80`：平衡（建議）
 - `0.70`：寬鬆，可能增加誤判
 
-#### 步驟 7：補充條件（選填）
+#### 步驟 8：補充條件（選填）
 
 提供 `新增補充條件` 與 `略過`。只有選擇新增時才開啟文字輸入框，例如：
 
@@ -113,6 +129,7 @@ CISA 已知遭利用漏洞一律推送；排除只影響已停止支援產品的
 ```text
 事件類型：零日漏洞、重大漏洞、勒索軟體、供應鏈攻擊
 技術領域：雲端與容器、Web 與 API
+研究方向：漏洞研究與利用、威脅情報、偵測工程、雲端與身分安全
 嚴重度：高風險以上
 地區：台灣優先＋全球重大事件
 排除：廣告、活動宣傳、一般產品更新
@@ -139,6 +156,16 @@ AI 信心門檻：80%
     "supply_chain"
   ],
   "technologies": ["any"],
+  "researchAreas": [
+    "vulnerability_research",
+    "threat_intelligence",
+    "malware_reverse",
+    "detection_engineering",
+    "incident_response",
+    "application_security",
+    "cloud_identity_security",
+    "security_engineering"
+  ],
   "minimumSeverity": "high_or_above",
   "regionScope": "taiwan_priority",
   "exclusions": [
@@ -157,9 +184,10 @@ AI 信心門檻：80%
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "topics": ["zero_day", "supply_chain"],
   "technologies": ["cloud_containers", "developer_ecosystem"],
+  "researchAreas": ["vulnerability_research", "detection_engineering"],
   "minimumSeverity": "high_or_above",
   "regionScope": "taiwan_priority",
   "exclusions": ["advertisement", "routine_update"],
@@ -186,10 +214,39 @@ AI 必須回傳固定格式：
   "matchedCriteria": ["zero_day"],
   "matchedTechnologies": ["cloud_containers"],
   "matchedExclusions": [],
-  "evidence": ["摘要指出漏洞已遭實際利用"],
-  "reason": "符合零日漏洞與高風險條件"
+  "evidence": ["文章指出漏洞已遭實際利用"],
+  "reason": "符合零日漏洞與高風險條件",
+  "readingRecommendation": "must_read",
+  "difficulty": "advanced",
+  "summaryBullets": [
+    "漏洞已被用於實際攻擊",
+    "文章提供受影響範圍、緩解措施與偵測線索"
+  ],
+  "whyRead": "可同時理解漏洞利用與防禦驗證方法",
+  "prerequisites": ["Web 認證流程", "日誌分析基礎"],
+  "researchRelevance": [
+    {
+      "area": "vulnerability_research",
+      "relevance": "high",
+      "reason": "包含漏洞成因與利用條件"
+    },
+    {
+      "area": "detection_engineering",
+      "relevance": "medium",
+      "reason": "提供可轉換為偵測邏輯的行為線索"
+    }
+  ],
+  "discussionQuestions": ["現有遙測資料能否辨識這種利用行為？"],
+  "scores": {
+    "practicalValue": 5,
+    "technicalDepth": 4,
+    "novelty": 3,
+    "discussionValue": 4
+  }
 }
 ```
+
+`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`；`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。四項閱讀價值分數皆為 1 至 5。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
 
 程式只有在以下條件全部成立時才允許推送：
 
@@ -201,18 +258,19 @@ AI 必須回傳固定格式：
 6. `regionRelevance` 通過使用者選擇的地區範圍
 7. `evidence` 至少包含一項文章內可驗證的依據
 8. 未命中任何使用者選擇的排除條件
+9. `readingRecommendation` 不是 `skip`
 
 任何欄位缺失、格式錯誤、AI 呼叫失敗或證據不足，結果均視為拒絕。
 
 ## Discord 指令
 
 - `/news_rule setup`：開始互動式設定
-- `/news_rule show`：顯示目前規則與版本
+- `/news_rule show`：由任何頻道成員公開顯示目前規則與版本
 - `/news_rule clear`：停用規則；清除也必須增加版本
 - `/news_rule test`（第二階段）：以近期文章測試規則，只顯示判斷，不實際推送
 - `/news_status`：顯示上次抓取、AI 判斷、符合、拒絕與推送數量
 
-規則管理指令只允許具「管理伺服器」權限者使用，且只能在設定的新聞頻道操作。互動元件只接受啟動設定流程的使用者操作。
+`setup` 與 `clear` 只允許具「管理伺服器」權限者使用，`show` 開放所有頻道成員。指令只能在設定的新聞頻道操作，互動元件只接受啟動設定流程的管理者操作。設定確認後，Bot 必須在公開頻道張貼版本與完整規則，讓所有成員知道目前的共同篩選與研究方向。
 
 ## 設定工作階段
 
@@ -230,6 +288,8 @@ AI 必須回傳固定格式：
 - 取消、逾時或 Bot 重啟不會破壞現有規則。
 - AI 結果未通過程式硬性檢查時不會推送。
 - 規則更新後不會沿用上一版本的 AI 快取。
+- 公開推送包含閱讀建議、Markdown 條列摘要、研究方向關聯、難度、先備知識、四項閱讀價值、討論題與固定標籤。
+- Feed 有文章內容時以內容分析；只有摘要時必須在閱讀卡標明分析依據為來源摘要。
 - `/news_rule test` 不會新增已推送紀錄，也不會發送公開訊息。
 
 ## 實作範圍建議

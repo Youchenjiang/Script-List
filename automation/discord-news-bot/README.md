@@ -9,10 +9,13 @@
 - 預設每 30 分鐘抓取一次新聞
 - 由 AI 根據頻道規則判斷，只推送符合條件的文章
 - 將「事件類型」與「技術領域」分開設定，例如只接收影響雲端／容器的零日或供應鏈事件
+- 以頻道共用研究方向標示每篇文章對漏洞研究、威脅情報、偵測工程等領域的關聯
+- 產生包含閱讀建議、Markdown 重點、難度、先備知識、價值評分與討論題的研究閱讀卡
+- 使用固定的中文 hashtag 標示主題、技術、研究方向與難度，方便 Discord 搜尋
 - 只處理指定時間範圍內的新文章，並永久保存推送及判斷紀錄
 - 每輪限制推送數量，避免第一次啟動洗版
 - `/news_rule setup`：由 Bot 列出選項並逐步設定篩選規則
-- `/news_rule show`：查看目前規則
+- `/news_rule show`：任何頻道成員都可公開查看目前規則
 - `/news_rule clear`：清除規則並停止推送
 - `/news_now`：具「管理伺服器」權限者可立即檢查
 - `/news_ai_check`：實際測試 AI 供應商連線與結構化輸出
@@ -66,9 +69,9 @@ npm start
 /news_rule setup
 ```
 
-Bot 會先顯示所有設定面向，使用者可直接採用建議設定，或依序選擇事件類型、技術領域、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。舊版規則未包含技術領域時會自動視為「不限技術領域」。
+Bot 會先顯示所有設定面向，管理者可直接採用建議設定，或依序選擇事件類型、技術領域、讀書會共用研究方向、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。設定流程只對管理者顯示，儲存後 Bot 會在頻道公開張貼版本與完整規則。舊版規則缺少技術領域或研究方向時會自動補上安全的預設值。
 
-沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens，避免推理型模型在產生 JSON 前耗盡輸出額度。
+沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；研究閱讀卡每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=1600` tokens。此值是輸出上限，不代表每次都會消耗相同數量。
 
 Bot 使用通用的 OpenAI-compatible `chat/completions` 協定，不綁定特定供應商。更換服務時只需修改 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。所選模型必須支援 `response_format` 的 JSON Schema structured outputs，例如：
 
@@ -90,7 +93,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 ## PostgreSQL 與雲端部署
 
-設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations` 資料表，保存已推送文章、頻道規則及 AI 判斷快取。未設定時則使用本機 JSON 檔案。
+設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations` 資料表，保存已推送文章、以 Discord 伺服器／頻道識別的共用規則、研究方向及完整閱讀卡快取。部署新版時會以可重複執行的 migration 補齊欄位；未設定資料庫時則使用本機 JSON 檔案。
 
 第一次從既有本機 Bot 搬到雲端時，建議設定：
 
@@ -105,11 +108,11 @@ PUBLISH_INITIAL_ARTICLES=false
 
 ## 運作方式
 
-1. 從 Blogger JSON Feed 讀取文章標題、摘要、日期、分類與連結。
+1. 從 Blogger JSON Feed 讀取文章標題、摘要、可取得的文章內容、日期、分類與連結；顯示摘要與 AI 分析內容分開限制長度。
 2. 僅保留 `LOOKBACK_HOURS` 內且未出現在狀態檔的文章。
-3. 使用目前頻道規則與文章資料呼叫 AI，取得固定格式的符合／拒絕判斷。
+3. 使用目前頻道規則與文章資料呼叫 AI，一次取得符合／拒絕判斷及結構化研究閱讀卡。
 4. AI 結果會依「文章、頻道、規則版本、Base URL、模型、判斷契約版本」快取；更新規則或切換供應商／模型後會重新判斷。
-5. 只推送符合規則的文章，成功送出一篇就立刻保存狀態，降低中途當機造成重複推送的機率。
+5. 只推送符合規則且非「可略過」的文章，附上閱讀建議、研究關聯、難度、評分、討論題與可搜尋標籤；成功送出一篇就立刻保存狀態。
 6. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
 
 `NEWS_FEED_URL` 目前預期為 Blogger JSON Feed 格式；預設值已指向 The Hacker News。
