@@ -32,11 +32,16 @@ const CREATE_EVALUATIONS_TABLE = `
     region_relevance TEXT NOT NULL,
     reason TEXT NOT NULL,
     matched_criteria JSONB NOT NULL DEFAULT '[]'::jsonb,
+    matched_technologies JSONB NOT NULL DEFAULT '[]'::jsonb,
     matched_exclusions JSONB NOT NULL DEFAULT '[]'::jsonb,
     evidence JSONB NOT NULL DEFAULT '[]'::jsonb,
     evaluated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (article_id, channel_id, rule_version)
   )
+`;
+const ADD_EVALUATION_TECHNOLOGIES_COLUMN = `
+  ALTER TABLE news_article_evaluations
+  ADD COLUMN IF NOT EXISTS matched_technologies JSONB NOT NULL DEFAULT '[]'::jsonb
 `;
 
 async function readJson(filePath, fallback) {
@@ -89,7 +94,9 @@ function createFileStateStore(filePath) {
     save: (state) => saveState(filePath, state),
     async getFilterRule(channelId) {
       const rule = (await loadFilters()).rules[channelId];
-      return rule?.config?.topics?.length ? rule : null;
+      return rule?.config?.topics?.length
+        ? { ...rule, config: normalizeRuleConfig(rule.config) }
+        : null;
     },
     async setFilterRule(channelId, ruleConfig, updatedBy) {
       const data = await loadFilters();
@@ -126,7 +133,7 @@ function normalizeRule(row) {
   if (!row) return null;
   return {
     channelId: row.channel_id,
-    config: row.rule_config,
+    config: normalizeRuleConfig(row.rule_config),
     version: row.version,
     updatedBy: row.updated_by,
     updatedAt: new Date(row.updated_at).toISOString(),
@@ -142,6 +149,7 @@ function normalizeEvaluation(row) {
     regionRelevance: row.region_relevance,
     reason: row.reason,
     matchedCriteria: Array.isArray(row.matched_criteria) ? row.matched_criteria : [],
+    matchedTechnologies: Array.isArray(row.matched_technologies) ? row.matched_technologies : [],
     matchedExclusions: Array.isArray(row.matched_exclusions) ? row.matched_exclusions : [],
     evidence: Array.isArray(row.evidence) ? row.evidence : [],
     evaluatedAt: new Date(row.evaluated_at).toISOString(),
@@ -156,6 +164,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
     await pool.query(CREATE_STATE_TABLE);
     await pool.query(CREATE_RULES_TABLE);
     await pool.query(CREATE_EVALUATIONS_TABLE);
+    await pool.query(ADD_EVALUATION_TECHNOLOGIES_COLUMN);
     initialized = true;
   }
 
@@ -216,7 +225,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
       await initialize();
       const result = await pool.query(
         `SELECT matches, confidence, severity, region_relevance, reason,
-                matched_criteria, matched_exclusions,
+                matched_criteria, matched_technologies, matched_exclusions,
                 evidence, evaluated_at
          FROM news_article_evaluations
          WHERE article_id = $1 AND channel_id = $2 AND rule_version = $3`,
@@ -229,8 +238,9 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
       await pool.query(
         `INSERT INTO news_article_evaluations
            (article_id, channel_id, rule_version, matches, confidence, severity,
-            region_relevance, reason, matched_criteria, matched_exclusions, evidence)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11::jsonb)
+            region_relevance, reason, matched_criteria, matched_technologies,
+            matched_exclusions, evidence)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb)
          ON CONFLICT (article_id, channel_id, rule_version) DO UPDATE SET
            matches = EXCLUDED.matches,
            confidence = EXCLUDED.confidence,
@@ -238,6 +248,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
            region_relevance = EXCLUDED.region_relevance,
            reason = EXCLUDED.reason,
            matched_criteria = EXCLUDED.matched_criteria,
+           matched_technologies = EXCLUDED.matched_technologies,
            matched_exclusions = EXCLUDED.matched_exclusions,
            evidence = EXCLUDED.evidence,
            evaluated_at = NOW()`,
@@ -251,6 +262,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
           decision.regionRelevance,
           decision.reason,
           JSON.stringify(decision.matchedCriteria),
+          JSON.stringify(decision.matchedTechnologies),
           JSON.stringify(decision.matchedExclusions),
           JSON.stringify(decision.evidence),
         ],
