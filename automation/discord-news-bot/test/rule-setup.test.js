@@ -6,6 +6,10 @@ function firstCustomId(message, index = 0) {
   return message.components[0].toJSON().components[index].custom_id;
 }
 
+function customIdAt(message, row, index = 0) {
+  return message.components[row].toJSON().components[index].custom_id;
+}
+
 test('rule setup exposes choices and saves recommended settings only after confirmation', async () => {
   const replies = [];
   const updates = [];
@@ -96,4 +100,35 @@ test('custom setup walks through every choice and optional notes modal', async (
   });
   assert.match(message.content, /CISA KEV 一律推送/);
   assert.match(message.content, /90%/);
+});
+
+test('returning to edit can keep every current selection and continue', async () => {
+  let message;
+  const user = { id: 'user-3' };
+  const base = { user, channelId: 'channel-1' };
+  const manager = createRuleSetupManager({
+    channelId: 'channel-1',
+    saveRule: async (config) => ({ config, version: 1 }),
+  });
+  await manager.start({ ...base, reply: async (value) => { message = value; } });
+
+  const click = async (customId) => manager.handle({
+    ...base,
+    customId,
+    update: async (value) => { message = value; },
+  });
+
+  await click(firstCustomId(message));
+  assert.match(message.content, /儲存前預覽/);
+  await click(firstCustomId(message, 1));
+  assert.match(message.content, /步驟 1\/6/);
+
+  for (const nextStep of [2, 3, 4, 5, 6]) {
+    assert.match(customIdAt(message, 1), /keep_/);
+    await click(customIdAt(message, 1));
+    assert.match(message.content, new RegExp(`步驟 ${nextStep}\\/6`));
+  }
+
+  await click(firstCustomId(message, 1));
+  assert.match(message.content, /儲存前預覽/);
 });
