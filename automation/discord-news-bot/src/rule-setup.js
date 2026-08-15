@@ -54,6 +54,17 @@ function buttonRow(buttons) {
     .setStyle(button.style)));
 }
 
+function keepSelectionRow(session, action) {
+  return buttonRow([
+    {
+      customId: actionId(session, `keep_${action}`),
+      label: '保留目前設定並繼續',
+      style: ButtonStyle.Secondary,
+    },
+    { customId: actionId(session, 'cancel'), label: '取消', style: ButtonStyle.Danger },
+  ]);
+}
+
 function overview(session) {
   return {
     content: [
@@ -72,40 +83,49 @@ function overview(session) {
 function topicsStep(session) {
   return {
     content: '**步驟 1/6：想接收哪些新聞主題？**\n可複選；每個選項都附有說明。',
-    components: [selectRow(
-      session,
-      'topics',
-      '選擇一個或多個主題',
-      TOPICS,
-      session.draft.topics,
-      { min: 1, max: TOPICS.length },
-    )],
+    components: [
+      selectRow(
+        session,
+        'topics',
+        '選擇一個或多個主題',
+        TOPICS,
+        session.draft.topics,
+        { min: 1, max: TOPICS.length },
+      ),
+      keepSelectionRow(session, 'topics'),
+    ],
   };
 }
 
 function severityStep(session) {
   return {
     content: '**步驟 2/6：最低嚴重程度？**\nAI 只能依文章中的明確證據判斷，不會猜測 CVSS。',
-    components: [selectRow(
-      session,
-      'severity',
-      '選擇嚴重程度',
-      SEVERITIES,
-      [session.draft.minimumSeverity],
-    )],
+    components: [
+      selectRow(
+        session,
+        'severity',
+        '選擇嚴重程度',
+        SEVERITIES,
+        [session.draft.minimumSeverity],
+      ),
+      keepSelectionRow(session, 'severity'),
+    ],
   };
 }
 
 function regionStep(session) {
   return {
     content: '**步驟 3/6：關注哪些地區？**',
-    components: [selectRow(
-      session,
-      'region',
-      '選擇地區範圍',
-      REGIONS,
-      [session.draft.regionScope],
-    )],
+    components: [
+      selectRow(
+        session,
+        'region',
+        '選擇地區範圍',
+        REGIONS,
+        [session.draft.regionScope],
+      ),
+      keepSelectionRow(session, 'region'),
+    ],
   };
 }
 
@@ -117,38 +137,56 @@ function exclusionsStep(session) {
   const selected = session.draft.exclusions.length ? session.draft.exclusions : ['none'];
   return {
     content: '**步驟 4/6：要排除哪些內容？**\n可複選；選擇「不排除」會清空其他排除項目。',
-    components: [selectRow(
-      session,
-      'exclusions',
-      '選擇要排除的內容',
-      options,
-      selected,
-      { min: 1, max: options.length },
-    )],
+    components: [
+      selectRow(
+        session,
+        'exclusions',
+        '選擇要排除的內容',
+        options,
+        selected,
+        { min: 1, max: options.length },
+      ),
+      keepSelectionRow(session, 'exclusions'),
+    ],
   };
 }
 
 function confidenceStep(session) {
   return {
     content: '**步驟 5/6：AI 判斷至少要多有把握？**',
-    components: [selectRow(
-      session,
-      'confidence',
-      '選擇信心門檻',
-      CONFIDENCE_LEVELS,
-      [session.draft.confidenceThreshold.toFixed(2)],
-    )],
+    components: [
+      selectRow(
+        session,
+        'confidence',
+        '選擇信心門檻',
+        CONFIDENCE_LEVELS,
+        [session.draft.confidenceThreshold.toFixed(2)],
+      ),
+      keepSelectionRow(session, 'confidence'),
+    ],
   };
 }
 
 function notesStep(session) {
+  const buttons = [
+    { customId: actionId(session, 'add_notes'), label: '新增或修改補充條件', style: ButtonStyle.Primary },
+  ];
+  if (session.draft.notes) {
+    buttons.push({
+      customId: actionId(session, 'keep_notes'),
+      label: '保留補充條件',
+      style: ButtonStyle.Secondary,
+    });
+  }
+  buttons.push({
+    customId: actionId(session, 'skip_notes'),
+    label: session.draft.notes ? '清除補充條件' : '略過',
+    style: session.draft.notes ? ButtonStyle.Danger : ButtonStyle.Secondary,
+  });
+  buttons.push({ customId: actionId(session, 'cancel'), label: '取消', style: ButtonStyle.Secondary });
   return {
     content: '**步驟 6/6：是否加入補充條件？**\n這是選填項目，主要規則仍由前面的結構化選項控制。',
-    components: [buttonRow([
-      { customId: actionId(session, 'add_notes'), label: '新增補充條件', style: ButtonStyle.Primary },
-      { customId: actionId(session, 'skip_notes'), label: '略過', style: ButtonStyle.Secondary },
-      { customId: actionId(session, 'cancel'), label: '取消', style: ButtonStyle.Danger },
-    ])],
+    components: [buttonRow(buttons)],
   };
 }
 
@@ -249,22 +287,34 @@ function createRuleSetupManager({ channelId, saveRule }) {
       } else if (action === 'topics') {
         session.draft.topics = [...interaction.values];
         await interaction.update(severityStep(session));
+      } else if (action === 'keep_topics') {
+        await interaction.update(severityStep(session));
       } else if (action === 'severity') {
         [session.draft.minimumSeverity] = interaction.values;
         await interaction.update(regionStep(session));
+      } else if (action === 'keep_severity') {
+        await interaction.update(regionStep(session));
       } else if (action === 'region') {
         [session.draft.regionScope] = interaction.values;
+        await interaction.update(exclusionsStep(session));
+      } else if (action === 'keep_region') {
         await interaction.update(exclusionsStep(session));
       } else if (action === 'exclusions') {
         session.draft.exclusions = interaction.values.includes('none')
           ? []
           : [...interaction.values];
         await interaction.update(confidenceStep(session));
+      } else if (action === 'keep_exclusions') {
+        await interaction.update(confidenceStep(session));
       } else if (action === 'confidence') {
         session.draft.confidenceThreshold = Number(interaction.values[0]);
         await interaction.update(notesStep(session));
+      } else if (action === 'keep_confidence') {
+        await interaction.update(notesStep(session));
       } else if (action === 'add_notes') {
         await interaction.showModal(notesModal(session));
+      } else if (action === 'keep_notes') {
+        await interaction.update(preview(session));
       } else if (action === 'skip_notes') {
         session.draft.notes = '';
         await interaction.update(preview(session));
