@@ -38,7 +38,7 @@ test('PostgreSQL state store initializes, saves, and loads state', async () => {
 
   assert.equal(store.kind, 'postgres');
   assert.equal(calls.filter((call) => call.sql.includes('CREATE TABLE')).length, 3);
-  assert.equal(calls.filter((call) => call.sql.includes('ADD COLUMN IF NOT EXISTS')).length, 1);
+  assert.equal(calls.filter((call) => call.sql.includes('ADD COLUMN IF NOT EXISTS')).length, 4);
   const saveCall = calls.find((call) => call.sql.includes('INSERT INTO news_bot_state'));
   assert.deepEqual(JSON.parse(saveCall.params[1]), ['article-1']);
   assert.deepEqual(state, {
@@ -69,6 +69,7 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
           rowCount: 1,
           rows: [{
             channel_id: 'channel-1',
+            guild_id: 'guild-1',
             rule_config: cloneDefaultRule(),
             version: 2,
             updated_by: 'user-1',
@@ -76,11 +77,12 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
           }],
         };
       }
-      if (sql.includes('FROM news_filter_rules WHERE')) {
+      if (sql.includes('FROM news_filter_rules')) {
         return {
           rowCount: 1,
           rows: [{
             channel_id: 'channel-1',
+            guild_id: 'guild-1',
             rule_config: cloneDefaultRule(),
             version: 2,
             updated_by: 'user-1',
@@ -101,6 +103,7 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
             matched_technologies: ['endpoint_os'],
             matched_exclusions: [],
             evidence: ['文章指出重大漏洞'],
+            reading_card: {},
             evaluated_at: new Date('2026-08-14T12:01:00Z'),
           }],
         };
@@ -111,9 +114,10 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
   };
   const store = createPostgresStateStore('postgres://unused', pool);
 
-  const rule = await store.setFilterRule('channel-1', cloneDefaultRule(), 'user-1');
+  const rule = await store.setFilterRule('channel-1', cloneDefaultRule(), 'user-1', 'guild-1');
   assert.equal(rule.version, 2);
-  assert.deepEqual((await store.getFilterRule('channel-1')).config, cloneDefaultRule());
+  assert.equal(rule.guildId, 'guild-1');
+  assert.deepEqual((await store.getFilterRule('channel-1', 'guild-1')).config, cloneDefaultRule());
 
   const decision = {
     matches: true,
@@ -126,7 +130,7 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
     matchedExclusions: [],
     evidence: ['文章指出重大漏洞'],
   };
-  await store.saveEvaluation('article-1', 'channel-1', 2, decision);
+  await store.saveEvaluation('article-1', 'channel-1', 2, decision, 'guild-1');
   assert.deepEqual(await store.getEvaluation('article-1', 'channel-1', 2), {
     ...decision,
     evaluatedAt: '2026-08-14T12:01:00.000Z',
@@ -134,7 +138,7 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
 
   const evaluationSave = calls.find((call) => call.sql.includes('INSERT INTO news_article_evaluations'));
   assert.deepEqual(evaluationSave.params.slice(0, 8), [
-    'article-1', 'channel-1', 2, true, 0.95, 'critical', 'global_major',
-    '符合重大漏洞條件',
+    'article-1', 'channel-1', 'guild-1', 2, true, 0.95, 'critical', 'global_major',
   ]);
+  assert.deepEqual(JSON.parse(evaluationSave.params[13]), decision);
 });

@@ -15,6 +15,7 @@ const CREATE_STATE_TABLE = `
 const CREATE_RULES_TABLE = `
   CREATE TABLE IF NOT EXISTS news_filter_rules (
     channel_id TEXT PRIMARY KEY,
+    guild_id TEXT NOT NULL DEFAULT '',
     rule_config JSONB NOT NULL DEFAULT '{}'::jsonb,
     version INTEGER NOT NULL DEFAULT 1,
     updated_by TEXT NOT NULL,
@@ -25,6 +26,7 @@ const CREATE_EVALUATIONS_TABLE = `
   CREATE TABLE IF NOT EXISTS news_article_evaluations (
     article_id TEXT NOT NULL,
     channel_id TEXT NOT NULL,
+    guild_id TEXT NOT NULL DEFAULT '',
     rule_version INTEGER NOT NULL,
     matches BOOLEAN NOT NULL,
     confidence DOUBLE PRECISION NOT NULL,
@@ -35,6 +37,7 @@ const CREATE_EVALUATIONS_TABLE = `
     matched_technologies JSONB NOT NULL DEFAULT '[]'::jsonb,
     matched_exclusions JSONB NOT NULL DEFAULT '[]'::jsonb,
     evidence JSONB NOT NULL DEFAULT '[]'::jsonb,
+    reading_card JSONB NOT NULL DEFAULT '{}'::jsonb,
     evaluated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (article_id, channel_id, rule_version)
   )
@@ -42,6 +45,18 @@ const CREATE_EVALUATIONS_TABLE = `
 const ADD_EVALUATION_TECHNOLOGIES_COLUMN = `
   ALTER TABLE news_article_evaluations
   ADD COLUMN IF NOT EXISTS matched_technologies JSONB NOT NULL DEFAULT '[]'::jsonb
+`;
+const ADD_RULE_GUILD_COLUMN = `
+  ALTER TABLE news_filter_rules
+  ADD COLUMN IF NOT EXISTS guild_id TEXT NOT NULL DEFAULT ''
+`;
+const ADD_EVALUATION_GUILD_COLUMN = `
+  ALTER TABLE news_article_evaluations
+  ADD COLUMN IF NOT EXISTS guild_id TEXT NOT NULL DEFAULT ''
+`;
+const ADD_EVALUATION_READING_CARD_COLUMN = `
+  ALTER TABLE news_article_evaluations
+  ADD COLUMN IF NOT EXISTS reading_card JSONB NOT NULL DEFAULT '{}'::jsonb
 `;
 
 async function readJson(filePath, fallback) {
@@ -98,12 +113,13 @@ function createFileStateStore(filePath) {
         ? { ...rule, config: normalizeRuleConfig(rule.config) }
         : null;
     },
-    async setFilterRule(channelId, ruleConfig, updatedBy) {
+    async setFilterRule(channelId, ruleConfig, updatedBy, guildId = '') {
       const data = await loadFilters();
       const config = ruleConfig ? normalizeRuleConfig(ruleConfig) : {};
       const previous = data.rules[channelId];
       const rule = {
         channelId,
+        guildId,
         config,
         version: (previous?.version || 0) + 1,
         updatedBy,
@@ -133,6 +149,7 @@ function normalizeRule(row) {
   if (!row) return null;
   return {
     channelId: row.channel_id,
+    guildId: row.guild_id || '',
     config: normalizeRuleConfig(row.rule_config),
     version: row.version,
     updatedBy: row.updated_by,
@@ -143,6 +160,7 @@ function normalizeRule(row) {
 function normalizeEvaluation(row) {
   if (!row) return null;
   return {
+    ...(row.reading_card && typeof row.reading_card === 'object' ? row.reading_card : {}),
     matches: row.matches,
     confidence: row.confidence,
     severity: row.severity,
@@ -165,6 +183,9 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
     await pool.query(CREATE_RULES_TABLE);
     await pool.query(CREATE_EVALUATIONS_TABLE);
     await pool.query(ADD_EVALUATION_TECHNOLOGIES_COLUMN);
+    await pool.query(ADD_RULE_GUILD_COLUMN);
+    await pool.query(ADD_EVALUATION_GUILD_COLUMN);
+    await pool.query(ADD_EVALUATION_READING_CARD_COLUMN);
     initialized = true;
   }
 
@@ -195,29 +216,33 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
         ['default', JSON.stringify(sentIds), state.lastCheckedAt],
       );
     },
-    async getFilterRule(channelId) {
+    async getFilterRule(channelId, guildId = '') {
       await initialize();
       const result = await pool.query(
-        `SELECT channel_id, rule_config, version, updated_by, updated_at
-         FROM news_filter_rules WHERE channel_id = $1`,
-        [channelId],
+        `SELECT channel_id, guild_id, rule_config, version, updated_by, updated_at
+         FROM news_filter_rules
+         WHERE channel_id = $1 AND (guild_id = $2 OR guild_id = '')
+         ORDER BY CASE WHEN guild_id = $2 THEN 0 ELSE 1 END
+         LIMIT 1`,
+        [channelId, guildId],
       );
       const rule = normalizeRule(result.rows[0]);
       return rule?.config?.topics?.length ? rule : null;
     },
-    async setFilterRule(channelId, ruleConfig, updatedBy) {
+    async setFilterRule(channelId, ruleConfig, updatedBy, guildId = '') {
       await initialize();
       const config = ruleConfig ? normalizeRuleConfig(ruleConfig) : {};
       const result = await pool.query(
-        `INSERT INTO news_filter_rules (channel_id, rule_config, version, updated_by)
-         VALUES ($1, $2::jsonb, 1, $3)
+        `INSERT INTO news_filter_rules (channel_id, guild_id, rule_config, version, updated_by)
+         VALUES ($1, $2, $3::jsonb, 1, $4)
          ON CONFLICT (channel_id) DO UPDATE SET
+           guild_id = EXCLUDED.guild_id,
            rule_config = EXCLUDED.rule_config,
            version = news_filter_rules.version + 1,
            updated_by = EXCLUDED.updated_by,
            updated_at = NOW()
-         RETURNING channel_id, rule_config, version, updated_by, updated_at`,
-        [channelId, JSON.stringify(config), updatedBy],
+         RETURNING channel_id, guild_id, rule_config, version, updated_by, updated_at`,
+        [channelId, guildId, JSON.stringify(config), updatedBy],
       );
       return ruleConfig ? normalizeRule(result.rows[0]) : null;
     },
@@ -226,22 +251,23 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
       const result = await pool.query(
         `SELECT matches, confidence, severity, region_relevance, reason,
                 matched_criteria, matched_technologies, matched_exclusions,
-                evidence, evaluated_at
+                evidence, reading_card, evaluated_at
          FROM news_article_evaluations
          WHERE article_id = $1 AND channel_id = $2 AND rule_version = $3`,
         [articleId, channelId, ruleVersion],
       );
       return normalizeEvaluation(result.rows[0]);
     },
-    async saveEvaluation(articleId, channelId, ruleVersion, decision) {
+    async saveEvaluation(articleId, channelId, ruleVersion, decision, guildId = '') {
       await initialize();
       await pool.query(
         `INSERT INTO news_article_evaluations
-           (article_id, channel_id, rule_version, matches, confidence, severity,
+           (article_id, channel_id, guild_id, rule_version, matches, confidence, severity,
             region_relevance, reason, matched_criteria, matched_technologies,
-            matched_exclusions, evidence)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, $10::jsonb, $11::jsonb, $12::jsonb)
+            matched_exclusions, evidence, reading_card)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12::jsonb, $13::jsonb, $14::jsonb)
          ON CONFLICT (article_id, channel_id, rule_version) DO UPDATE SET
+           guild_id = EXCLUDED.guild_id,
            matches = EXCLUDED.matches,
            confidence = EXCLUDED.confidence,
            severity = EXCLUDED.severity,
@@ -251,10 +277,12 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
            matched_technologies = EXCLUDED.matched_technologies,
            matched_exclusions = EXCLUDED.matched_exclusions,
            evidence = EXCLUDED.evidence,
+           reading_card = EXCLUDED.reading_card,
            evaluated_at = NOW()`,
         [
           articleId,
           channelId,
+          guildId,
           ruleVersion,
           decision.matches,
           decision.confidence,
@@ -265,6 +293,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
           JSON.stringify(decision.matchedTechnologies),
           JSON.stringify(decision.matchedExclusions),
           JSON.stringify(decision.evidence),
+          JSON.stringify(decision),
         ],
       );
     },
