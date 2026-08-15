@@ -28,7 +28,7 @@ test('rule setup exposes choices and saves recommended settings only after confi
     reply: async (message) => replies.push(message),
   });
 
-  assert.match(replies[0].content, /關注主題/);
+  assert.match(replies[0].content, /技術領域/);
   assert.equal(saved.length, 0);
   const recommendedId = firstCustomId(replies[0]);
   await manager.handle({
@@ -51,6 +51,7 @@ test('rule setup exposes choices and saves recommended settings only after confi
   assert.equal(saved.length, 1);
   assert.equal(saved[0].userId, 'user-1');
   assert.ok(saved[0].config.topics.length > 0);
+  assert.deepEqual(saved[0].config.technologies, ['any']);
   assert.deepEqual(updates[1].components, []);
 });
 
@@ -77,17 +78,19 @@ test('custom setup walks through every choice and optional notes modal', async (
   };
 
   await interact(1);
-  assert.match(message.content, /步驟 1\/6/);
+  assert.match(message.content, /步驟 1\/7/);
   await interact(0, ['zero_day', 'supply_chain']);
-  assert.match(message.content, /步驟 2\/6/);
+  assert.match(message.content, /步驟 2\/7/);
+  await interact(0, ['cloud_containers', 'web_api']);
+  assert.match(message.content, /步驟 3\/7/);
   await interact(0, ['critical_only']);
-  assert.match(message.content, /步驟 3\/6/);
+  assert.match(message.content, /步驟 4\/7/);
   await interact(0, ['taiwan_only']);
-  assert.match(message.content, /步驟 4\/6/);
+  assert.match(message.content, /步驟 5\/7/);
   await interact(0, ['advertisement']);
-  assert.match(message.content, /步驟 5\/6/);
+  assert.match(message.content, /步驟 6\/7/);
   await interact(0, ['0.90']);
-  assert.match(message.content, /步驟 6\/6/);
+  assert.match(message.content, /步驟 7\/7/);
   await interact(0);
   assert.equal(modal.toJSON().title, 'AI 新聞補充條件');
 
@@ -99,6 +102,7 @@ test('custom setup walks through every choice and optional notes modal', async (
     update: async (value) => { message = value; },
   });
   assert.match(message.content, /CISA KEV 一律推送/);
+  assert.match(message.content, /雲端與容器、Web 與 API/);
   assert.match(message.content, /90%/);
 });
 
@@ -121,12 +125,12 @@ test('returning to edit can keep every current selection and continue', async ()
   await click(firstCustomId(message));
   assert.match(message.content, /儲存前預覽/);
   await click(firstCustomId(message, 1));
-  assert.match(message.content, /步驟 1\/6/);
+  assert.match(message.content, /步驟 1\/7/);
 
-  for (const nextStep of [2, 3, 4, 5, 6]) {
+  for (const nextStep of [2, 3, 4, 5, 6, 7]) {
     assert.match(customIdAt(message, 1), /keep_/);
     await click(customIdAt(message, 1));
-    assert.match(message.content, new RegExp(`步驟 ${nextStep}\\/6`));
+    assert.match(message.content, new RegExp(`步驟 ${nextStep}\\/7`));
   }
 
   await click(firstCustomId(message, 1));

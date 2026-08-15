@@ -38,6 +38,7 @@ test('PostgreSQL state store initializes, saves, and loads state', async () => {
 
   assert.equal(store.kind, 'postgres');
   assert.equal(calls.filter((call) => call.sql.includes('CREATE TABLE')).length, 3);
+  assert.equal(calls.filter((call) => call.sql.includes('ADD COLUMN IF NOT EXISTS')).length, 1);
   const saveCall = calls.find((call) => call.sql.includes('INSERT INTO news_bot_state'));
   assert.deepEqual(JSON.parse(saveCall.params[1]), ['article-1']);
   assert.deepEqual(state, {
@@ -97,6 +98,7 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
             region_relevance: 'global_major',
             reason: '符合重大漏洞條件',
             matched_criteria: ['重大漏洞'],
+            matched_technologies: ['endpoint_os'],
             matched_exclusions: [],
             evidence: ['文章指出重大漏洞'],
             evaluated_at: new Date('2026-08-14T12:01:00Z'),
@@ -120,6 +122,7 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
     regionRelevance: 'global_major',
     reason: '符合重大漏洞條件',
     matchedCriteria: ['重大漏洞'],
+    matchedTechnologies: ['endpoint_os'],
     matchedExclusions: [],
     evidence: ['文章指出重大漏洞'],
   };

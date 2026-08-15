@@ -20,6 +20,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
                 regionRelevance: 'global_major',
                 reason: '符合重大漏洞規則',
                 matchedCriteria: ['critical_vulnerability'],
+                matchedTechnologies: ['endpoint_os'],
                 matchedExclusions: [],
                 evidence: ['摘要指出遠端程式碼執行漏洞'],
               }),
@@ -52,7 +53,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.equal(request.body.response_format.type, 'json_schema');
   assert.equal(request.body.response_format.json_schema.strict, true);
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v1:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v2:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -100,6 +101,7 @@ test('AI filter provider check returns HTTP status and provider message', async 
                 regionRelevance: 'global_major',
                 reason: 'Synthetic check passed',
                 matchedCriteria: ['critical_vulnerability'],
+                matchedTechnologies: ['endpoint_os'],
                 matchedExclusions: [],
                 evidence: ['The summary states active exploitation'],
               }),
@@ -124,6 +126,7 @@ test('AI filter accepts a complete JSON decision wrapped in a Markdown fence', a
     regionRelevance: 'global_major',
     reason: 'Fenced response',
     matchedCriteria: ['critical_vulnerability'],
+    matchedTechnologies: ['endpoint_os'],
     matchedExclusions: [],
     evidence: ['Synthetic evidence'],
   };
@@ -172,6 +175,7 @@ test('AI filter accepts text content parts from compatible endpoints', async () 
     regionRelevance: 'unknown',
     reason: 'No match',
     matchedCriteria: [],
+    matchedTechnologies: [],
     matchedExclusions: [],
     evidence: ['Synthetic evidence'],
   };

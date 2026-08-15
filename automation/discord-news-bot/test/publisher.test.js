@@ -134,6 +134,7 @@ test('AI filtering only publishes matching articles and reuses cached decisions'
           regionRelevance: 'global_major',
           reason: 'test',
           matchedCriteria: ['critical_vulnerability'],
+          matchedTechnologies: ['endpoint_os'],
           matchedExclusions: [],
           evidence: ['test evidence'],
         };
@@ -198,6 +199,7 @@ test('publisher enforces confidence, evidence, topic, and exclusion gates', () =
     severity: 'critical',
     regionRelevance: 'global_major',
     matchedCriteria: ['zero_day'],
+    matchedTechnologies: ['endpoint_os'],
     matchedExclusions: [],
     evidence: ['摘要指出漏洞已遭實際利用'],
   };
@@ -206,9 +208,14 @@ test('publisher enforces confidence, evidence, topic, and exclusion gates', () =
   assert.equal(passesDecision({ ...valid, confidence: 0.7 }, rule), false);
   assert.equal(passesDecision({ ...valid, evidence: [] }, rule), false);
   assert.equal(passesDecision({ ...valid, matchedCriteria: ['data_breach'] }, rule), false);
+  assert.equal(passesDecision({ ...valid, matchedTechnologies: null }, rule), false);
   assert.equal(passesDecision({ ...valid, matchedExclusions: ['advertisement'] }, rule), false);
   assert.equal(passesDecision({ ...valid, severity: 'medium' }, rule), false);
   assert.equal(passesDecision({ ...valid, regionRelevance: 'other' }, rule), false);
+
+  const cloudRule = { ...rule, technologies: ['cloud_containers'] };
+  assert.equal(passesDecision(valid, cloudRule), false);
+  assert.equal(passesDecision({ ...valid, matchedTechnologies: ['cloud_containers'] }, cloudRule), true);
 });
 
 test('publisher checks the AI provider without reading or writing state', async () => {
