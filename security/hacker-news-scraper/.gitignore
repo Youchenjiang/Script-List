@@ -1,2 +1,5 @@
 # Scraped news output directory
 news_output/
+
+# Log files
+*.log
