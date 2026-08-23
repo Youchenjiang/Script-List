@@ -4,6 +4,7 @@ const { decodeHtml, parseBloggerFeed } = require('../src/news-feed');
 
 test('decodeHtml removes markup and decodes entities', () => {
   assert.equal(decodeHtml('<b>A&amp;B</b> &#x1F680;'), 'A&B 🚀');
+  assert.equal(decodeHtml('漏洞&amp;#x20;已修補'), '漏洞 已修補');
 });
 
 test('parseBloggerFeed normalizes valid entries and ignores invalid ones', () => {

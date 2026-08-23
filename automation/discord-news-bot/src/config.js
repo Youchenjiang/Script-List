@@ -37,7 +37,7 @@ function loadConfig() {
     publishInitialArticles: readBoolean('PUBLISH_INITIAL_ARTICLES', true),
     aiFilteringEnabled: readBoolean('AI_FILTER_ENABLED', true),
     maxAiEvaluationsPerRun: readPositiveInteger('MAX_AI_EVALUATIONS_PER_RUN', 10),
-    aiMaxOutputTokens: readPositiveInteger('AI_MAX_OUTPUT_TOKENS', 1600),
+    aiMaxOutputTokens: readPositiveInteger('AI_MAX_OUTPUT_TOKENS', 800),
     aiApiKey: process.env.AI_API_KEY?.trim() || '',
     aiBaseUrl: process.env.AI_BASE_URL?.trim() || '',
     aiModel: process.env.AI_MODEL?.trim() || '',

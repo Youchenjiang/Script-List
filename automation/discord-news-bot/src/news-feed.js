@@ -2,18 +2,23 @@ const USER_AGENT = 'NewsDiscordBot/1.0 (+Discord news notifier)';
 
 function decodeHtml(value = '') {
   const named = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
-  return value
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity) => {
-      if (entity[0] === '#') {
-        const hex = entity[1]?.toLowerCase() === 'x';
-        const codePoint = Number.parseInt(entity.slice(hex ? 2 : 1), hex ? 16 : 10);
-        return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match;
-      }
-      return named[entity.toLowerCase()] ?? match;
-    })
-    .replace(/\s+/g, ' ')
-    .trim();
+  let decoded = String(value);
+  for (let pass = 0; pass < 3; pass += 1) {
+    const previous = decoded;
+    const next = decoded
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (match, entity) => {
+        if (entity[0] === '#') {
+          const hex = entity[1]?.toLowerCase() === 'x';
+          const codePoint = Number.parseInt(entity.slice(hex ? 2 : 1), hex ? 16 : 10);
+          return Number.isFinite(codePoint) ? String.fromCodePoint(codePoint) : match;
+        }
+        return named[entity.toLowerCase()] ?? match;
+      });
+    decoded = next;
+    if (next === previous) break;
+  }
+  return decoded.replace(/\s+/g, ' ').trim();
 }
 
 function parseBloggerFeed(payload) {

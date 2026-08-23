@@ -1,18 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v3';
-const SCORE_SCHEMA = {
-  type: 'object',
-  properties: {
-    practicalValue: { type: 'integer', minimum: 1, maximum: 5 },
-    technicalDepth: { type: 'integer', minimum: 1, maximum: 5 },
-    novelty: { type: 'integer', minimum: 1, maximum: 5 },
-    discussionValue: { type: 'integer', minimum: 1, maximum: 5 },
-  },
-  required: ['practicalValue', 'technicalDepth', 'novelty', 'discussionValue'],
-  additionalProperties: false,
-};
+const FILTER_CONTRACT_VERSION = 'news-filter-v4';
 const DECISION_SCHEMA = {
   type: 'object',
   properties: {
@@ -31,21 +20,11 @@ const DECISION_SCHEMA = {
       type: 'string',
       enum: ['must_read', 'recommended', 'skim', 'skip'],
     },
+    headline: { type: 'string', minLength: 4, maxLength: 80 },
+    narrativeSummary: { type: 'string', minLength: 40, maxLength: 420 },
     difficulty: {
       type: 'string',
       enum: ['beginner', 'intermediate', 'advanced', 'specialist'],
-    },
-    summaryBullets: {
-      type: 'array',
-      items: { type: 'string' },
-      minItems: 2,
-      maxItems: 4,
-    },
-    whyRead: { type: 'string' },
-    prerequisites: {
-      type: 'array',
-      items: { type: 'string' },
-      maxItems: 4,
     },
     researchRelevance: {
       type: 'array',
@@ -61,12 +40,6 @@ const DECISION_SCHEMA = {
       },
       maxItems: 10,
     },
-    discussionQuestions: {
-      type: 'array',
-      items: { type: 'string' },
-      maxItems: 2,
-    },
-    scores: SCORE_SCHEMA,
     matchedCriteria: {
       type: 'array',
       items: { type: 'string' },
@@ -95,13 +68,10 @@ const DECISION_SCHEMA = {
     'regionRelevance',
     'reason',
     'readingRecommendation',
+    'headline',
+    'narrativeSummary',
     'difficulty',
-    'summaryBullets',
-    'whyRead',
-    'prerequisites',
     'researchRelevance',
-    'discussionQuestions',
-    'scores',
     'matchedCriteria',
     'matchedTechnologies',
     'matchedExclusions',
@@ -132,14 +102,6 @@ function isStringArray(value) {
     && value.every((item) => typeof item === 'string');
 }
 
-function isScore(value) {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
-  if (JSON.stringify(Object.keys(value).sort())
-      !== JSON.stringify(SCORE_SCHEMA.required.slice().sort())) return false;
-  return SCORE_SCHEMA.required.every((key) => Number.isInteger(value[key])
-    && value[key] >= 1 && value[key] <= 5);
-}
-
 function isResearchRelevance(value) {
   return Array.isArray(value)
     && value.length <= 10
@@ -150,6 +112,13 @@ function isResearchRelevance(value) {
       && typeof item.area === 'string'
       && RELEVANCE_LEVELS.has(item.relevance)
       && typeof item.reason === 'string');
+}
+
+function isChineseDisplayText(value, { narrative = false } = {}) {
+  return typeof value === 'string'
+    && /[\u3400-\u9fff]/u.test(value)
+    && !/&(?:#x?[0-9a-f]+|[a-z]+);/iu.test(value)
+    && (!narrative || (!/[\r\n]/u.test(value) && !/^\s*[-*•]\s+/mu.test(value)));
 }
 
 function validateDecision(decision) {
@@ -163,14 +132,14 @@ function validateDecision(decision) {
     && REGIONS.has(decision.regionRelevance)
     && typeof decision.reason === 'string'
     && RECOMMENDATIONS.has(decision.readingRecommendation)
+    && isChineseDisplayText(decision.headline)
+    && decision.headline.trim().length >= 4
+    && decision.headline.length <= 80
+    && isChineseDisplayText(decision.narrativeSummary, { narrative: true })
+    && decision.narrativeSummary.trim().length >= 40
+    && decision.narrativeSummary.length <= 420
     && DIFFICULTIES.has(decision.difficulty)
-    && isStringArray(decision.summaryBullets)
-    && decision.summaryBullets.length >= 2
-    && typeof decision.whyRead === 'string'
-    && isStringArray(decision.prerequisites)
     && isResearchRelevance(decision.researchRelevance)
-    && isStringArray(decision.discussionQuestions)
-    && isScore(decision.scores)
     && isStringArray(decision.matchedCriteria)
     && isStringArray(decision.matchedTechnologies)
     && isStringArray(decision.matchedExclusions)
@@ -233,7 +202,7 @@ async function requestCompletion(config, messages, fetchImpl) {
     body: JSON.stringify({
       model: config.aiModel,
       messages,
-      max_tokens: config.aiMaxOutputTokens || 1600,
+      max_tokens: config.aiMaxOutputTokens || 800,
       response_format: {
         type: 'json_schema',
         json_schema: {
@@ -280,12 +249,15 @@ function createAiFilter(config, fetchImpl = fetch) {
             '沒有明確證據時 severity 或 regionRelevance 必須使用 unknown。',
             'evidence 必須是文章資料中可核對的簡短依據，不得捏造。',
             'researchRelevance 只能使用規則提供的研究方向 id；僅列出確實相關的方向。',
-            'summaryBullets 要讓成員快速掌握事件、技術重點與影響，不得只是改寫標題。',
-            'whyRead 說明投入閱讀時間能得到什麼；資訊不足時應明確說明限制。',
-            'difficulty 依理解文章所需的先備知識判斷；prerequisites 列出必要知識。',
-            'scores 的每一項使用 1 到 5 分；不得因 matches=true 就一律給高分。',
-            'discussionQuestions 必須能促進技術討論，最多兩題。',
-            '所有自然語言欄位使用繁體中文，保持具體而簡短。',
+            'readingRecommendation 只有在文章值得讀書會成員立即投入時間閱讀時才使用 must_read。',
+            'must_read 必須具備明確證據，且至少符合以下一項：正在遭利用或造成重大影響；提出可實作的新技術或防禦方法；直接改變研究方向的重要背景。',
+            '一般漏洞公告、產品宣傳、重複報導、增量更新或缺少技術內容的文章不得標為 must_read。',
+            'headline 使用自然的繁體中文新聞標題，不照抄英文標題。',
+            'narrativeSummary 只寫一個連貫段落，不使用列點、標題或欄位名稱；像說一個短故事般交代發生什麼、關鍵技術、影響，以及它對研究者的意義。',
+            'narrativeSummary 不得重複 headline，也不得另外寫「值得讀」「閱讀判斷」「摘要」等標籤。',
+            '除產品名稱、漏洞編號與沒有通行中文譯名的技術縮寫外，所有自然語言欄位一律使用繁體中文，不得中英逐句混雜。',
+            '不得輸出 HTML entity，例如 &#x20;、&nbsp; 或 &amp;。',
+            'difficulty 依理解文章所需的技術背景判斷。',
             JSON_ONLY_INSTRUCTION,
           ].join('\n'),
         },
@@ -313,9 +285,9 @@ function createAiFilter(config, fetchImpl = fetch) {
       {
         role: 'system',
         content: [
-          'Evaluate the synthetic article using the supplied rule.',
-          'Return only the JSON object required by the schema, without Markdown fences or explanatory text.',
-        ].join(' '),
+          '依提供的規則評估合成資安新聞，所有自然語言欄位使用繁體中文。',
+          '只回傳符合 schema 的 JSON，不得加入 Markdown code fence 或說明文字。',
+        ].join('\n'),
       },
       {
         role: 'user',

@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createAiFilter } = require('../src/ai-filter');
+const { createAiFilter, validateDecision } = require('../src/ai-filter');
 const { cloneDefaultRule } = require('../src/rule-options');
 
 function completeDecision(overrides = {}) {
@@ -11,15 +11,12 @@ function completeDecision(overrides = {}) {
     regionRelevance: 'global_major',
     reason: '符合重大漏洞規則',
     readingRecommendation: 'must_read',
+    headline: '重大遠端程式碼執行漏洞已遭利用',
+    narrativeSummary: '攻擊者正在利用一項重大遠端程式碼執行漏洞入侵公開系統，文章交代了受影響範圍與防禦線索，能協助研究者理解攻擊面並安排曝險檢查。',
     difficulty: 'advanced',
-    summaryBullets: ['存在重大遠端程式碼執行漏洞', '文章提供可核對的技術與影響資訊'],
-    whyRead: '可用於理解漏洞風險與防禦方式',
-    prerequisites: ['網路安全基礎'],
     researchRelevance: [{
       area: 'vulnerability_research', relevance: 'high', reason: '包含漏洞技術細節',
     }],
-    discussionQuestions: ['如何驗證既有防禦能否阻擋此攻擊？'],
-    scores: { practicalValue: 5, technicalDepth: 4, novelty: 3, discussionValue: 4 },
     matchedCriteria: ['critical_vulnerability'],
     matchedTechnologies: ['endpoint_os'],
     matchedExclusions: [],
@@ -64,11 +61,11 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.equal(request.url, 'https://provider.example/v1/chat/completions');
   assert.equal(request.options.headers.authorization, 'Bearer test-key');
   assert.equal(request.body.model, 'provider-model');
-  assert.equal(request.body.max_tokens, 1600);
+  assert.equal(request.body.max_tokens, 800);
   assert.equal(request.body.response_format.type, 'json_schema');
   assert.equal(request.body.response_format.json_schema.strict, true);
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v3:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v4:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -233,6 +230,16 @@ test('AI filter rejects provider output that violates the decision schema', asyn
   }));
 
   await assert.rejects(filter.check(), /required decision schema/);
+});
+
+test('AI filter rejects English, list-formatted, and encoded public copy', () => {
+  assert.equal(validateDecision(completeDecision({ headline: 'Critical security update' })), false);
+  assert.equal(validateDecision(completeDecision({
+    narrativeSummary: '- 攻擊者正在利用漏洞。\n- 文章提供防禦方式，能協助研究者安排曝險檢查。',
+  })), false);
+  assert.equal(validateDecision(completeDecision({
+    narrativeSummary: '攻擊者正在利用漏洞&amp;#x20;入侵公開系統，文章提供防禦方式與偵測線索，能協助研究者安排曝險檢查。',
+  })), false);
 });
 
 test('AI filter preserves provider HTTP errors and response messages', async () => {

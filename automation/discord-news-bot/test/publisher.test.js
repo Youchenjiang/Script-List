@@ -14,15 +14,12 @@ function richDecision(overrides = {}) {
     regionRelevance: 'global_major',
     reason: '符合重大漏洞條件',
     readingRecommendation: 'must_read',
+    headline: '重大身分驗證漏洞已遭利用',
+    narrativeSummary: '攻擊者正利用身分驗證流程中的缺陷入侵公開系統，文章說明了受影響範圍與可觀察的攻擊跡象，能協助研究者安排曝險檢查並改善偵測。',
     difficulty: 'advanced',
-    summaryBullets: ['漏洞已遭實際利用', '文章包含緩解與偵測資訊'],
-    whyRead: '能理解攻擊面與可採取的防禦措施',
-    prerequisites: ['Web 安全基礎'],
     researchRelevance: [{
       area: 'vulnerability_research', relevance: 'high', reason: '提供漏洞成因資訊',
     }],
-    discussionQuestions: ['如何在環境中驗證曝險？'],
-    scores: { practicalValue: 5, technicalDepth: 4, novelty: 3, discussionValue: 4 },
     matchedCriteria: ['critical_vulnerability'],
     matchedTechnologies: ['endpoint_os'],
     matchedExclusions: [],
@@ -210,6 +207,7 @@ test('publisher enforces confidence, evidence, topic, and exclusion gates', () =
   const rule = cloneDefaultRule();
   const valid = {
     matches: true,
+    readingRecommendation: 'must_read',
     confidence: 0.9,
     severity: 'critical',
     regionRelevance: 'global_major',
@@ -220,6 +218,7 @@ test('publisher enforces confidence, evidence, topic, and exclusion gates', () =
   };
 
   assert.equal(passesDecision(valid, rule), true);
+  assert.equal(passesDecision({ ...valid, readingRecommendation: 'recommended' }, rule), false);
   assert.equal(passesDecision({ ...valid, confidence: 0.7 }, rule), false);
   assert.equal(passesDecision({ ...valid, evidence: [] }, rule), false);
   assert.equal(passesDecision({ ...valid, matchedCriteria: ['data_breach'] }, rule), false);
@@ -253,16 +252,20 @@ test('publisher renders a searchable cybersecurity study card', () => {
   }), rule);
   const embed = message.embeds[0].toJSON();
 
-  assert.match(message.content, /#必讀/);
+  assert.doesNotMatch(message.content, /必讀/);
+  assert.match(message.content, /#重大漏洞/);
   assert.match(message.content, /#身分與存取/);
   assert.match(message.content, /#雲端與身分安全/);
-  assert.match(embed.description, /漏洞已遭實際利用/);
-  assert.ok(embed.fields.some((field) => field.name === '閱讀價值'));
-  assert.ok(embed.fields.some((field) => field.name === '讀書會研究方向'));
-  assert.ok(embed.fields.some((field) => field.name === '讀書會討論'));
+  assert.equal(message.content.split(' ').length, 3);
+  assert.equal(embed.title, '重大身分驗證漏洞已遭利用');
+  assert.match(embed.description, /攻擊者正利用/);
+  assert.match(embed.footer.text, /難度：進階/);
+  assert.match(embed.footer.text, /相關：雲端與身分安全/);
+  assert.equal(embed.fields, undefined);
+  assert.equal(embed.author, undefined);
 });
 
-test('publisher states when an article has no clear shared research relevance', () => {
+test('publisher omits research metadata when there is no clear shared relevance', () => {
   const article = {
     url: 'https://example.com/article', title: 'Security news', summary: 'Summary',
     published: new Date('2026-08-14T08:00:00Z'), author: '', categories: [], imageUrl: '',
@@ -271,10 +274,9 @@ test('publisher states when an article has no clear shared research relevance', 
   const message = createNewsMessage(article, 'Test', richDecision({
     researchRelevance: [],
   }), cloneDefaultRule());
-  const field = message.embeds[0].toJSON().fields
-    .find((item) => item.name === '讀書會研究方向');
+  const embed = message.embeds[0].toJSON();
 
-  assert.match(field.value, /沒有明確關聯/);
+  assert.doesNotMatch(embed.footer.text, /相關：/);
 });
 
 test('publisher checks the AI provider without reading or writing state', async () => {
