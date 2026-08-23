@@ -218,7 +218,13 @@ AI 必須回傳固定格式：
   "reason": "符合零日漏洞與高風險條件",
   "readingRecommendation": "must_read",
   "headline": "雲端管理介面的零日漏洞已遭利用",
-  "narrativeSummary": "攻擊者正在利用雲端管理介面的驗證缺陷取得系統控制權，受影響的服務直接暴露於網際網路，文章同時交代了利用條件與可觀察的攻擊跡象，因此能協助漏洞研究與偵測工程成員安排曝險檢查。",
+  "narrativeSummary": "八月中旬，研究團隊在檢查一套公開的雲端管理介面時發現異常登入，追查後確認攻擊者已利用驗證缺強取得管理權限並建立新帳號。供應商在事件公開後撤回受污染版本，遭入侵的伺服器也已隔離。",
+  "exploitationStatus": "confirmed_exploitation",
+  "confirmedConsequences": [
+    "攻擊者已取得管理權限並建立新帳號",
+    "供應商已撤回受污染版本",
+    "遭入侵的伺服器已隔離"
+  ],
   "difficulty": "advanced",
   "researchRelevance": [
     {
@@ -235,7 +241,9 @@ AI 必須回傳固定格式：
 }
 ```
 
-`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題；`narrativeSummary` 必須是一個連貫段落，不得使用列點、小標題或重複的閱讀判斷。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
+`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題。`narrativeSummary` 必須依時間順序，以原文提供的人、事、時、地、物建立背景，再交代攻擊或發現經過、技術效果、已確認後果與事件收尾；不得使用列點、小標題、未來推演、處置建議或重複的閱讀判斷。
+
+`confirmedConsequences` 至少要有一項文章可核對的實際結果，可以是後門已證實具備的能力、已發生的入侵／外洩／中斷，或事件後已完成的撤回與封鎖。`exploitationStatus` 只能是 `confirmed_exploitation`、`attempted_exploitation`、`no_confirmed_exploitation` 或 `not_reported`；只有原文明確表示沒有成功利用證據時，才能使用 `no_confirmed_exploitation`。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
 
 程式只有在以下條件全部成立時才允許推送：
 
@@ -279,6 +287,7 @@ AI 必須回傳固定格式：
 - 規則更新後不會沿用上一版本的 AI 快取。
 - 公開推送不顯示「必讀」或其他閱讀判斷，只包含繁體中文標題、一段敘事、頁尾難度／主要研究方向與最多三個中文標籤。
 - 除產品名稱、漏洞編號與沒有通行中文譯名的縮寫外，公開文字不得中英逐句混雜，也不得殘留 HTML entity。
+- 敘事必須寫出事件已確認造成的結果，並嚴格區分「攻擊能力已證實」與「已有受害者」；未報導利用狀態時不得自行宣稱沒有受害者。
 - Feed 有文章內容時以內容分析；只有摘要時必須在閱讀卡標明分析依據為來源摘要。
 - `/news_rule test` 不會新增已推送紀錄，也不會發送公開訊息。
 
