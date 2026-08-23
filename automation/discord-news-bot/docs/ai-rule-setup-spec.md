@@ -217,13 +217,9 @@ AI 必須回傳固定格式：
   "evidence": ["文章指出漏洞已遭實際利用"],
   "reason": "符合零日漏洞與高風險條件",
   "readingRecommendation": "must_read",
+  "headline": "雲端管理介面的零日漏洞已遭利用",
+  "narrativeSummary": "攻擊者正在利用雲端管理介面的驗證缺陷取得系統控制權，受影響的服務直接暴露於網際網路，文章同時交代了利用條件與可觀察的攻擊跡象，因此能協助漏洞研究與偵測工程成員安排曝險檢查。",
   "difficulty": "advanced",
-  "summaryBullets": [
-    "漏洞已被用於實際攻擊",
-    "文章提供受影響範圍、緩解措施與偵測線索"
-  ],
-  "whyRead": "可同時理解漏洞利用與防禦驗證方法",
-  "prerequisites": ["Web 認證流程", "日誌分析基礎"],
   "researchRelevance": [
     {
       "area": "vulnerability_research",
@@ -235,18 +231,11 @@ AI 必須回傳固定格式：
       "relevance": "medium",
       "reason": "提供可轉換為偵測邏輯的行為線索"
     }
-  ],
-  "discussionQuestions": ["現有遙測資料能否辨識這種利用行為？"],
-  "scores": {
-    "practicalValue": 5,
-    "technicalDepth": 4,
-    "novelty": 3,
-    "discussionValue": 4
-  }
+  ]
 }
 ```
 
-`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`；`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。四項閱讀價值分數皆為 1 至 5。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
+`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題；`narrativeSummary` 必須是一個連貫段落，不得使用列點、小標題或重複的閱讀判斷。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
 
 程式只有在以下條件全部成立時才允許推送：
 
@@ -258,7 +247,7 @@ AI 必須回傳固定格式：
 6. `regionRelevance` 通過使用者選擇的地區範圍
 7. `evidence` 至少包含一項文章內可驗證的依據
 8. 未命中任何使用者選擇的排除條件
-9. `readingRecommendation` 不是 `skip`
+9. `readingRecommendation` 必須是 `must_read`
 
 任何欄位缺失、格式錯誤、AI 呼叫失敗或證據不足，結果均視為拒絕。
 
@@ -288,7 +277,8 @@ AI 必須回傳固定格式：
 - 取消、逾時或 Bot 重啟不會破壞現有規則。
 - AI 結果未通過程式硬性檢查時不會推送。
 - 規則更新後不會沿用上一版本的 AI 快取。
-- 公開推送包含閱讀建議、Markdown 條列摘要、研究方向關聯、難度、先備知識、四項閱讀價值、討論題與固定標籤。
+- 公開推送不顯示「必讀」或其他閱讀判斷，只包含繁體中文標題、一段敘事、頁尾難度／主要研究方向與最多三個中文標籤。
+- 除產品名稱、漏洞編號與沒有通行中文譯名的縮寫外，公開文字不得中英逐句混雜，也不得殘留 HTML entity。
 - Feed 有文章內容時以內容分析；只有摘要時必須在閱讀卡標明分析依據為來源摘要。
 - `/news_rule test` 不會新增已推送紀錄，也不會發送公開訊息。
 
