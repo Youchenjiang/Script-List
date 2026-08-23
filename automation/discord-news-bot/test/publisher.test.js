@@ -15,7 +15,9 @@ function richDecision(overrides = {}) {
     reason: '符合重大漏洞條件',
     readingRecommendation: 'must_read',
     headline: '重大身分驗證漏洞已遭利用',
-    narrativeSummary: '攻擊者正利用身分驗證流程中的缺陷入侵公開系統，文章說明了受影響範圍與可觀察的攻擊跡象，能協助研究者安排曝險檢查並改善偵測。',
+    narrativeSummary: '八月中旬，研究團隊在檢查公開管理介面時發現異常登入，追查後確認攻擊者已利用身分驗證缺陷取得管理權限並建立新帳號，受感染伺服器隨後遭到隔離。',
+    exploitationStatus: 'confirmed_exploitation',
+    confirmedConsequences: ['攻擊者已取得管理權限', '攻擊者已建立新帳號'],
     difficulty: 'advanced',
     researchRelevance: [{
       area: 'vulnerability_research', relevance: 'high', reason: '提供漏洞成因資訊',
@@ -258,7 +260,7 @@ test('publisher renders a searchable cybersecurity study card', () => {
   assert.match(message.content, /#雲端與身分安全/);
   assert.equal(message.content.split(' ').length, 3);
   assert.equal(embed.title, '重大身分驗證漏洞已遭利用');
-  assert.match(embed.description, /攻擊者正利用/);
+  assert.match(embed.description, /研究團隊.*發現.*攻擊者已利用/);
   assert.match(embed.footer.text, /難度：進階/);
   assert.match(embed.footer.text, /相關：雲端與身分安全/);
   assert.equal(embed.fields, undefined);

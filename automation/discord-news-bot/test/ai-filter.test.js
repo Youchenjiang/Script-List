@@ -12,7 +12,9 @@ function completeDecision(overrides = {}) {
     reason: '符合重大漏洞規則',
     readingRecommendation: 'must_read',
     headline: '重大遠端程式碼執行漏洞已遭利用',
-    narrativeSummary: '攻擊者正在利用一項重大遠端程式碼執行漏洞入侵公開系統，文章交代了受影響範圍與防禦線索，能協助研究者理解攻擊面並安排曝險檢查。',
+    narrativeSummary: '八月中旬，研究團隊在檢查公開伺服器時發現異常連線，追查後確認攻擊者已利用遠端程式碼執行漏洞植入惡意程式並取得系統權限，受感染主機隨後遭到隔離。',
+    exploitationStatus: 'confirmed_exploitation',
+    confirmedConsequences: ['攻擊者已取得受感染主機的系統權限', '受感染主機已遭隔離'],
     difficulty: 'advanced',
     researchRelevance: [{
       area: 'vulnerability_research', relevance: 'high', reason: '包含漏洞技術細節',
@@ -65,7 +67,9 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.equal(request.body.response_format.type, 'json_schema');
   assert.equal(request.body.response_format.json_schema.strict, true);
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v4:'));
+  assert.match(request.body.messages[0].content, /confirmedConsequences/);
+  assert.match(request.body.messages[0].content, /不得推演未來/);
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v5:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -169,6 +173,8 @@ test('AI filter accepts text content parts from compatible endpoints', async () 
     regionRelevance: 'unknown',
     reason: 'No match',
     readingRecommendation: 'skip',
+    exploitationStatus: 'not_reported',
+    confirmedConsequences: ['合成文章未提供實際攻擊結果'],
     matchedCriteria: [],
     matchedTechnologies: [],
     researchRelevance: [],
@@ -240,6 +246,8 @@ test('AI filter rejects English, list-formatted, and encoded public copy', () =>
   assert.equal(validateDecision(completeDecision({
     narrativeSummary: '攻擊者正在利用漏洞&amp;#x20;入侵公開系統，文章提供防禦方式與偵測線索，能協助研究者安排曝險檢查。',
   })), false);
+  assert.equal(validateDecision(completeDecision({ confirmedConsequences: [] })), false);
+  assert.equal(validateDecision(completeDecision({ exploitationStatus: 'assumed_safe' })), false);
 });
 
 test('AI filter preserves provider HTTP errors and response messages', async () => {

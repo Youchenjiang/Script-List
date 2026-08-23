@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v4';
+const FILTER_CONTRACT_VERSION = 'news-filter-v5';
 const DECISION_SCHEMA = {
   type: 'object',
   properties: {
@@ -22,6 +22,21 @@ const DECISION_SCHEMA = {
     },
     headline: { type: 'string', minLength: 4, maxLength: 80 },
     narrativeSummary: { type: 'string', minLength: 40, maxLength: 420 },
+    exploitationStatus: {
+      type: 'string',
+      enum: [
+        'confirmed_exploitation',
+        'attempted_exploitation',
+        'no_confirmed_exploitation',
+        'not_reported',
+      ],
+    },
+    confirmedConsequences: {
+      type: 'array',
+      items: { type: 'string' },
+      minItems: 1,
+      maxItems: 4,
+    },
     difficulty: {
       type: 'string',
       enum: ['beginner', 'intermediate', 'advanced', 'specialist'],
@@ -70,6 +85,8 @@ const DECISION_SCHEMA = {
     'readingRecommendation',
     'headline',
     'narrativeSummary',
+    'exploitationStatus',
+    'confirmedConsequences',
     'difficulty',
     'researchRelevance',
     'matchedCriteria',
@@ -85,6 +102,7 @@ const SEVERITIES = new Set(DECISION_SCHEMA.properties.severity.enum);
 const REGIONS = new Set(DECISION_SCHEMA.properties.regionRelevance.enum);
 const RECOMMENDATIONS = new Set(DECISION_SCHEMA.properties.readingRecommendation.enum);
 const DIFFICULTIES = new Set(DECISION_SCHEMA.properties.difficulty.enum);
+const EXPLOITATION_STATUSES = new Set(DECISION_SCHEMA.properties.exploitationStatus.enum);
 const RELEVANCE_LEVELS = new Set(['high', 'medium', 'low']);
 const JSON_ONLY_INSTRUCTION = '只輸出符合指定 schema 的 JSON；不得加入 Markdown code fence 或任何說明文字。';
 const PROVIDER_CHECK_ARTICLE = Object.freeze({
@@ -138,6 +156,9 @@ function validateDecision(decision) {
     && isChineseDisplayText(decision.narrativeSummary, { narrative: true })
     && decision.narrativeSummary.trim().length >= 40
     && decision.narrativeSummary.length <= 420
+    && EXPLOITATION_STATUSES.has(decision.exploitationStatus)
+    && isStringArray(decision.confirmedConsequences)
+    && decision.confirmedConsequences.length >= 1
     && DIFFICULTIES.has(decision.difficulty)
     && isResearchRelevance(decision.researchRelevance)
     && isStringArray(decision.matchedCriteria)
@@ -249,11 +270,18 @@ function createAiFilter(config, fetchImpl = fetch) {
             '沒有明確證據時 severity 或 regionRelevance 必須使用 unknown。',
             'evidence 必須是文章資料中可核對的簡短依據，不得捏造。',
             'researchRelevance 只能使用規則提供的研究方向 id；僅列出確實相關的方向。',
-            'readingRecommendation 只有在文章值得讀書會成員立即投入時間閱讀時才使用 must_read。',
+            'readingRecommendation 只有在文章提供足夠具體事實，可以完整交代一次重要資安事件時才使用 must_read。',
             'must_read 必須具備明確證據，且至少符合以下一項：正在遭利用或造成重大影響；提出可實作的新技術或防禦方法；直接改變研究方向的重要背景。',
             '一般漏洞公告、產品宣傳、重複報導、增量更新或缺少技術內容的文章不得標為 must_read。',
             'headline 使用自然的繁體中文新聞標題，不照抄英文標題。',
-            'narrativeSummary 只寫一個連貫段落，不使用列點、標題或欄位名稱；像說一個短故事般交代發生什麼、關鍵技術、影響，以及它對研究者的意義。',
+            'confirmedConsequences 列出文章明確證實的結果，例如後門實際具備的能力、已遭入侵的組織、被竊取的資料、服務中斷，或事件公開後已完成的撤回與封鎖。不得填入預測。',
+            'exploitationStatus 只能依文章明說的狀態判斷；文章明確表示尚無成功利用證據時才用 no_confirmed_exploitation，沒有交代就用 not_reported。',
+            'narrativeSummary 只寫一個連貫段落，不使用列點、標題或欄位名稱，並依事件發生順序敘述。',
+            '開頭先用文章提供的時間、人物或組織、地點或系統，以及事件背景建立場景；缺少的資訊直接省略，不得以「某人」「某公司」代替或自行補寫。',
+            '接著寫發現或攻擊經過、關鍵技術機制、confirmedConsequences 中的實際結果，以及事件當下已確認的收尾。',
+            '後門或漏洞已證實具備的能力必須明確寫出；同時要區分「具備入侵能力」與「已有受害者」兩件事。',
+            '不得推演未來可能影響的對象或範圍，不得提供處置建議、研究建議、閱讀價值或防禦清單。',
+            '若 exploitationStatus 是 no_confirmed_exploitation，敘事必須明確寫出尚無已知成功利用；若是 not_reported，則不得聲稱沒有受害者。',
             'narrativeSummary 不得重複 headline，也不得另外寫「值得讀」「閱讀判斷」「摘要」等標籤。',
             '除產品名稱、漏洞編號與沒有通行中文譯名的技術縮寫外，所有自然語言欄位一律使用繁體中文，不得中英逐句混雜。',
             '不得輸出 HTML entity，例如 &#x20;、&nbsp; 或 &amp;。',
