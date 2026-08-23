@@ -53,6 +53,7 @@ Script-List/
 │   ├── homework-submission-analyzer/ # 學生作業繳交狀態自動統計工具
 │   └── image-text-verifier/    # 問卷影像辨識與 CSV 校對修正工具
 ├── media/                      # 圖片、PDF 與文件處理
+│   ├── hyread-scraper/         # HyRead 電子書文字抓取與轉檔工具
 │   ├── image-downloader-pdf/   # 圖片下載與 PDF 轉換工具
 │   ├── image-to-pdf/           # 圖片轉 PDF 工具
 │   ├── mhtml-to-pdf/           # MHTML 轉 PDF 工具 (Google 簡報)
@@ -90,6 +91,7 @@ Script-List/
 - **問卷影像辨識與校對工具** ([data/image-text-verifier/](data/image-text-verifier/)) - 用於將實體問卷掃描圖自動辨識，並與現有 CSV 資料自動比對、偵測風險與修正的工具。 → [詳細說明](data/image-text-verifier/README.zh-TW.md)
 
 ### 📁 媒體與文件處理
+- **HyRead 電子書文字抓取工具** ([media/hyread-scraper/](media/hyread-scraper/)) - 透過 Chrome DevTools Protocol 穿透 iframe 抓取 HyRead 圖書館電子書文字，並提供 TXT 轉 Markdown 工具。 → [詳細說明](media/hyread-scraper/README.zh-TW.md)
 - **Image Downloader & PDF Converter** ([media/image-downloader-pdf/](media/image-downloader-pdf/)) - 批次下載網路圖片並自動合併為 PDF 文件。支援自動偵測與智能排序功能。 → [詳細說明](media/image-downloader-pdf/README.md)
 - **MHTML 轉 PDF 轉檔工具** ([media/mhtml-to-pdf/](media/mhtml-to-pdf/)) - 將 Google 簡報匯出的 MHTML 檔案轉換為零留白 16:9 PDF。支援 GUI 選擇器與離線模式。 → [詳細說明](media/mhtml-to-pdf/README.md)
 - **PDF 合併工具** ([media/pdf-merger/](media/pdf-merger/)) - 將多個 PDF 檔案按自定義順序合併為單一文件的簡單工具。 → [詳細說明](media/pdf-merger/README.md)

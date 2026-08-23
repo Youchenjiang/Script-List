@@ -53,6 +53,7 @@ Script-List/
 │   ├── homework-submission-analyzer/ # Homework submission analysis utility
 │   └── image-text-verifier/    # Questionnaire image to CSV verification tool
 ├── media/                      # Image, PDF & Document processing
+│   ├── hyread-scraper/         # HyRead eBook text scraper & converter
 │   ├── image-downloader-pdf/   # Web image downloader and PDF merger
 │   ├── image-to-pdf/           # Simple image to PDF converter
 │   ├── mhtml-to-pdf/           # MHTML to PDF converter (Google Slides)
@@ -90,6 +91,7 @@ Practical script tools categorized by function:
 - **Image-Text Verifier** ([data/image-text-verifier/](data/image-text-verifier/)) - Extract answers from scanned questionnaire images and automatically verify/fix them against an existing CSV dataset with targeted risk management. → [Details](data/image-text-verifier/README.md)
 
 ### 📁 Media & Documents
+- **HyRead eBook Scraper** ([media/hyread-scraper/](media/hyread-scraper/)) - Extract text content from HyRead eBook platform via Chrome DevTools Protocol (CDP) iframe piercing and convert to Markdown. → [Details](media/hyread-scraper/README.md)
 - **Image Downloader & PDF Converter** ([media/image-downloader-pdf/](media/image-downloader-pdf/)) - Batch download web images and automatically merge them into a PDF document. Supports smart sorting. → [Details](media/image-downloader-pdf/README.md)
 - **MHTML to PDF Converter** ([media/mhtml-to-pdf/](media/mhtml-to-pdf/)) - Convert Google Slides MHTML exports into zero-whitespace 16:9 PDFs. Features GUI file picker and offline mode. → [Details](media/mhtml-to-pdf/README.md)
 - **PDF Merger** ([media/pdf-merger/](media/pdf-merger/)) - Simple utility to merge multiple PDF files into a single document with customizable order. → [Details](media/pdf-merger/README.md)
