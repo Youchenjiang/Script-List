@@ -14,14 +14,33 @@ A Node.js utility script to dynamically crawl `thehackernews.com`, follow pagina
 
 - [Node.js](https://nodejs.org/) (v16.0.0 or higher recommended)
 
+## Files and Components
+ 
+| File / Directory | Description |
+|---|---|
+| `hacker_news_scraper.js` | Main scraper script with automatic pagination |
+| `scrape_article.js` | Single article fetching utility |
+| `translate_news.js` | Article content translation utility to Traditional Chinese |
+| `create_digest.js` | Consolidates article directory into a single Markdown digest |
+| `score_news.js` | Four-dimensional weighted scoring (Breadth, Novelty, Exploitability, Severity) & ranking |
+
 ## Usage
 
-1. Open a terminal in this directory.
-2. Run the script:
-   ```bash
-   node hacker_news_scraper.js
-   ```
-3. The downloaded Markdown files will be saved in the `news_output/` directory, named in the format: `YYYY-MM-DD - Sanitized_Title.md`.
+### 1. Scrape Recent Articles
+```bash
+node hacker_news_scraper.js
+```
+The downloaded Markdown files will be saved in `news_output/` named as `YYYY-MM-DD - Sanitized_Title.md`.
+
+### 2. Generate Consolidated Digest
+```bash
+node create_digest.js news_output/ digest.md
+```
+
+### 3. Calculate Scores & Ranking
+```bash
+node score_news.js
+```
 
 ## License
 
