@@ -47,7 +47,7 @@ Script-List/
 ├── automation/                 # 工作流與 GUI 自動化
 │   ├── code-split/             # 程式碼分割打包工具
 │   ├── discord-news-bot/       # Discord 定時新聞推送機器人
-│   ├── vnc-input-helper/       # VNC 輸入輔助工具 (打字、長按、連點)
+│   ├── tapster/                # 輕量化輸入自動化工具 (打字、長按、連點)
 │   └── sync-github-stars/      # GitHub 收藏清單自動歸類與同步工具
 ├── data/                       # 資料驗證與提取
 │   ├── homework-submission-analyzer/ # 學生作業繳交狀態自動統計工具
@@ -82,7 +82,7 @@ Script-List/
 ### ⚙️ 自動化工具
 - **程式碼分割打包工具** ([automation/code-split/](automation/code-split/)) - 將大型專案程式碼自動過濾、分割並打包為多個小文本，方便分批提交給 AI 模型進行對話與分析。 → [詳細說明](automation/code-split/README.zh-TW.md)
 - **Discord 新聞推送機器人** ([automation/discord-news-bot/](automation/discord-news-bot/)) - 定時抓取 The Hacker News 並將未推送過的文章送到指定 Discord 頻道，支援持久化去重、排程設定、Embed 與 slash commands。 → [詳細說明](automation/discord-news-bot/README.md)
-- **VNC 輸入輔助工具** ([automation/vnc-input-helper/](automation/vnc-input-helper/)) - 當 VNC 剪貼簿無法貼上、按鍵需長按或需要滑鼠連點時的模擬輸入輔助工具。 → [詳細說明](automation/vnc-input-helper/README.zh-TW.md)
+- **Tapster (輸入自動化工具)** ([automation/tapster/](automation/tapster/)) - 輕量化輸入自動化工具，支援自動打字、按鍵長按、滑鼠連點與錄製重播，提供 GUI 與 CLI。 → [詳細說明](automation/tapster/README.zh-TW.md)
 - **GitHub 收藏清單同步工具** ([automation/sync-github-stars/](automation/sync-github-stars/)) - 根據 Markdown 的分類標題，自動將專案收藏並分類至 GitHub 星標收藏清單（Star Lists）中。 → [詳細說明](automation/sync-github-stars/README.zh-TW.md)
 
 ### 📊 資料驗證與提取

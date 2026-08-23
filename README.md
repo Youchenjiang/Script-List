@@ -47,7 +47,7 @@ Script-List/
 ├── automation/                 # Workflow & GUI automation
 │   ├── code-split/             # Codebase text splitting utility
 │   ├── discord-news-bot/       # Scheduled Discord news notification bot
-│   ├── vnc-input-helper/       # VNC automation assistant (typer, key hold, clicker)
+│   ├── tapster/                # Lightweight input automation utility (typer, key hold, clicker)
 │   └── sync-github-stars/      # GitHub Star Lists Sync Utility
 ├── data/                       # Data verification & extraction
 │   ├── homework-submission-analyzer/ # Homework submission analysis utility
@@ -82,7 +82,7 @@ Practical script tools categorized by function:
 ### ⚙️ Automation
 - **Code Split Utility** ([automation/code-split/](automation/code-split/)) - A tool to filter, chunk, and split large codebase files into smaller text files for context window-limited AI models. → [Details](automation/code-split/README.md)
 - **Discord News Bot** ([automation/discord-news-bot/](automation/discord-news-bot/)) - Periodically fetch The Hacker News and push unseen articles to a Discord channel, with persistent deduplication, configurable scheduling, embeds, and slash commands. → [Details](automation/discord-news-bot/README.md)
-- **VNC Input Helper** ([automation/vnc-input-helper/](automation/vnc-input-helper/)) - Simulate keyboard typing, hold down keys, or auto-click mouse buttons inside a restricted VNC window. → [Details](automation/vnc-input-helper/README.md)
+- **Tapster (Input Automation Helper)** ([automation/tapster/](automation/tapster/)) - Lightweight input automation utility supporting auto typing, key holding, mouse auto-clicking, and macro replay with GUI & CLI. → [Details](automation/tapster/README.md)
 - **GitHub Star Lists Sync Utility** ([automation/sync-github-stars/](automation/sync-github-stars/)) - Synchronize starred repositories into custom categorized GitHub Star Lists based on Markdown headings. → [Details](automation/sync-github-stars/README.md)
 
 ### 📊 Data & Verification
