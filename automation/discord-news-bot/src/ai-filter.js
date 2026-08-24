@@ -219,11 +219,15 @@ function evaluatorId(config) {
 }
 
 async function sendCompletion(config, messages, fetchImpl, { strictSchema }) {
+  const usesGptOss = /gpt-oss/iu.test(config.aiModel);
   const body = {
     model: config.aiModel,
     messages,
-    max_tokens: config.aiMaxOutputTokens || 800,
+    max_tokens: usesGptOss
+      ? Math.max(config.aiMaxOutputTokens || 800, 1200)
+      : config.aiMaxOutputTokens || 800,
   };
+  if (usesGptOss) body.reasoning_effort = 'low';
   if (strictSchema) {
     body.response_format = {
       type: 'json_schema',

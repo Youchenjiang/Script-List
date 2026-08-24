@@ -97,6 +97,30 @@ test('AI filter fingerprint changes with endpoint or model', () => {
   assert.notEqual(first.evaluatorId, third.evaluatorId);
 });
 
+test('AI filter reserves answer space and lowers reasoning for GPT-OSS models', async () => {
+  let request;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'openai/gpt-oss-20b',
+    aiBaseUrl: 'https://provider.example/v1',
+    aiMaxOutputTokens: 800,
+  }, async (_url, options) => {
+    request = JSON.parse(options.body);
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { choices: [{ message: { content: JSON.stringify(completeDecision()) } }] };
+      },
+    };
+  });
+
+  await filter.check();
+  assert.equal(request.reasoning_effort, 'low');
+  assert.equal(request.max_tokens, 1200);
+});
+
 test('AI filter provider check returns HTTP status and provider message', async () => {
   let calls = 0;
   const filter = createAiFilter({
