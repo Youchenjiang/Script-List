@@ -72,7 +72,7 @@ npm start
 
 Bot 會先顯示所有設定面向，管理者可直接採用建議設定，或依序選擇事件類型、技術領域、讀書會共用研究方向、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。設定流程只對管理者顯示，儲存後 Bot 會在頻道公開張貼版本與完整規則。舊版規則缺少技術領域或研究方向時會自動補上安全的預設值。
 
-沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；精簡判斷每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens。此值是輸出上限，不代表每次都會消耗相同數量。
+沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；精簡判斷每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens。此值是輸出上限，不代表每次都會消耗相同數量。`gpt-oss` 推理模型會自動使用 `reasoning_effort=low`，並保留至少 1,200 tokens，避免預設中等推理耗盡輸出空間而沒有產生 JSON。
 
 Bot 使用通用的 OpenAI-compatible `chat/completions` 協定，不綁定特定供應商。更換服務時只需修改 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。所選模型必須支援 `response_format` 的 JSON Schema structured outputs，例如：
 
