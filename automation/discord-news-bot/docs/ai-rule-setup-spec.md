@@ -243,7 +243,7 @@ AI 必須回傳固定格式：
 
 `readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題。`narrativeSummary` 必須依時間順序，以原文提供的人、事、時、地、物建立背景，再交代攻擊或發現經過、技術效果、已確認後果與事件收尾；不得使用列點、小標題、未來推演、處置建議或重複的閱讀判斷。
 
-`confirmedConsequences` 至少要有一項文章可核對的實際結果，可以是後門已證實具備的能力、已發生的入侵／外洩／中斷，或事件後已完成的撤回與封鎖。`exploitationStatus` 只能是 `confirmed_exploitation`、`attempted_exploitation`、`no_confirmed_exploitation` 或 `not_reported`；只有原文明確表示沒有成功利用證據時，才能使用 `no_confirmed_exploitation`。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
+只有 `must_read` 必須產生公開文案，且 `confirmedConsequences` 至少要有一項文章可核對的實際結果，可以是後門已證實具備的能力、已發生的入侵／外洩／中斷，或事件後已完成的撤回與封鎖。其他閱讀判斷必須將 `headline`、`narrativeSummary` 留空並回傳空的 `confirmedConsequences`，讓程式直接拒絕而不浪費模型輸出，也不會因為文章本來沒有後果而造成 schema 錯誤。`exploitationStatus` 只能是 `confirmed_exploitation`、`attempted_exploitation`、`no_confirmed_exploitation` 或 `not_reported`；只有原文明確表示沒有成功利用證據時，才能使用 `no_confirmed_exploitation`。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
 
 程式只有在以下條件全部成立時才允許推送：
 
