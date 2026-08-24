@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v5';
+const FILTER_CONTRACT_VERSION = 'news-filter-v6';
 const DECISION_SCHEMA = {
   type: 'object',
   properties: {
@@ -20,8 +20,8 @@ const DECISION_SCHEMA = {
       type: 'string',
       enum: ['must_read', 'recommended', 'skim', 'skip'],
     },
-    headline: { type: 'string', minLength: 4, maxLength: 80 },
-    narrativeSummary: { type: 'string', minLength: 40, maxLength: 420 },
+    headline: { type: 'string', maxLength: 80 },
+    narrativeSummary: { type: 'string', maxLength: 420 },
     exploitationStatus: {
       type: 'string',
       enum: [
@@ -34,7 +34,6 @@ const DECISION_SCHEMA = {
     confirmedConsequences: {
       type: 'array',
       items: { type: 'string' },
-      minItems: 1,
       maxItems: 4,
     },
     difficulty: {
@@ -114,9 +113,9 @@ const PROVIDER_CHECK_ARTICLE = Object.freeze({
   published: new Date('2026-01-01T00:00:00Z'),
 });
 
-function isStringArray(value) {
+function isStringArray(value, maxItems = 5) {
   return Array.isArray(value)
-    && value.length <= 5
+    && value.length <= maxItems
     && value.every((item) => typeof item === 'string');
 }
 
@@ -142,7 +141,7 @@ function isChineseDisplayText(value, { narrative = false } = {}) {
 function validateDecision(decision) {
   if (!decision || typeof decision !== 'object' || Array.isArray(decision)) return false;
   if (JSON.stringify(Object.keys(decision).sort()) !== JSON.stringify(DECISION_KEYS)) return false;
-  return typeof decision.matches === 'boolean'
+  const validShape = typeof decision.matches === 'boolean'
     && Number.isFinite(decision.confidence)
     && decision.confidence >= 0
     && decision.confidence <= 1
@@ -150,21 +149,27 @@ function validateDecision(decision) {
     && REGIONS.has(decision.regionRelevance)
     && typeof decision.reason === 'string'
     && RECOMMENDATIONS.has(decision.readingRecommendation)
-    && isChineseDisplayText(decision.headline)
-    && decision.headline.trim().length >= 4
+    && typeof decision.headline === 'string'
     && decision.headline.length <= 80
-    && isChineseDisplayText(decision.narrativeSummary, { narrative: true })
-    && decision.narrativeSummary.trim().length >= 40
+    && typeof decision.narrativeSummary === 'string'
     && decision.narrativeSummary.length <= 420
     && EXPLOITATION_STATUSES.has(decision.exploitationStatus)
-    && isStringArray(decision.confirmedConsequences)
-    && decision.confirmedConsequences.length >= 1
+    && isStringArray(decision.confirmedConsequences, 4)
     && DIFFICULTIES.has(decision.difficulty)
     && isResearchRelevance(decision.researchRelevance)
     && isStringArray(decision.matchedCriteria)
     && isStringArray(decision.matchedTechnologies)
     && isStringArray(decision.matchedExclusions)
     && isStringArray(decision.evidence);
+
+  if (!validShape) return false;
+  if (decision.readingRecommendation !== 'must_read') return true;
+
+  return isChineseDisplayText(decision.headline)
+    && decision.headline.trim().length >= 4
+    && isChineseDisplayText(decision.narrativeSummary, { narrative: true })
+    && decision.narrativeSummary.trim().length >= 40
+    && decision.confirmedConsequences.length >= 1;
 }
 
 function parseDecisionContent(content) {
@@ -273,8 +278,9 @@ function createAiFilter(config, fetchImpl = fetch) {
             'readingRecommendation 只有在文章提供足夠具體事實，可以完整交代一次重要資安事件時才使用 must_read。',
             'must_read 必須具備明確證據，且至少符合以下一項：正在遭利用或造成重大影響；提出可實作的新技術或防禦方法；直接改變研究方向的重要背景。',
             '一般漏洞公告、產品宣傳、重複報導、增量更新或缺少技術內容的文章不得標為 must_read。',
-            'headline 使用自然的繁體中文新聞標題，不照抄英文標題。',
-            'confirmedConsequences 列出文章明確證實的結果，例如後門實際具備的能力、已遭入侵的組織、被竊取的資料、服務中斷，或事件公開後已完成的撤回與封鎖。不得填入預測。',
+            'readingRecommendation 不是 must_read 時，headline 與 narrativeSummary 必須是空字串，confirmedConsequences 必須是空陣列；不要替不會推送的文章撰寫公開文案。',
+            '只有 must_read 才填寫 headline、narrativeSummary 與 confirmedConsequences。headline 使用自然的繁體中文新聞標題，不照抄英文標題。',
+            'must_read 的 confirmedConsequences 至少列出一項文章明確證實的結果，例如後門實際具備的能力、已遭入侵的組織、被竊取的資料、服務中斷，或事件公開後已完成的撤回與封鎖。不得填入預測。',
             'exploitationStatus 只能依文章明說的狀態判斷；文章明確表示尚無成功利用證據時才用 no_confirmed_exploitation，沒有交代就用 not_reported。',
             'narrativeSummary 只寫一個連貫段落，不使用列點、標題或欄位名稱，並依事件發生順序敘述。',
             '開頭先用文章提供的時間、人物或組織、地點或系統，以及事件背景建立場景；缺少的資訊直接省略，不得以「某人」「某公司」代替或自行補寫。',

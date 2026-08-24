@@ -66,10 +66,13 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.equal(request.body.max_tokens, 800);
   assert.equal(request.body.response_format.type, 'json_schema');
   assert.equal(request.body.response_format.json_schema.strict, true);
+  assert.equal(request.body.response_format.json_schema.schema.properties.headline.minLength, undefined);
+  assert.equal(request.body.response_format.json_schema.schema.properties.narrativeSummary.minLength, undefined);
+  assert.equal(request.body.response_format.json_schema.schema.properties.confirmedConsequences.minItems, undefined);
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
   assert.match(request.body.messages[0].content, /confirmedConsequences/);
   assert.match(request.body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v5:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v6:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -173,8 +176,10 @@ test('AI filter accepts text content parts from compatible endpoints', async () 
     regionRelevance: 'unknown',
     reason: 'No match',
     readingRecommendation: 'skip',
+    headline: '',
+    narrativeSummary: '',
     exploitationStatus: 'not_reported',
-    confirmedConsequences: ['合成文章未提供實際攻擊結果'],
+    confirmedConsequences: [],
     matchedCriteria: [],
     matchedTechnologies: [],
     researchRelevance: [],
@@ -248,6 +253,27 @@ test('AI filter rejects English, list-formatted, and encoded public copy', () =>
   })), false);
   assert.equal(validateDecision(completeDecision({ confirmedConsequences: [] })), false);
   assert.equal(validateDecision(completeDecision({ exploitationStatus: 'assumed_safe' })), false);
+});
+
+test('AI filter accepts empty public copy for an article that will not be published', () => {
+  assert.equal(validateDecision(completeDecision({
+    matches: false,
+    readingRecommendation: 'skip',
+    headline: '',
+    narrativeSummary: '',
+    exploitationStatus: 'not_reported',
+    confirmedConsequences: [],
+    researchRelevance: [],
+    matchedCriteria: [],
+    matchedTechnologies: [],
+    evidence: [],
+  })), true);
+});
+
+test('AI filter still requires complete public copy for must-read articles', () => {
+  assert.equal(validateDecision(completeDecision({ headline: '' })), false);
+  assert.equal(validateDecision(completeDecision({ narrativeSummary: '' })), false);
+  assert.equal(validateDecision(completeDecision({ confirmedConsequences: [] })), false);
 });
 
 test('AI filter preserves provider HTTP errors and response messages', async () => {
