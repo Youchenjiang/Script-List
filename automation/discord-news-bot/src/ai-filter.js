@@ -1,7 +1,8 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v6';
+const FILTER_CONTRACT_VERSION = 'news-filter-v7';
+const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 26_000;
 const DECISION_SCHEMA = {
   type: 'object',
   properties: {
@@ -172,6 +173,27 @@ function validateDecision(decision) {
     && decision.confirmedConsequences.length >= 1;
 }
 
+function safeRejectedDecision() {
+  return {
+    matches: false,
+    confidence: 0,
+    severity: 'unknown',
+    regionRelevance: 'unknown',
+    reason: 'AI 回覆格式不完整，已由程式安全拒絕',
+    readingRecommendation: 'skip',
+    headline: '',
+    narrativeSummary: '',
+    exploitationStatus: 'not_reported',
+    confirmedConsequences: [],
+    difficulty: 'intermediate',
+    researchRelevance: [],
+    matchedCriteria: [],
+    matchedTechnologies: [],
+    matchedExclusions: [],
+    evidence: [],
+  };
+}
+
 function parseDecisionContent(content) {
   const trimmed = content.trim();
   const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
@@ -218,7 +240,22 @@ function evaluatorId(config) {
   return `${FILTER_CONTRACT_VERSION}:${fingerprint}`;
 }
 
-async function sendCompletion(config, messages, fetchImpl, { strictSchema }) {
+function minimumRequestIntervalMs(config) {
+  return /gpt-oss/iu.test(config.aiModel) ? GPT_OSS_MIN_REQUEST_INTERVAL_MS : 0;
+}
+
+function createRequestScheduler(config) {
+  const intervalMs = minimumRequestIntervalMs(config);
+  let nextRequestAt = 0;
+  return async function beforeRequest() {
+    const delay = Math.max(nextRequestAt - Date.now(), 0);
+    if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+    nextRequestAt = Date.now() + intervalMs;
+  };
+}
+
+async function sendCompletion(config, messages, fetchImpl, { beforeRequest, strictSchema }) {
+  await beforeRequest();
   const usesGptOss = /gpt-oss/iu.test(config.aiModel);
   const body = {
     model: config.aiModel,
@@ -270,12 +307,21 @@ async function sendWithRateLimitRetry(config, messages, fetchImpl, options) {
   return { response, detail };
 }
 
-async function requestCompletion(config, messages, fetchImpl, providerState = { strictSchema: true }) {
+async function requestCompletion(
+  config,
+  messages,
+  fetchImpl,
+  providerState,
+  { allowSafeRejection = false } = {},
+) {
   let { response, detail } = await sendWithRateLimitRetry(
     config,
     messages,
     fetchImpl,
-    { strictSchema: providerState.strictSchema },
+    {
+      beforeRequest: providerState.beforeRequest,
+      strictSchema: providerState.strictSchema,
+    },
   );
 
   if (!response.ok) {
@@ -291,7 +337,7 @@ async function requestCompletion(config, messages, fetchImpl, providerState = { 
       config,
       messages,
       fetchImpl,
-      { strictSchema: false },
+      { beforeRequest: providerState.beforeRequest, strictSchema: false },
     ));
     if (!response.ok) {
       throw new Error(`AI endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
@@ -299,9 +345,31 @@ async function requestCompletion(config, messages, fetchImpl, providerState = { 
   }
   const payload = await response.json();
   const content = extractCompletionContent(payload?.choices?.[0]?.message);
-  if (!content.trim()) throw emptyCompletionError(payload);
-  const decision = parseDecisionContent(content);
+  if (!content.trim()) {
+    const error = emptyCompletionError(payload);
+    if (allowSafeRejection) {
+      return { decision: safeRejectedDecision(), httpStatus: response.status, warning: error.message };
+    }
+    throw error;
+  }
+  let decision;
+  try {
+    decision = parseDecisionContent(content);
+  } catch (error) {
+    if (allowSafeRejection) {
+      return { decision: safeRejectedDecision(), httpStatus: response.status, warning: error.message };
+    }
+    throw error;
+  }
   if (!validateDecision(decision)) {
+    if (allowSafeRejection) {
+      const preview = JSON.stringify(decision).replace(/\s+/g, ' ').slice(0, 300);
+      return {
+        decision: safeRejectedDecision(),
+        httpStatus: response.status,
+        warning: `AI endpoint response did not match the required decision schema: ${preview}`,
+      };
+    }
     throw new Error('AI endpoint response did not match the required decision schema');
   }
   return { decision, httpStatus: response.status };
@@ -312,7 +380,10 @@ function createAiFilter(config, fetchImpl = fetch) {
       || !config.aiApiKey
       || !config.aiBaseUrl
       || !config.aiModel) return null;
-  const providerState = { strictSchema: true };
+  const providerState = {
+    beforeRequest: createRequestScheduler(config),
+    strictSchema: true,
+  };
 
   async function evaluate(article, rule) {
     const result = await requestCompletion(config, [
@@ -363,7 +434,8 @@ function createAiFilter(config, fetchImpl = fetch) {
             },
           }),
         },
-    ], fetchImpl, providerState);
+    ], fetchImpl, providerState, { allowSafeRejection: true });
+    if (result.warning) console.warn(`[AI filter] ${article.id}: ${result.warning}`);
     return result.decision;
   }
 
@@ -408,6 +480,8 @@ module.exports = {
   DECISION_SCHEMA,
   FILTER_CONTRACT_VERSION,
   extractCompletionContent,
+  minimumRequestIntervalMs,
   parseDecisionContent,
+  safeRejectedDecision,
   validateDecision,
 };

@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { createAiFilter, validateDecision } = require('../src/ai-filter');
+const {
+  createAiFilter, minimumRequestIntervalMs, safeRejectedDecision, validateDecision,
+} = require('../src/ai-filter');
 const { cloneDefaultRule } = require('../src/rule-options');
 
 function completeDecision(overrides = {}) {
@@ -72,7 +74,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
   assert.match(request.body.messages[0].content, /confirmedConsequences/);
   assert.match(request.body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v6:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v7:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -119,6 +121,11 @@ test('AI filter reserves answer space and lowers reasoning for GPT-OSS models', 
   await filter.check();
   assert.equal(request.reasoning_effort, 'low');
   assert.equal(request.max_tokens, 1200);
+});
+
+test('AI filter paces GPT-OSS requests below the free token limit', () => {
+  assert.equal(minimumRequestIntervalMs({ aiModel: 'openai/gpt-oss-20b' }), 26_000);
+  assert.equal(minimumRequestIntervalMs({ aiModel: 'provider-model' }), 0);
 });
 
 test('AI filter provider check returns HTTP status and provider message', async () => {
@@ -265,6 +272,41 @@ test('AI filter rejects provider output that violates the decision schema', asyn
   }));
 
   await assert.rejects(filter.check(), /required decision schema/);
+});
+
+test('AI filter safely rejects malformed article evaluations and caches a valid decision', async () => {
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return { choices: [{ message: { content: JSON.stringify({ matches: 'yes' }) } }] };
+    },
+  }));
+  const originalWarn = console.warn;
+  let warning = '';
+  console.warn = (message) => { warning = message; };
+  let decision;
+  try {
+    decision = await filter.evaluate({
+      id: 'malformed-article',
+      title: 'Malformed provider output',
+      summary: 'Summary',
+      categories: [],
+      url: 'https://example.com/article',
+      published: new Date('2026-08-25T00:00:00Z'),
+    }, { config: cloneDefaultRule() });
+  } finally {
+    console.warn = originalWarn;
+  }
+
+  assert.deepEqual(decision, safeRejectedDecision());
+  assert.equal(validateDecision(decision), true);
+  assert.match(warning, /malformed-article.*required decision schema/);
 });
 
 test('AI filter rejects English, list-formatted, and encoded public copy', () => {
