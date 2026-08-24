@@ -72,7 +72,7 @@ npm start
 
 Bot 會先顯示所有設定面向，管理者可直接採用建議設定，或依序選擇事件類型、技術領域、讀書會共用研究方向、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。設定流程只對管理者顯示，儲存後 Bot 會在頻道公開張貼版本與完整規則。舊版規則缺少技術領域或研究方向時會自動補上安全的預設值。
 
-沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；精簡判斷每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens。此值是輸出上限，不代表每次都會消耗相同數量。`gpt-oss` 推理模型會自動使用 `reasoning_effort=low`，並保留至少 1,200 tokens，避免預設中等推理耗盡輸出空間而沒有產生 JSON。
+沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；精簡判斷每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens。此值是輸出上限，不代表每次都會消耗相同數量。`gpt-oss` 推理模型會自動使用 `reasoning_effort=low`、保留至少 1,200 tokens，並將請求間隔設為 26 秒，避免預設中等推理耗盡輸出空間或在免費 8,000 TPM 配額內集中送出過多請求。
 
 Bot 使用通用的 OpenAI-compatible `chat/completions` 協定，不綁定特定供應商。更換服務時只需修改 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。所選模型必須支援 `response_format` 的 JSON Schema structured outputs，例如：
 
@@ -90,7 +90,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 實際免費額度、模型 ID 與 structured outputs 支援會隨供應商調整，應以供應商文件為準。
 
-部署後，具「管理伺服器」權限者可執行 `/news_ai_check`。Bot 會送出一筆合成新聞測試請求，確認端點、API key、模型及 structured output 契約皆可使用，並顯示供應商回傳的 HTTP status 與訊息。若相容端點明確以 `json_validate_failed` 拒絕 strict structured output，Bot 會自動重試純 JSON、記住該執行個體不支援 strict generation，並在本地執行完全相同的嚴格 schema 驗證；若 `HTTP 429` 訊息明確提供等待秒數，Bot 最多等待 20 秒後重試一次。部分端點若將完整 JSON 包在 Markdown code fence 中，Bot 也會移除此外層後再驗證。其他混合文字仍會拒絕，並在診斷中顯示前 300 字原始回覆。結果只對執行者顯示，不會顯示 API key，也不會讀寫新聞狀態或推送文章；測試與自動重試仍可能計入供應商用量。
+部署後，具「管理伺服器」權限者可執行 `/news_ai_check`。Bot 會送出一筆合成新聞測試請求，確認端點、API key、模型及 structured output 契約皆可使用，並顯示供應商回傳的 HTTP status 與訊息。若相容端點明確以 `json_validate_failed` 拒絕 strict structured output，Bot 會自動重試純 JSON、記住該執行個體不支援 strict generation，並在本地執行完全相同的嚴格 schema 驗證；若 `HTTP 429` 訊息明確提供等待秒數，Bot 最多等待 20 秒後重試一次。部分端點若將完整 JSON 包在 Markdown code fence 中，Bot 也會移除此外層後再驗證。定時評估若收到空白、無效 JSON 或不符合 schema 的內容，會記錄警告並轉成信心值為零的安全拒絕結果，避免同一篇文章無限消耗免費額度；`/news_ai_check` 仍會嚴格回報錯誤。結果只對執行者顯示，不會顯示 API key，也不會讀寫新聞狀態或推送文章；測試與自動重試仍可能計入供應商用量。
 
 ## PostgreSQL 與雲端部署
 
