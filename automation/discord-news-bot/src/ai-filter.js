@@ -218,32 +218,50 @@ function evaluatorId(config) {
   return `${FILTER_CONTRACT_VERSION}:${fingerprint}`;
 }
 
-async function requestCompletion(config, messages, fetchImpl) {
-  const response = await fetchImpl(chatCompletionsUrl(config.aiBaseUrl), {
+async function sendCompletion(config, messages, fetchImpl, { strictSchema }) {
+  const body = {
+    model: config.aiModel,
+    messages,
+    max_tokens: config.aiMaxOutputTokens || 800,
+  };
+  if (strictSchema) {
+    body.response_format = {
+      type: 'json_schema',
+      json_schema: {
+        name: 'news_filter_decision',
+        strict: true,
+        schema: DECISION_SCHEMA,
+      },
+    };
+  }
+
+  return fetchImpl(chatCompletionsUrl(config.aiBaseUrl), {
     method: 'POST',
     headers: {
       authorization: `Bearer ${config.aiApiKey}`,
       'content-type': 'application/json',
     },
-    body: JSON.stringify({
-      model: config.aiModel,
-      messages,
-      max_tokens: config.aiMaxOutputTokens || 800,
-      response_format: {
-        type: 'json_schema',
-        json_schema: {
-          name: 'news_filter_decision',
-          strict: true,
-          schema: DECISION_SCHEMA,
-        },
-      },
-    }),
+    body: JSON.stringify(body),
     signal: AbortSignal.timeout(20_000),
   });
+}
+
+async function requestCompletion(config, messages, fetchImpl) {
+  let response = await sendCompletion(config, messages, fetchImpl, { strictSchema: true });
 
   if (!response.ok) {
     const detail = (await response.text()).replace(/\s+/g, ' ').slice(0, 300);
-    throw new Error(`AI endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+    const structuredOutputFailed = response.status === 400
+      && /json_validate_failed|failed to validate json|generated json does not match/iu.test(detail);
+    if (!structuredOutputFailed) {
+      throw new Error(`AI endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+    }
+
+    response = await sendCompletion(config, messages, fetchImpl, { strictSchema: false });
+    if (!response.ok) {
+      const fallbackDetail = (await response.text()).replace(/\s+/g, ' ').slice(0, 300);
+      throw new Error(`AI endpoint returned HTTP ${response.status}${fallbackDetail ? `: ${fallbackDetail}` : ''}`);
+    }
   }
   const payload = await response.json();
   const content = extractCompletionContent(payload?.choices?.[0]?.message);

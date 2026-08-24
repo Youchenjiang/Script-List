@@ -291,6 +291,39 @@ test('AI filter preserves provider HTTP errors and response messages', async () 
   await assert.rejects(filter.check(), /HTTP 429.*rate limit reached/);
 });
 
+test('AI filter retries locally validated JSON when strict generation fails', async () => {
+  const requests = [];
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async (_url, options) => {
+    requests.push(JSON.parse(options.body));
+    if (requests.length === 1) {
+      return {
+        ok: false,
+        status: 400,
+        text: async () => '{"error":{"code":"json_validate_failed","message":"Failed to validate JSON"}}',
+      };
+    }
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { choices: [{ message: { content: JSON.stringify(completeDecision()) } }] };
+      },
+    };
+  });
+
+  const result = await filter.check();
+  assert.equal(result.httpStatus, 200);
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0].response_format.type, 'json_schema');
+  assert.equal(requests[1].response_format, undefined);
+  assert.equal(validateDecision(result.decision), true);
+});
+
 test('AI filter is unavailable when a required generic setting is missing', () => {
   const complete = {
     aiFilteringEnabled: true,
