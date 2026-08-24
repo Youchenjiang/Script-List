@@ -322,6 +322,39 @@ test('AI filter retries locally validated JSON when strict generation fails', as
   assert.equal(requests[0].response_format.type, 'json_schema');
   assert.equal(requests[1].response_format, undefined);
   assert.equal(validateDecision(result.decision), true);
+
+  await filter.check();
+  assert.equal(requests.length, 3);
+  assert.equal(requests[2].response_format, undefined);
+});
+
+test('AI filter retries once after an explicit provider rate-limit delay', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    if (calls === 1) {
+      return {
+        ok: false,
+        status: 429,
+        text: async () => '{"error":{"message":"Please try again in 0.001s"}}',
+      };
+    }
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { choices: [{ message: { content: JSON.stringify(completeDecision()) } }] };
+      },
+    };
+  });
+
+  assert.equal((await filter.check()).httpStatus, 200);
+  assert.equal(calls, 2);
 });
 
 test('AI filter is unavailable when a required generic setting is missing', () => {

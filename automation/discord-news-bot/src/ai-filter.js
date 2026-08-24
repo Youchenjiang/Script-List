@@ -246,21 +246,51 @@ async function sendCompletion(config, messages, fetchImpl, { strictSchema }) {
   });
 }
 
-async function requestCompletion(config, messages, fetchImpl) {
-  let response = await sendCompletion(config, messages, fetchImpl, { strictSchema: true });
+function retryDelayMs(detail) {
+  const match = detail.match(/try again in\s+(\d+(?:\.\d+)?)s/iu);
+  if (!match) return 0;
+  return Math.min(Math.max(Math.ceil(Number(match[1]) * 1000), 1), 20_000);
+}
+
+async function sendWithRateLimitRetry(config, messages, fetchImpl, options) {
+  let response = await sendCompletion(config, messages, fetchImpl, options);
+  if (response.ok) return { response, detail: '' };
+
+  let detail = (await response.text()).replace(/\s+/g, ' ').slice(0, 300);
+  const delay = response.status === 429 ? retryDelayMs(detail) : 0;
+  if (delay === 0) return { response, detail };
+
+  await new Promise((resolve) => setTimeout(resolve, delay));
+  response = await sendCompletion(config, messages, fetchImpl, options);
+  detail = response.ok ? '' : (await response.text()).replace(/\s+/g, ' ').slice(0, 300);
+  return { response, detail };
+}
+
+async function requestCompletion(config, messages, fetchImpl, providerState = { strictSchema: true }) {
+  let { response, detail } = await sendWithRateLimitRetry(
+    config,
+    messages,
+    fetchImpl,
+    { strictSchema: providerState.strictSchema },
+  );
 
   if (!response.ok) {
-    const detail = (await response.text()).replace(/\s+/g, ' ').slice(0, 300);
-    const structuredOutputFailed = response.status === 400
+    const structuredOutputFailed = providerState.strictSchema
+      && response.status === 400
       && /json_validate_failed|failed to validate json|generated json does not match/iu.test(detail);
     if (!structuredOutputFailed) {
       throw new Error(`AI endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
     }
 
-    response = await sendCompletion(config, messages, fetchImpl, { strictSchema: false });
+    providerState.strictSchema = false;
+    ({ response, detail } = await sendWithRateLimitRetry(
+      config,
+      messages,
+      fetchImpl,
+      { strictSchema: false },
+    ));
     if (!response.ok) {
-      const fallbackDetail = (await response.text()).replace(/\s+/g, ' ').slice(0, 300);
-      throw new Error(`AI endpoint returned HTTP ${response.status}${fallbackDetail ? `: ${fallbackDetail}` : ''}`);
+      throw new Error(`AI endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
     }
   }
   const payload = await response.json();
@@ -278,6 +308,7 @@ function createAiFilter(config, fetchImpl = fetch) {
       || !config.aiApiKey
       || !config.aiBaseUrl
       || !config.aiModel) return null;
+  const providerState = { strictSchema: true };
 
   async function evaluate(article, rule) {
     const result = await requestCompletion(config, [
@@ -328,7 +359,7 @@ function createAiFilter(config, fetchImpl = fetch) {
             },
           }),
         },
-    ], fetchImpl);
+    ], fetchImpl, providerState);
     return result.decision;
   }
 
@@ -356,7 +387,7 @@ function createAiFilter(config, fetchImpl = fetch) {
           },
         }),
       },
-    ], fetchImpl);
+    ], fetchImpl, providerState);
     return result;
   }
 
