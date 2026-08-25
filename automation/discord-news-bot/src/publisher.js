@@ -1,8 +1,15 @@
-const { EmbedBuilder } = require('discord.js');
+const { createHash } = require('node:crypto');
+const {
+  ActionRowBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  EmbedBuilder,
+  MessageFlags,
+} = require('discord.js');
 const { createAiFilter } = require('./ai-filter');
 const { decodeHtml, fetchNews } = require('./news-feed');
 const { createStateStore } = require('./state-store');
-const { RESEARCH_AREAS, TECHNOLOGIES, TOPICS } = require('./rule-options');
+const { RESEARCH_AREAS } = require('./rule-options');
 
 const DIFFICULTY_LABELS = {
   beginner: '入門',
@@ -11,24 +18,20 @@ const DIFFICULTY_LABELS = {
   specialist: '專家',
 };
 
-function optionLabel(options, value) {
-  return options.find((option) => option.value === value)?.label || value;
-}
-
 function clipped(value, maximum = 1024) {
   const text = String(value || '').trim();
   if (text.length <= maximum) return text;
   return `${text.slice(0, maximum - 1)}…`;
 }
 
-function hashtag(value) {
-  return `#${String(value).replace(/[\s／、・/]+/g, '').replace(/[^\p{L}\p{N}_]/gu, '')}`;
-}
-
 function narrativeText(value) {
   return decodeHtml(String(value || '')
     .replace(/^\s*(?:摘要|閱讀判斷|為什麼值得讀)\s*[：:]\s*/u, '')
     .replace(/^\s*[-*•]\s+/gmu, ''));
+}
+
+function optionLabel(options, value) {
+  return options.find((option) => option.value === value)?.label || value;
 }
 
 function passesDecision(decision, ruleConfig) {
@@ -67,32 +70,27 @@ function passesDecision(decision, ruleConfig) {
 }
 
 function createNewsEmbed(article, sourceName, decision = null, ruleConfig = null) {
-  const selectedAreas = new Set(ruleConfig?.researchAreas || []);
-  const relevantAreas = (decision?.researchRelevance || [])
-    .filter((item) => item.relevance !== 'low')
-    .filter((item) => selectedAreas.size === 0 || selectedAreas.has(item.area))
-    .sort((left, right) => ({ high: 0, medium: 1 }[left.relevance]
-      - { high: 0, medium: 1 }[right.relevance]))
-    .slice(0, 2)
-    .map((item) => optionLabel(RESEARCH_AREAS, item.area));
   const difficulty = DIFFICULTY_LABELS[decision?.difficulty] || decision?.difficulty;
-  const footer = decision
-    ? [
-      `來源：${sourceName}`,
-      difficulty ? `難度：${difficulty}` : null,
-      relevantAreas.length ? `相關：${relevantAreas.join('、')}` : null,
-    ].filter(Boolean).join('｜')
-    : sourceName;
   const embed = new EmbedBuilder()
     .setColor(0xD93025)
     .setTitle(clipped(decodeHtml(decision?.headline || article.title), 256))
     .setURL(article.url)
     .setDescription(clipped(
-      narrativeText(decision?.narrativeSummary || article.summary || '此文章沒有摘要。'),
+      narrativeText(decision?.publicSummary || article.summary || '此文章沒有摘要。'),
       1200,
     ))
     .setTimestamp(article.published)
-    .setFooter({ text: clipped(footer, 2048) });
+    .setFooter({ text: decision ? `來源：${sourceName}` : sourceName });
+
+  if (decision) {
+    embed.addFields(
+      {
+        name: '技術焦點',
+        value: clipped((decision.technicalFocus || []).join('、') || '原文未提供', 1024),
+      },
+      { name: '閱讀門檻', value: difficulty || '未判定', inline: true },
+    );
+  }
 
   if (!decision && article.author) embed.setAuthor({ name: article.author.slice(0, 256) });
   if (!decision && article.categories.length) {
@@ -102,18 +100,94 @@ function createNewsEmbed(article, sourceName, decision = null, ruleConfig = null
   return embed;
 }
 
-function createNewsMessage(article, sourceName, decision, ruleConfig) {
+function newsDetailKey(evaluationId, channelId, ruleVersion) {
+  return createHash('sha256')
+    .update(`${evaluationId}\n${channelId}\n${ruleVersion}`)
+    .digest('base64url')
+    .slice(0, 24);
+}
+
+function createNewsMessage(article, sourceName, decision, ruleConfig, detailKey = '') {
   if (!decision) return { embeds: [createNewsEmbed(article, sourceName)] };
-  const tags = [...new Set([
-    ...(decision.matchedCriteria || []).map((value) => hashtag(optionLabel(TOPICS, value))),
-    ...(decision.researchRelevance || [])
-      .filter((item) => item.relevance !== 'low')
-      .map((item) => hashtag(optionLabel(RESEARCH_AREAS, item.area))),
-    ...(decision.matchedTechnologies || []).map((value) => hashtag(optionLabel(TECHNOLOGIES, value))),
-  ])].filter((value) => value !== '#').slice(0, 3);
+  const buttons = new ActionRowBuilder().addComponents(
+    new ButtonBuilder()
+      .setCustomId(`news_detail:${detailKey}`)
+      .setLabel('查看技術細節')
+      .setStyle(ButtonStyle.Primary),
+    new ButtonBuilder()
+      .setLabel('閱讀原文')
+      .setStyle(ButtonStyle.Link)
+      .setURL(article.url),
+  );
   return {
-    content: tags.join(' '),
     embeds: [createNewsEmbed(article, sourceName, decision, ruleConfig)],
+    components: [buttons],
+    allowedMentions: { parse: [] },
+  };
+}
+
+const BOUNDARY_LABELS = {
+  confirmed_capability: '已證實能力',
+  confirmed_exposure: '已確認曝露',
+  confirmed_victim: '已確認受害',
+  not_confirmed: '尚未確認',
+  unknown: '原文未交代',
+};
+
+function renderAttackChainGroup(group, startAt) {
+  return group.steps.map((step, index) => [
+    `**${startAt + index}｜${narrativeText(step.stage)}**`,
+    `**動作：**${narrativeText(step.action)}`,
+    `**機制：**${narrativeText(step.mechanism)}`,
+    `**結果：**${narrativeText(step.result)}`,
+  ].join('\n')).join('\n\n');
+}
+
+function createTechnicalDetailReply(detail) {
+  const difficulty = DIFFICULTY_LABELS[detail.difficulty] || detail.difficulty || '未判定';
+  const boundaryText = (detail.evidenceBoundaries || [])
+    .map((item) => `**${BOUNDARY_LABELS[item.status] || item.status}：**${narrativeText(item.claim)}`)
+    .join('\n');
+  const researchText = (detail.researchRelevance || [])
+    .filter((item) => item.relevance !== 'low')
+    .map((item) => `**${optionLabel(RESEARCH_AREAS, item.area)}：**${narrativeText(item.reason)}`)
+    .join('\n');
+  const overview = new EmbedBuilder()
+    .setColor(0xD93025)
+    .setTitle(clipped(detail.headline || '技術細節', 256))
+    .setDescription(clipped(`**最後造成的結果**\n${narrativeText(detail.technicalOutcome)}`, 1000))
+    .addFields(
+      {
+        name: '技術焦點',
+        value: clipped((detail.technicalFocus || []).join('、') || '原文未提供', 1024),
+      },
+      { name: '閱讀門檻', value: difficulty, inline: true },
+      ...(researchText ? [{ name: '研究關聯', value: clipped(researchText, 1024) }] : []),
+      { name: '證據邊界', value: clipped(boundaryText || '原文未交代', 1024) },
+    )
+    .setFooter({ text: clipped(`來源：${detail.sourceName || '原始報導'}`, 2048) });
+
+  let stepNumber = 1;
+  const chainEmbeds = (detail.attackChainGroups || []).map((group) => {
+    const description = renderAttackChainGroup(group, stepNumber);
+    stepNumber += group.steps.length;
+    return new EmbedBuilder()
+      .setColor(0x2F3136)
+      .setTitle(clipped(group.title, 256))
+      .setDescription(clipped(description, 1800));
+  });
+  const components = detail.articleUrl
+    ? [new ActionRowBuilder().addComponents(
+      new ButtonBuilder()
+        .setLabel('閱讀原文')
+        .setStyle(ButtonStyle.Link)
+        .setURL(detail.articleUrl),
+    )]
+    : [];
+  return {
+    embeds: [overview, ...chainEmbeds],
+    components,
+    flags: MessageFlags.Ephemeral,
     allowedMentions: { parse: [] },
   };
 }
@@ -203,7 +277,26 @@ function createPublisher({
       matched += 1;
       if (published >= config.maxArticlesPerRun) continue;
 
-      await channel.send(createNewsMessage(article, config.sourceName, decision, rule.config));
+      const detailKey = newsDetailKey(evaluationId, config.channelId, rule.version);
+      await stateStore.saveNewsDetail(detailKey, {
+        headline: decision.headline,
+        technicalFocus: decision.technicalFocus,
+        technicalOutcome: decision.technicalOutcome,
+        attackChainGroups: decision.attackChainGroups,
+        evidenceBoundaries: decision.evidenceBoundaries,
+        difficulty: decision.difficulty,
+        researchRelevance: decision.researchRelevance,
+        articleUrl: article.url,
+        sourceName: config.sourceName,
+        publishedAt: article.published.toISOString(),
+      }, config.channelId, config.guildId);
+      await channel.send(createNewsMessage(
+        article,
+        config.sourceName,
+        decision,
+        rule.config,
+        detailKey,
+      ));
       sent.add(article.id);
       published += 1;
       await saveCheckpoint(sent, state.lastCheckedAt);
@@ -309,9 +402,17 @@ function createPublisher({
     setFilterRule: (ruleConfig, updatedBy) => (
       stateStore.setFilterRule(config.channelId, ruleConfig, updatedBy, config.guildId)
     ),
+    getNewsDetail: (detailKey) => stateStore.getNewsDetail(detailKey, config.channelId),
     close: () => stateStore.close(),
     getStatus: () => ({ running, latestResult, stateStore: stateStore.kind }),
   };
 }
 
-module.exports = { createNewsEmbed, createNewsMessage, createPublisher, passesDecision };
+module.exports = {
+  createNewsEmbed,
+  createNewsMessage,
+  createPublisher,
+  createTechnicalDetailReply,
+  newsDetailKey,
+  passesDecision,
+};

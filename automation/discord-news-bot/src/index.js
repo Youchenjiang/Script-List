@@ -8,7 +8,7 @@ const {
   PermissionFlagsBits,
 } = require('discord.js');
 const { loadConfig } = require('./config');
-const { createPublisher } = require('./publisher');
+const { createPublisher, createTechnicalDetailReply } = require('./publisher');
 const { formatRuleConfig } = require('./rule-options');
 const { createRuleSetupManager } = require('./rule-setup');
 
@@ -70,6 +70,33 @@ async function main() {
   }
 
   client.on(Events.InteractionCreate, async (interaction) => {
+    if (interaction.isButton() && interaction.customId.startsWith('news_detail:')) {
+      const detailKey = interaction.customId.slice('news_detail:'.length);
+      if (!publisher) {
+        await interaction.reply({ content: 'Bot 尚未準備完成，請稍後再試。', flags: MessageFlags.Ephemeral });
+        return;
+      }
+      try {
+        const detail = await publisher.getNewsDetail(detailKey);
+        if (!detail) {
+          await interaction.reply({
+            content: '這則新聞的技術細節已不存在，請改由原訊息開啟原文。',
+            flags: MessageFlags.Ephemeral,
+          });
+          return;
+        }
+        await interaction.reply(createTechnicalDetailReply(detail));
+      } catch (error) {
+        console.error(`[News detail] ${error.stack || error.message}`);
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({
+            content: `讀取技術細節失敗：${error.message}`,
+            flags: MessageFlags.Ephemeral,
+          });
+        }
+      }
+      return;
+    }
     if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit()) {
       try {
         await ruleSetup?.handle(interaction);

@@ -42,6 +42,15 @@ const CREATE_EVALUATIONS_TABLE = `
     PRIMARY KEY (article_id, channel_id, rule_version)
   )
 `;
+const CREATE_DETAILS_TABLE = `
+  CREATE TABLE IF NOT EXISTS news_article_details (
+    detail_key TEXT PRIMARY KEY,
+    channel_id TEXT NOT NULL,
+    guild_id TEXT NOT NULL DEFAULT '',
+    detail_card JSONB NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`;
 const ADD_EVALUATION_TECHNOLOGIES_COLUMN = `
   ALTER TABLE news_article_evaluations
   ADD COLUMN IF NOT EXISTS matched_technologies JSONB NOT NULL DEFAULT '[]'::jsonb
@@ -100,6 +109,7 @@ function createFileStateStore(filePath) {
       evaluations: data.evaluations && typeof data.evaluations === 'object'
         ? data.evaluations
         : {},
+      details: data.details && typeof data.details === 'object' ? data.details : {},
     };
   }
 
@@ -140,6 +150,21 @@ function createFileStateStore(filePath) {
       const entries = Object.entries(data.evaluations).slice(-MAX_EVALUATIONS);
       data.evaluations = Object.fromEntries(entries);
       await writeJson(filtersPath, data);
+    },
+    async saveNewsDetail(detailKey, detail, channelId, guildId = '') {
+      const data = await loadFilters();
+      data.details[detailKey] = {
+        ...detail,
+        channelId,
+        guildId,
+        createdAt: new Date().toISOString(),
+      };
+      data.details = Object.fromEntries(Object.entries(data.details).slice(-MAX_EVALUATIONS));
+      await writeJson(filtersPath, data);
+    },
+    async getNewsDetail(detailKey, channelId) {
+      const detail = (await loadFilters()).details[detailKey];
+      return detail?.channelId === channelId ? detail : null;
     },
     close: async () => {},
   };
@@ -182,6 +207,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
     await pool.query(CREATE_STATE_TABLE);
     await pool.query(CREATE_RULES_TABLE);
     await pool.query(CREATE_EVALUATIONS_TABLE);
+    await pool.query(CREATE_DETAILS_TABLE);
     await pool.query(ADD_EVALUATION_TECHNOLOGIES_COLUMN);
     await pool.query(ADD_RULE_GUILD_COLUMN);
     await pool.query(ADD_EVALUATION_GUILD_COLUMN);
@@ -296,6 +322,29 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
           JSON.stringify(decision),
         ],
       );
+    },
+    async saveNewsDetail(detailKey, detail, channelId, guildId = '') {
+      await initialize();
+      await pool.query(
+        `INSERT INTO news_article_details
+           (detail_key, channel_id, guild_id, detail_card)
+         VALUES ($1, $2, $3, $4::jsonb)
+         ON CONFLICT (detail_key) DO UPDATE SET
+           channel_id = EXCLUDED.channel_id,
+           guild_id = EXCLUDED.guild_id,
+           detail_card = EXCLUDED.detail_card`,
+        [detailKey, channelId, guildId, JSON.stringify(detail)],
+      );
+    },
+    async getNewsDetail(detailKey, channelId) {
+      await initialize();
+      const result = await pool.query(
+        `SELECT detail_card
+         FROM news_article_details
+         WHERE detail_key = $1 AND channel_id = $2`,
+        [detailKey, channelId],
+      );
+      return result.rows[0]?.detail_card || null;
     },
     close: () => pool.end(),
   };

@@ -3,7 +3,13 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
 const os = require('node:os');
-const { createNewsMessage, createPublisher, passesDecision } = require('../src/publisher');
+const {
+  createNewsMessage,
+  createPublisher,
+  createTechnicalDetailReply,
+  newsDetailKey,
+  passesDecision,
+} = require('../src/publisher');
 const { cloneDefaultRule } = require('../src/rule-options');
 
 function richDecision(overrides = {}) {
@@ -15,7 +21,22 @@ function richDecision(overrides = {}) {
     reason: '符合重大漏洞條件',
     readingRecommendation: 'must_read',
     headline: '重大身分驗證漏洞已遭利用',
-    narrativeSummary: '八月中旬，研究團隊在檢查公開管理介面時發現異常登入，追查後確認攻擊者已利用身分驗證缺陷取得管理權限並建立新帳號，受感染伺服器隨後遭到隔離。',
+    publicSummary: '八月中旬，研究團隊在檢查公開管理介面時發現異常登入，追查後確認攻擊者先利用身分驗證缺陷取得服務存取權，再透過管理介面建立高權限帳號，最終控制受感染伺服器。調查人員確認異常帳號與操作紀錄後，已將受感染伺服器隔離並保存相關證據。',
+    technicalFocus: ['身分驗證缺陷', '高權限帳號建立'],
+    technicalOutcome: '攻擊者完成攻擊鏈後取得管理權限，並在受感染伺服器建立可持續存取的高權限帳號。',
+    attackChainGroups: [{
+      title: '驗證缺陷如何轉成管理權限',
+      steps: [
+        { stage: '鎖定介面', action: '攻擊者探測公開管理介面', mechanism: '以特製請求辨認身分驗證端點', result: '找到可接受惡意輸入的入口' },
+        { stage: '繞過檢查', action: '攻擊者送入異常驗證資料', mechanism: '服務錯誤接受未授權的驗證狀態', result: '攻擊者取得管理介面存取權' },
+        { stage: '建立帳號', action: '攻擊者新增高權限帳號', mechanism: '利用已取得的管理功能修改帳號資料', result: '產生可持續登入的管理身分' },
+        { stage: '控制系統', action: '攻擊者使用新帳號操作伺服器', mechanism: '管理權限允許修改系統設定', result: '受感染伺服器遭攻擊者控制' },
+      ],
+    }],
+    evidenceBoundaries: [
+      { status: 'confirmed_capability', claim: '驗證缺陷可讓未授權使用者進入管理介面' },
+      { status: 'confirmed_victim', claim: '受感染伺服器已發現攻擊者建立的高權限帳號' },
+    ],
     exploitationStatus: 'confirmed_exploitation',
     confirmedConsequences: ['攻擊者已取得管理權限', '攻擊者已建立新帳號'],
     difficulty: 'advanced',
@@ -109,6 +130,7 @@ test('AI filtering only publishes matching articles and reuses cached decisions'
   const sentMessages = [];
   let evaluations = 0;
   const cached = new Map();
+  const savedDetails = new Map();
   const savedStates = [];
   const articles = ['reject', 'match'].map((id, index) => ({
     id,
@@ -128,6 +150,8 @@ test('AI filtering only publishes matching articles and reuses cached decisions'
     setFilterRule: async () => {},
     getEvaluation: async (articleId) => cached.get(articleId) || null,
     saveEvaluation: async (articleId, channelId, version, decision) => cached.set(articleId, decision),
+    saveNewsDetail: async (detailKey, detail) => savedDetails.set(detailKey, detail),
+    getNewsDetail: async (detailKey) => savedDetails.get(detailKey) || null,
     close: async () => {},
   };
   const publisher = createPublisher({
@@ -165,6 +189,7 @@ test('AI filtering only publishes matching articles and reuses cached decisions'
   assert.equal(second.published, 0);
   assert.equal(evaluations, 2);
   assert.equal(sentMessages.length, 1);
+  assert.equal(savedDetails.size, 1);
 });
 
 test('AI filtering fails closed when no channel rule exists', async () => {
@@ -234,7 +259,7 @@ test('publisher enforces confidence, evidence, topic, and exclusion gates', () =
   assert.equal(passesDecision({ ...valid, matchedTechnologies: ['cloud_containers'] }, cloudRule), true);
 });
 
-test('publisher renders a searchable cybersecurity study card', () => {
+test('publisher renders a concise public card with useful technical metadata', () => {
   const article = {
     url: 'https://example.com/article',
     title: 'Critical OAuth vulnerability',
@@ -251,19 +276,19 @@ test('publisher renders a searchable cybersecurity study card', () => {
     researchRelevance: [{
       area: 'cloud_identity_security', relevance: 'high', reason: '涉及 OAuth 權杖驗證',
     }],
-  }), rule);
+  }), rule, 'detail-key');
   const embed = message.embeds[0].toJSON();
 
-  assert.doesNotMatch(message.content, /必讀/);
-  assert.match(message.content, /#重大漏洞/);
-  assert.match(message.content, /#身分與存取/);
-  assert.match(message.content, /#雲端與身分安全/);
-  assert.equal(message.content.split(' ').length, 3);
+  assert.equal(message.content, undefined);
   assert.equal(embed.title, '重大身分驗證漏洞已遭利用');
-  assert.match(embed.description, /研究團隊.*發現.*攻擊者已利用/);
-  assert.match(embed.footer.text, /難度：進階/);
-  assert.match(embed.footer.text, /相關：雲端與身分安全/);
-  assert.equal(embed.fields, undefined);
+  assert.match(embed.description, /研究團隊.*發現.*攻擊者先利用/);
+  assert.match(embed.fields[0].value, /身分驗證缺陷/);
+  assert.equal(embed.fields[1].value, '進階');
+  assert.equal(embed.footer.text, '來源：Test');
+  const components = message.components[0].toJSON().components;
+  assert.equal(components[0].custom_id, 'news_detail:detail-key');
+  assert.equal(components[0].label, '查看技術細節');
+  assert.equal(components[1].url, article.url);
   assert.equal(embed.author, undefined);
 });
 
@@ -275,10 +300,37 @@ test('publisher omits research metadata when there is no clear shared relevance'
   };
   const message = createNewsMessage(article, 'Test', richDecision({
     researchRelevance: [],
-  }), cloneDefaultRule());
+  }), cloneDefaultRule(), 'detail-key');
   const embed = message.embeds[0].toJSON();
 
   assert.doesNotMatch(embed.footer.text, /相關：/);
+});
+
+test('technical detail reply presents a complete ordered chain without creating a thread', () => {
+  const decision = richDecision();
+  const reply = createTechnicalDetailReply({
+    ...decision,
+    articleUrl: 'https://example.com/article',
+    sourceName: 'Test',
+  });
+  const embeds = reply.embeds.map((embed) => embed.toJSON());
+
+  assert.ok(reply.flags);
+  assert.match(embeds[0].description, /最後造成的結果.*管理權限/s);
+  assert.match(embeds[0].fields[2].value, /漏洞研究與利用.*漏洞成因資訊/);
+  assert.match(embeds[0].fields[3].value, /已證實能力/);
+  assert.match(embeds[1].description, /1｜鎖定介面/);
+  assert.match(embeds[1].description, /動作：.*探測公開管理介面/);
+  assert.match(embeds[1].description, /機制：.*身分驗證端點/);
+  assert.match(embeds[1].description, /結果：.*惡意輸入的入口/);
+  assert.equal(reply.components[0].toJSON().components[0].url, 'https://example.com/article');
+});
+
+test('news detail keys are stable, short, and scoped to the rule version', () => {
+  const first = newsDetailKey('evaluation', 'channel', 1);
+  assert.equal(first, newsDetailKey('evaluation', 'channel', 1));
+  assert.notEqual(first, newsDetailKey('evaluation', 'channel', 2));
+  assert.equal(first.length, 24);
 });
 
 test('publisher checks the AI provider without reading or writing state', async () => {

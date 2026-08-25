@@ -16,6 +16,22 @@ test('file state store does not reuse a rule version after clear', async () => {
   assert.equal((await store.setFilterRule('channel-1', cloneDefaultRule(), 'user-1')).version, 3);
 });
 
+test('file state store persists technical details and scopes them to the channel', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'news-state-'));
+  const store = createFileStateStore(path.join(tempDir, 'state.json'));
+  const detail = { headline: '供應鏈後門', technicalOutcome: '攻擊者可執行遠端指令' };
+
+  await store.saveNewsDetail('detail-1', detail, 'channel-1', 'guild-1');
+
+  assert.deepEqual(await store.getNewsDetail('detail-1', 'channel-1'), {
+    ...detail,
+    channelId: 'channel-1',
+    guildId: 'guild-1',
+    createdAt: (await store.getNewsDetail('detail-1', 'channel-1')).createdAt,
+  });
+  assert.equal(await store.getNewsDetail('detail-1', 'channel-2'), null);
+});
+
 test('PostgreSQL state store initializes, saves, and loads state', async () => {
   const calls = [];
   const pool = {
@@ -37,7 +53,7 @@ test('PostgreSQL state store initializes, saves, and loads state', async () => {
   const state = await store.load();
 
   assert.equal(store.kind, 'postgres');
-  assert.equal(calls.filter((call) => call.sql.includes('CREATE TABLE')).length, 3);
+  assert.equal(calls.filter((call) => call.sql.includes('CREATE TABLE')).length, 4);
   assert.equal(calls.filter((call) => call.sql.includes('ADD COLUMN IF NOT EXISTS')).length, 4);
   const saveCall = calls.find((call) => call.sql.includes('INSERT INTO news_bot_state'));
   assert.deepEqual(JSON.parse(saveCall.params[1]), ['article-1']);
@@ -141,4 +157,27 @@ test('PostgreSQL state store versions rules and caches AI evaluations', async ()
     'article-1', 'channel-1', 'guild-1', 2, true, 0.95, 'critical', 'global_major',
   ]);
   assert.deepEqual(JSON.parse(evaluationSave.params[13]), decision);
+});
+
+test('PostgreSQL state store persists and reads button detail cards', async () => {
+  const calls = [];
+  const detail = { headline: '供應鏈後門', technicalOutcome: '攻擊者可執行遠端指令' };
+  const pool = {
+    async query(sql, params) {
+      calls.push({ sql, params });
+      if (sql.includes('FROM news_article_details')) {
+        return { rowCount: 1, rows: [{ detail_card: detail }] };
+      }
+      return { rowCount: 1, rows: [] };
+    },
+    async end() {},
+  };
+  const store = createPostgresStateStore('postgres://unused', pool);
+
+  await store.saveNewsDetail('detail-1', detail, 'channel-1', 'guild-1');
+  assert.deepEqual(await store.getNewsDetail('detail-1', 'channel-1'), detail);
+
+  const saveCall = calls.find((call) => call.sql.includes('INSERT INTO news_article_details'));
+  assert.deepEqual(saveCall.params.slice(0, 3), ['detail-1', 'channel-1', 'guild-1']);
+  assert.deepEqual(JSON.parse(saveCall.params[3]), detail);
 });
