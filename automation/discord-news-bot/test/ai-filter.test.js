@@ -14,7 +14,22 @@ function completeDecision(overrides = {}) {
     reason: '符合重大漏洞規則',
     readingRecommendation: 'must_read',
     headline: '重大遠端程式碼執行漏洞已遭利用',
-    narrativeSummary: '八月中旬，研究團隊在檢查公開伺服器時發現異常連線，追查後確認攻擊者已利用遠端程式碼執行漏洞植入惡意程式並取得系統權限，受感染主機隨後遭到隔離。',
+    publicSummary: '八月中旬，研究團隊在檢查公開伺服器時發現異常連線，追查後確認攻擊者先利用對外服務的遠端程式碼執行漏洞送入惡意指令，再由服務行程下載並啟動植入程式，最終取得受感染主機的系統權限。調查人員確認異常程序與新增帳號後，已將受感染主機隔離並保存證據。',
+    technicalFocus: ['遠端程式碼執行', '服務行程植入'],
+    technicalOutcome: '攻擊者完成攻擊鏈後，能以對外服務的執行權限植入惡意程式，並進一步取得受感染主機的系統控制權。',
+    attackChainGroups: [{
+      title: '漏洞如何轉成系統控制權',
+      steps: [
+        { stage: '探測入口', action: '攻擊者尋找公開服務', mechanism: '以特製請求確認漏洞端點', result: '找出可接收惡意輸入的伺服器' },
+        { stage: '觸發漏洞', action: '攻擊者送入惡意資料', mechanism: '服務錯誤處理輸入並執行指令', result: '攻擊者取得服務行程的程式碼執行能力' },
+        { stage: '投放程式', action: '服務行程下載植入程式', mechanism: '惡意指令從遠端位置取得檔案', result: '惡意程式進入受感染主機' },
+        { stage: '取得權限', action: '植入程式建立控制管道', mechanism: '程式在主機上啟動並建立帳號', result: '攻擊者取得受感染主機的系統權限' },
+      ],
+    }],
+    evidenceBoundaries: [
+      { status: 'confirmed_capability', claim: '漏洞可讓攻擊者在服務行程中執行指令' },
+      { status: 'confirmed_victim', claim: '調查已在受感染主機發現惡意程式與新增帳號' },
+    ],
     exploitationStatus: 'confirmed_exploitation',
     confirmedConsequences: ['攻擊者已取得受感染主機的系統權限', '受感染主機已遭隔離'],
     difficulty: 'advanced',
@@ -69,12 +84,12 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.equal(request.body.response_format.type, 'json_schema');
   assert.equal(request.body.response_format.json_schema.strict, true);
   assert.equal(request.body.response_format.json_schema.schema.properties.headline.minLength, undefined);
-  assert.equal(request.body.response_format.json_schema.schema.properties.narrativeSummary.minLength, undefined);
+  assert.equal(request.body.response_format.json_schema.schema.properties.publicSummary.minLength, undefined);
   assert.equal(request.body.response_format.json_schema.schema.properties.confirmedConsequences.minItems, undefined);
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
   assert.match(request.body.messages[0].content, /confirmedConsequences/);
   assert.match(request.body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v7:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v8:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -120,11 +135,11 @@ test('AI filter reserves answer space and lowers reasoning for GPT-OSS models', 
 
   await filter.check();
   assert.equal(request.reasoning_effort, 'low');
-  assert.equal(request.max_tokens, 1200);
+  assert.equal(request.max_tokens, 2400);
 });
 
 test('AI filter paces GPT-OSS requests below the free token limit', () => {
-  assert.equal(minimumRequestIntervalMs({ aiModel: 'openai/gpt-oss-20b' }), 26_000);
+  assert.equal(minimumRequestIntervalMs({ aiModel: 'openai/gpt-oss-20b' }), 45_000);
   assert.equal(minimumRequestIntervalMs({ aiModel: 'provider-model' }), 0);
 });
 
@@ -208,7 +223,11 @@ test('AI filter accepts text content parts from compatible endpoints', async () 
     reason: 'No match',
     readingRecommendation: 'skip',
     headline: '',
-    narrativeSummary: '',
+    publicSummary: '',
+    technicalFocus: [],
+    technicalOutcome: '',
+    attackChainGroups: [],
+    evidenceBoundaries: [],
     exploitationStatus: 'not_reported',
     confirmedConsequences: [],
     matchedCriteria: [],
@@ -312,10 +331,10 @@ test('AI filter safely rejects malformed article evaluations and caches a valid 
 test('AI filter rejects English, list-formatted, and encoded public copy', () => {
   assert.equal(validateDecision(completeDecision({ headline: 'Critical security update' })), false);
   assert.equal(validateDecision(completeDecision({
-    narrativeSummary: '- 攻擊者正在利用漏洞。\n- 文章提供防禦方式，能協助研究者安排曝險檢查。',
+    publicSummary: '- 攻擊者正在利用漏洞。\n- 文章提供防禦方式，能協助研究者安排曝險檢查。',
   })), false);
   assert.equal(validateDecision(completeDecision({
-    narrativeSummary: '攻擊者正在利用漏洞&amp;#x20;入侵公開系統，文章提供防禦方式與偵測線索，能協助研究者安排曝險檢查。',
+    publicSummary: '攻擊者正在利用漏洞&amp;#x20;入侵公開系統，文章提供防禦方式與偵測線索，能協助研究者安排曝險檢查。',
   })), false);
   assert.equal(validateDecision(completeDecision({ confirmedConsequences: [] })), false);
   assert.equal(validateDecision(completeDecision({ exploitationStatus: 'assumed_safe' })), false);
@@ -326,7 +345,11 @@ test('AI filter accepts empty public copy for an article that will not be publis
     matches: false,
     readingRecommendation: 'skip',
     headline: '',
-    narrativeSummary: '',
+    publicSummary: '',
+    technicalFocus: [],
+    technicalOutcome: '',
+    attackChainGroups: [],
+    evidenceBoundaries: [],
     exploitationStatus: 'not_reported',
     confirmedConsequences: [],
     researchRelevance: [],
@@ -338,7 +361,7 @@ test('AI filter accepts empty public copy for an article that will not be publis
 
 test('AI filter still requires complete public copy for must-read articles', () => {
   assert.equal(validateDecision(completeDecision({ headline: '' })), false);
-  assert.equal(validateDecision(completeDecision({ narrativeSummary: '' })), false);
+  assert.equal(validateDecision(completeDecision({ publicSummary: '' })), false);
   assert.equal(validateDecision(completeDecision({ confirmedConsequences: [] })), false);
 });
 
