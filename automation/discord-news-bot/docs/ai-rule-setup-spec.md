@@ -218,7 +218,50 @@ AI 必須回傳固定格式：
   "reason": "符合零日漏洞與高風險條件",
   "readingRecommendation": "must_read",
   "headline": "雲端管理介面的零日漏洞已遭利用",
-  "narrativeSummary": "八月中旬，研究團隊在檢查一套公開的雲端管理介面時發現異常登入，追查後確認攻擊者已利用驗證缺強取得管理權限並建立新帳號。供應商在事件公開後撤回受污染版本，遭入侵的伺服器也已隔離。",
+  "publicSummary": "八月中旬，研究團隊在檢查一套公開的雲端管理介面時發現異常登入，追查後確認攻擊者先利用身分驗證缺強取得介面存取權，再建立高權限帳號並控制伺服器。供應商在事件公開後封鎖異常帳號，遭入侵的伺服器也已隔離並保存證據。",
+  "technicalFocus": ["身分驗證狀態檢查", "高權限帳號建立"],
+  "technicalOutcome": "攻擊者完成攻擊鏈後取得管理權限，並建立可持續存取受感染伺服器的高權限帳號。",
+  "attackChainGroups": [
+    {
+      "title": "驗證缺陷如何轉成系統控制權",
+      "steps": [
+        {
+          "stage": "鎖定入口",
+          "action": "攻擊者探測公開管理介面",
+          "mechanism": "以特製請求辨認身分驗證端點",
+          "result": "找出可接受惡意驗證資料的入口"
+        },
+        {
+          "stage": "取得存取權",
+          "action": "攻擊者送入異常驗證資料",
+          "mechanism": "服務錯誤接受未授權的驗證狀態",
+          "result": "攻擊者進入管理介面"
+        },
+        {
+          "stage": "建立持久性",
+          "action": "攻擊者新增高權限帳號",
+          "mechanism": "利用管理功能寫入新的帳號資料",
+          "result": "產生可持續登入的管理身分"
+        },
+        {
+          "stage": "控制系統",
+          "action": "攻擊者以新帳號操作伺服器",
+          "mechanism": "管理權限允許修改系統設定",
+          "result": "受感染伺服器遭攻擊者控制"
+        }
+      ]
+    }
+  ],
+  "evidenceBoundaries": [
+    {
+      "status": "confirmed_capability",
+      "claim": "驗證缺陷可讓未授權使用者進入管理介面"
+    },
+    {
+      "status": "confirmed_victim",
+      "claim": "受感染伺服器已發現攻擊者建立的高權限帳號"
+    }
+  ],
   "exploitationStatus": "confirmed_exploitation",
   "confirmedConsequences": [
     "攻擊者已取得管理權限並建立新帳號",
@@ -241,9 +284,11 @@ AI 必須回傳固定格式：
 }
 ```
 
-`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題。`narrativeSummary` 必須依時間順序，以原文提供的人、事、時、地、物建立背景，再交代攻擊或發現經過、技術效果、已確認後果與事件收尾；不得使用列點、小標題、未來推演、處置建議或重複的閱讀判斷。
+`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題。`publicSummary` 必須以 180 至 500 個繁體中文字，依時間順序用連貫敘事交代人、事、時、地、物、攻擊或發現經過、技術效果、已確認後果與事件收尾；不得使用列點、小標題、未來推演、處置建議或重複的閱讀判斷。
 
-只有 `must_read` 必須產生公開文案，且 `confirmedConsequences` 至少要有一項文章可核對的實際結果，可以是後門已證實具備的能力、已發生的入侵／外洩／中斷，或事件後已完成的撤回與封鎖。其他閱讀判斷必須將 `headline`、`narrativeSummary` 留空並回傳空的 `confirmedConsequences`，讓程式直接拒絕而不浪費模型輸出，也不會因為文章本來沒有後果而造成 schema 錯誤。`exploitationStatus` 只能是 `confirmed_exploitation`、`attempted_exploitation`、`no_confirmed_exploitation` 或 `not_reported`；只有原文明確表示沒有成功利用證據時，才能使用 `no_confirmed_exploitation`。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
+`technicalFocus` 必須使用一至四個具體技術詞組，不能使用「重大漏洞」或「網路安全」等泛用分類。`technicalOutcome` 直接說明攻擊鏈完成後造成的權限、控制能力、資料結果或服務結果。`attackChainGroups` 將不同性質的攻擊階段分成最多兩條相接的鏈，每組至少兩步、合計至少四步；每一步都必須交代動作者與動作、處理機制及交給下一步的結果。`evidenceBoundaries` 則使用 `confirmed_capability`、`confirmed_exposure`、`confirmed_victim`、`not_confirmed` 或 `unknown`，區分已證實能力、實際曝露環境、確認受害者與尚未確認事項。
+
+只有 `must_read` 必須產生公開文案與技術細節，且 `confirmedConsequences` 至少要有一項文章可核對的實際結果，可以是後門已證實具備的能力、已發生的入侵／外洩／中斷，或事件後已完成的撤回與封鎖。其他閱讀判斷必須將 `headline`、`publicSummary`、`technicalOutcome` 留空，並將 `technicalFocus`、`attackChainGroups`、`evidenceBoundaries`、`confirmedConsequences` 回傳為空陣列，讓程式直接拒絕而不浪費模型輸出。`exploitationStatus` 只能是 `confirmed_exploitation`、`attempted_exploitation`、`no_confirmed_exploitation` 或 `not_reported`；只有原文明確表示沒有成功利用證據時，才能使用 `no_confirmed_exploitation`。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
 
 程式只有在以下條件全部成立時才允許推送：
 
@@ -285,7 +330,9 @@ AI 必須回傳固定格式：
 - 取消、逾時或 Bot 重啟不會破壞現有規則。
 - AI 結果未通過程式硬性檢查時不會推送。
 - 規則更新後不會沿用上一版本的 AI 快取。
-- 公開推送不顯示「必讀」或其他閱讀判斷，只包含繁體中文標題、一段敘事、頁尾難度／主要研究方向與最多三個中文標籤。
+- 公開推送不顯示「必讀」或其他閱讀判斷，只包含繁體中文標題、足以獨立理解事件的敘事、具體技術焦點、閱讀門檻與操作按鈕，不產生泛用 hashtag。
+- 「查看技術細節」使用 ephemeral 回覆，不建立討論串；內容必須從最早可證實入口一路接到最終技術結果，並逐步呈現動作、機制與結果。
+- 技術細節必須分開呈現攻擊鏈階段與證據邊界，不得把「已證實具備能力」誤寫成「已有確認受害者」。
 - 除產品名稱、漏洞編號與沒有通行中文譯名的縮寫外，公開文字不得中英逐句混雜，也不得殘留 HTML entity。
 - 敘事必須寫出事件已確認造成的結果，並嚴格區分「攻擊能力已證實」與「已有受害者」；未報導利用狀態時不得自行宣稱沒有受害者。
 - Feed 有文章內容時以內容分析；只有摘要時必須在閱讀卡標明分析依據為來源摘要。
