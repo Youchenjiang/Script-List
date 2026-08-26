@@ -89,7 +89,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.match(request.body.messages[1].content, /critical_vulnerability/);
   assert.match(request.body.messages[0].content, /confirmedConsequences/);
   assert.match(request.body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v8:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v9:'));
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
@@ -410,6 +410,9 @@ test('AI filter retries locally validated JSON when strict generation fails', as
   assert.equal(requests.length, 2);
   assert.equal(requests[0].response_format.type, 'json_schema');
   assert.equal(requests[1].response_format, undefined);
+  assert.match(requests[1].messages[0].content, /所有鍵都必須出現/);
+  assert.match(requests[1].messages[0].content, /"readingRecommendation":"skip"/);
+  assert.match(requests[1].messages[0].content, /attackChainGroups.*steps/);
   assert.equal(validateDecision(result.decision), true);
 
   await filter.check();

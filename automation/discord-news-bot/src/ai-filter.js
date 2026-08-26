@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v8';
+const FILTER_CONTRACT_VERSION = 'news-filter-v9';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -167,6 +167,13 @@ const EVIDENCE_BOUNDARY_STATUSES = new Set(
   DECISION_SCHEMA.properties.evidenceBoundaries.items.properties.status.enum,
 );
 const JSON_ONLY_INSTRUCTION = '只輸出符合指定 schema 的 JSON；不得加入 Markdown code fence 或任何說明文字。';
+const PLAIN_JSON_SHAPE_INSTRUCTION = [
+  '供應商未套用 JSON Schema；你仍必須嚴格使用下列頂層結構，所有鍵都必須出現且不得新增、巢狀化或改名：',
+  '{"matches":false,"confidence":0,"severity":"unknown","regionRelevance":"unknown","reason":"繁體中文理由","readingRecommendation":"skip","headline":"","publicSummary":"","technicalFocus":[],"technicalOutcome":"","attackChainGroups":[],"evidenceBoundaries":[],"exploitationStatus":"not_reported","confirmedConsequences":[],"difficulty":"intermediate","researchRelevance":[],"matchedCriteria":[],"matchedTechnologies":[],"matchedExclusions":[],"evidence":[]}',
+  'readingRecommendation 必須直接是 must_read、recommended、skim、skip 其中一個字串，不能是物件、布林值、null 或 none。',
+  'must_read 時 attackChainGroups 使用 [{"title":"繁體中文標題","steps":[{"stage":"階段","action":"動作","mechanism":"機制","result":"結果"}]}]。',
+  'must_read 時 evidenceBoundaries 使用 [{"status":"confirmed_capability","claim":"繁體中文事實"}]；status 只可使用 schema 列出的值。',
+].join('\n');
 const PROVIDER_CHECK_ARTICLE = Object.freeze({
   id: 'provider-health-check',
   title: '公開管理介面的重大身分驗證漏洞已遭利用',
@@ -392,9 +399,14 @@ function createRequestScheduler(config) {
 async function sendCompletion(config, messages, fetchImpl, { beforeRequest, strictSchema }) {
   await beforeRequest();
   const usesGptOss = /gpt-oss/iu.test(config.aiModel);
+  const requestMessages = strictSchema
+    ? messages
+    : messages.map((message, index) => (index === 0
+      ? { ...message, content: `${message.content}\n${PLAIN_JSON_SHAPE_INSTRUCTION}` }
+      : message));
   const body = {
     model: config.aiModel,
-    messages,
+    messages: requestMessages,
     max_tokens: usesGptOss
       ? Math.max(config.aiMaxOutputTokens || 800, 2400)
       : config.aiMaxOutputTokens || 800,
