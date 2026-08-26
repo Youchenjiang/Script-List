@@ -91,7 +91,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 實際免費額度、模型 ID 與 structured outputs 支援會隨供應商調整，應以供應商文件為準。
 
-部署後，具「管理伺服器」權限者可執行 `/news_ai_check`。Bot 會送出一筆合成新聞測試請求，確認端點、API key、模型及 structured output 契約皆可使用，並顯示供應商回傳的 HTTP status 與訊息。若相容端點明確以 `json_validate_failed` 拒絕 strict structured output，Bot 會自動重試純 JSON、記住該執行個體不支援 strict generation，並在本地執行完全相同的嚴格 schema 驗證；若 `HTTP 429` 訊息明確提供等待秒數，Bot 最多等待 20 秒後重試一次。部分端點若將完整 JSON 包在 Markdown code fence 中，Bot 也會移除此外層後再驗證。定時評估若收到空白、無效 JSON 或不符合 schema 的內容，會記錄警告並轉成信心值為零的安全拒絕結果，避免同一篇文章無限消耗免費額度；`/news_ai_check` 仍會嚴格回報錯誤。結果只對執行者顯示，不會顯示 API key，也不會讀寫新聞狀態或推送文章；測試與自動重試仍可能計入供應商用量。
+部署後，具「管理伺服器」權限者可執行 `/news_ai_check`。Bot 會送出一筆合成新聞測試請求，確認端點、API key、模型及 structured output 契約皆可使用，並顯示供應商回傳的 HTTP status 與訊息。若相容端點明確以 `json_validate_failed` 拒絕 strict structured output，Bot 會自動重試純 JSON、記住該執行個體不支援 strict generation，並把完整頂層 JSON 範本加入系統指令後執行相同的本地 schema 驗證，避免弱相容端點自行巢狀化或改名欄位；若 `HTTP 429` 訊息明確提供等待秒數，Bot 最多等待 20 秒後重試一次。部分端點若將完整 JSON 包在 Markdown code fence 中，Bot 也會移除此外層後再驗證。定時評估若收到空白、無效 JSON 或不符合 schema 的內容，會記錄警告並轉成信心值為零的安全拒絕結果，避免同一篇文章無限消耗免費額度；`/news_ai_check` 仍會嚴格回報錯誤。結果只對執行者顯示，不會顯示 API key，也不會讀寫新聞狀態或推送文章；測試與自動重試仍可能計入供應商用量。
 
 ## PostgreSQL 與雲端部署
 
