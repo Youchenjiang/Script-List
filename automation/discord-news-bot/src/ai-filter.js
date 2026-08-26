@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v12';
+const FILTER_CONTRACT_VERSION = 'news-filter-v13';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -441,6 +441,42 @@ function normalizeKnownAliases(decision) {
       normalized[key] = normalized[key].slice(0, 5);
     }
   });
+  ['technicalFocus', 'confirmedConsequences'].forEach((key) => {
+    if (Array.isArray(normalized[key]) && normalized[key].every((item) => typeof item === 'string')) {
+      normalized[key] = normalized[key].slice(0, 4);
+    }
+  });
+  if (Array.isArray(normalized.attackChainGroups)) {
+    normalized.attackChainGroups = normalized.attackChainGroups.slice(0, 2).map((group) => {
+      if (!group || typeof group !== 'object' || Array.isArray(group)) return group;
+      return {
+        title: group.title,
+        steps: Array.isArray(group.steps)
+          ? group.steps.slice(0, 7).map((step) => {
+            if (!step || typeof step !== 'object' || Array.isArray(step)) return step;
+            return {
+              stage: step.stage,
+              action: step.action,
+              mechanism: step.mechanism,
+              result: step.result,
+            };
+          })
+          : group.steps,
+      };
+    });
+  }
+  if (Array.isArray(normalized.evidenceBoundaries)) {
+    normalized.evidenceBoundaries = normalized.evidenceBoundaries.slice(0, 6).map((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+      return { status: item.status, claim: item.claim };
+    });
+  }
+  if (Array.isArray(normalized.researchRelevance)) {
+    normalized.researchRelevance = normalized.researchRelevance.slice(0, 10).map((item) => {
+      if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
+      return { area: item.area, relevance: item.relevance, reason: item.reason };
+    });
+  }
   return normalized;
 }
 
@@ -521,7 +557,20 @@ function validationSummary(decision, keys) {
     issues.push('attackChainGroups:invalid');
   }
   if ('evidenceBoundaries' in decision && !isEvidenceBoundaries(decision.evidenceBoundaries)) {
-    issues.push('evidenceBoundaries:invalid');
+    if (!Array.isArray(decision.evidenceBoundaries)) {
+      issues.push(`evidenceBoundaries:type=${typeof decision.evidenceBoundaries}`);
+    } else {
+      issues.push(`evidenceBoundaries:count=${decision.evidenceBoundaries.length}`);
+      decision.evidenceBoundaries.forEach((item, index) => {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) {
+          issues.push(`evidenceBoundaries[${index}]:not_object`);
+        } else if (!EVIDENCE_BOUNDARY_STATUSES.has(item.status)) {
+          issues.push(`evidenceBoundaries[${index}].status:${String(item.status)}`);
+        } else if (typeof item.claim !== 'string' || item.claim.length > 300) {
+          issues.push(`evidenceBoundaries[${index}].claim:invalid`);
+        }
+      });
+    }
   }
   return issues.slice(0, 12).join(', ') || 'content_constraints_failed';
 }
