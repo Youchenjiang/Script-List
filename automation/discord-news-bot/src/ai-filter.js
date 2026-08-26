@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v9';
+const FILTER_CONTRACT_VERSION = 'news-filter-v10';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -156,6 +156,28 @@ const DECISION_SCHEMA = {
   additionalProperties: false,
 };
 
+function schemaFor(keys) {
+  return {
+    type: 'object',
+    properties: Object.fromEntries(keys.map((key) => [key, DECISION_SCHEMA.properties[key]])),
+    required: [...keys],
+    additionalProperties: false,
+  };
+}
+
+const SCREENING_KEYS = [
+  'matches', 'confidence', 'severity', 'regionRelevance', 'reason',
+  'readingRecommendation', 'matchedCriteria', 'matchedTechnologies',
+  'matchedExclusions', 'evidence',
+];
+const DETAIL_KEYS = [
+  'headline', 'publicSummary', 'technicalFocus', 'technicalOutcome',
+  'attackChainGroups', 'evidenceBoundaries', 'exploitationStatus',
+  'confirmedConsequences', 'difficulty', 'researchRelevance',
+];
+const SCREENING_SCHEMA = schemaFor(SCREENING_KEYS);
+const DETAIL_SCHEMA = schemaFor(DETAIL_KEYS);
+
 const DECISION_KEYS = Object.freeze([...DECISION_SCHEMA.required].sort());
 const SEVERITIES = new Set(DECISION_SCHEMA.properties.severity.enum);
 const REGIONS = new Set(DECISION_SCHEMA.properties.regionRelevance.enum);
@@ -173,6 +195,16 @@ const PLAIN_JSON_SHAPE_INSTRUCTION = [
   'readingRecommendation 必須直接是 must_read、recommended、skim、skip 其中一個字串，不能是物件、布林值、null 或 none。',
   'must_read 時 attackChainGroups 使用 [{"title":"繁體中文標題","steps":[{"stage":"階段","action":"動作","mechanism":"機制","result":"結果"}]}]。',
   'must_read 時 evidenceBoundaries 使用 [{"status":"confirmed_capability","claim":"繁體中文事實"}]；status 只可使用 schema 列出的值。',
+].join('\n');
+const SCREENING_PLAIN_JSON_INSTRUCTION = [
+  '供應商未套用 JSON Schema；只可輸出下列十個頂層鍵，所有鍵都必須出現且不得新增、巢狀化或改名：',
+  '{"matches":false,"confidence":0,"severity":"unknown","regionRelevance":"unknown","reason":"繁體中文理由","readingRecommendation":"skip","matchedCriteria":[],"matchedTechnologies":[],"matchedExclusions":[],"evidence":[]}',
+  'readingRecommendation 只可使用 must_read、recommended、skim、skip；regionRelevance 只可使用 taiwan、global_major、other、unknown。',
+].join('\n');
+const DETAIL_PLAIN_JSON_INSTRUCTION = [
+  '供應商未套用 JSON Schema；只可輸出下列十個頂層鍵，所有鍵都必須出現且不得新增、巢狀化或改名：',
+  '{"headline":"繁體中文標題","publicSummary":"繁體中文事件敘事","technicalFocus":[],"technicalOutcome":"繁體中文技術結果","attackChainGroups":[{"title":"繁體中文標題","steps":[{"stage":"階段","action":"動作","mechanism":"機制","result":"結果"}]}],"evidenceBoundaries":[{"status":"confirmed_capability","claim":"繁體中文事實"}],"exploitationStatus":"not_reported","confirmedConsequences":[],"difficulty":"intermediate","researchRelevance":[]}',
+  'attackChainGroups 整體至少四步；evidenceBoundaries 至少兩項；confirmedConsequences 至少一項。',
 ].join('\n');
 const PROVIDER_CHECK_ARTICLE = Object.freeze({
   id: 'provider-health-check',
@@ -395,6 +427,80 @@ function isExplicitParsedRejection(decision) {
     || ['recommended', 'skim', 'skip', 'none'].includes(decision?.readingRecommendation);
 }
 
+function normalizeKnownAliases(decision) {
+  if (!decision || typeof decision !== 'object' || Array.isArray(decision)) return decision;
+  const normalized = { ...decision };
+  if (normalized.regionRelevance === 'global') normalized.regionRelevance = 'global_major';
+  if (normalized.readingRecommendation === 'none') normalized.readingRecommendation = 'skip';
+  return normalized;
+}
+
+function hasExactKeys(value, keys) {
+  return value
+    && typeof value === 'object'
+    && !Array.isArray(value)
+    && JSON.stringify(Object.keys(value).sort()) === JSON.stringify([...keys].sort());
+}
+
+function validateScreening(decision) {
+  return hasExactKeys(decision, SCREENING_KEYS)
+    && typeof decision.matches === 'boolean'
+    && Number.isFinite(decision.confidence)
+    && decision.confidence >= 0
+    && decision.confidence <= 1
+    && SEVERITIES.has(decision.severity)
+    && REGIONS.has(decision.regionRelevance)
+    && typeof decision.reason === 'string'
+    && RECOMMENDATIONS.has(decision.readingRecommendation)
+    && isStringArray(decision.matchedCriteria)
+    && isStringArray(decision.matchedTechnologies)
+    && isStringArray(decision.matchedExclusions)
+    && isStringArray(decision.evidence);
+}
+
+function validateDetail(detail) {
+  if (!hasExactKeys(detail, DETAIL_KEYS)) return false;
+  return validateDecision({
+    matches: true,
+    confidence: 1,
+    severity: 'high',
+    regionRelevance: 'global_major',
+    reason: '文章符合必讀條件',
+    readingRecommendation: 'must_read',
+    matchedCriteria: ['critical_vulnerability'],
+    matchedTechnologies: [],
+    matchedExclusions: [],
+    evidence: ['文章提供可核對的事件證據'],
+    ...detail,
+  });
+}
+
+function validationSummary(decision, keys) {
+  if (!decision || typeof decision !== 'object' || Array.isArray(decision)) return 'root:not_object';
+  const expected = new Set(keys);
+  const issues = [
+    ...keys.filter((key) => !(key in decision)).map((key) => `missing:${key}`),
+    ...Object.keys(decision).filter((key) => !expected.has(key)).map((key) => `unexpected:${key}`),
+  ];
+  if ('regionRelevance' in decision && !REGIONS.has(decision.regionRelevance)) {
+    issues.push(`regionRelevance:${String(decision.regionRelevance)}`);
+  }
+  if ('readingRecommendation' in decision && !RECOMMENDATIONS.has(decision.readingRecommendation)) {
+    issues.push(`readingRecommendation:${String(decision.readingRecommendation)}`);
+  }
+  if ('publicSummary' in decision && (typeof decision.publicSummary !== 'string'
+    || decision.publicSummary.length < 120 || decision.publicSummary.length > 650)) {
+    issues.push(`publicSummary:length=${typeof decision.publicSummary === 'string' ? decision.publicSummary.length : 'invalid'}`);
+  }
+  if ('attackChainGroups' in decision && !isAttackChainGroups(decision.attackChainGroups)) {
+    issues.push('attackChainGroups:invalid');
+  }
+  if ('evidenceBoundaries' in decision && !isEvidenceBoundaries(decision.evidenceBoundaries)) {
+    issues.push('evidenceBoundaries:invalid');
+  }
+  return issues.slice(0, 12).join(', ') || 'content_constraints_failed';
+}
+
 function createRequestScheduler(config) {
   const intervalMs = minimumRequestIntervalMs(config);
   let nextRequestAt = 0;
@@ -405,13 +511,19 @@ function createRequestScheduler(config) {
   };
 }
 
-async function sendCompletion(config, messages, fetchImpl, { beforeRequest, strictSchema }) {
+async function sendCompletion(config, messages, fetchImpl, {
+  beforeRequest,
+  strictSchema,
+  schema = DECISION_SCHEMA,
+  schemaName = 'news_filter_decision',
+  plainJsonInstruction = PLAIN_JSON_SHAPE_INSTRUCTION,
+}) {
   await beforeRequest();
   const usesGptOss = /gpt-oss/iu.test(config.aiModel);
   const requestMessages = strictSchema
     ? messages
     : messages.map((message, index) => (index === 0
-      ? { ...message, content: `${message.content}\n${PLAIN_JSON_SHAPE_INSTRUCTION}` }
+      ? { ...message, content: `${message.content}\n${plainJsonInstruction}` }
       : message));
   const body = {
     model: config.aiModel,
@@ -425,9 +537,9 @@ async function sendCompletion(config, messages, fetchImpl, { beforeRequest, stri
     body.response_format = {
       type: 'json_schema',
       json_schema: {
-        name: 'news_filter_decision',
+        name: schemaName,
         strict: true,
-        schema: DECISION_SCHEMA,
+        schema,
       },
     };
   }
@@ -468,7 +580,14 @@ async function requestCompletion(
   messages,
   fetchImpl,
   providerState,
-  { allowSafeRejection = false } = {},
+  {
+    allowSafeRejection = false,
+    schema = DECISION_SCHEMA,
+    schemaName = 'news_filter_decision',
+    plainJsonInstruction = PLAIN_JSON_SHAPE_INSTRUCTION,
+    validator = validateDecision,
+    expectedKeys = DECISION_SCHEMA.required,
+  } = {},
 ) {
   let { response, detail } = await sendWithRateLimitRetry(
     config,
@@ -477,6 +596,9 @@ async function requestCompletion(
     {
       beforeRequest: providerState.beforeRequest,
       strictSchema: providerState.strictSchema,
+      schema,
+      schemaName,
+      plainJsonInstruction,
     },
   );
 
@@ -493,7 +615,13 @@ async function requestCompletion(
       config,
       messages,
       fetchImpl,
-      { beforeRequest: providerState.beforeRequest, strictSchema: false },
+      {
+        beforeRequest: providerState.beforeRequest,
+        strictSchema: false,
+        schema,
+        schemaName,
+        plainJsonInstruction,
+      },
     ));
     if (!response.ok) {
       throw new Error(`AI endpoint returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
@@ -513,7 +641,7 @@ async function requestCompletion(
   }
   let decision;
   try {
-    decision = parseDecisionContent(content);
+    decision = normalizeKnownAliases(parseDecisionContent(content));
   } catch (error) {
     if (allowSafeRejection) {
       return { decision: safeRejectedDecision(), httpStatus: response.status, warning: error.message };
@@ -523,13 +651,12 @@ async function requestCompletion(
   if (allowSafeRejection && isExplicitParsedRejection(decision)) {
     return { decision: safeRejectedDecision(), httpStatus: response.status };
   }
-  if (!validateDecision(decision)) {
+  if (!validator(decision)) {
     if (allowSafeRejection) {
-      const preview = JSON.stringify(decision).replace(/\s+/g, ' ').slice(0, 300);
       return {
         decision: safeRejectedDecision(),
         httpStatus: response.status,
-        warning: `AI endpoint response did not match the required decision schema: ${preview}`,
+        warning: `AI endpoint response did not match the required decision schema (${validationSummary(decision, expectedKeys)})`,
       };
     }
     throw new Error('AI endpoint response did not match the required decision schema');
@@ -548,11 +675,20 @@ function createAiFilter(config, fetchImpl = fetch) {
   };
 
   async function evaluate(article, rule) {
-    const result = await requestCompletion(config, [
+    const articlePayload = {
+      title: article.title,
+      summary: article.summary,
+      content: article.analysisText || article.summary,
+      contentDepth: article.contentDepth || 'summary_only',
+      categories: article.categories,
+      sourceUrl: article.url,
+      publishedAt: article.published.toISOString(),
+    };
+    const screeningResult = await requestCompletion(config, [
         {
           role: 'system',
           content: [
-            '你是嚴格的資安新聞篩選器與資安讀書會編輯。',
+            '你是嚴格的資安新聞篩選器。這一步只判斷是否值得推送，不撰寫新聞文案。',
             '只能根據提供的標題、文章內容、分類與規則判斷，不可猜測文章未提及的內容。',
             '規則不明確或證據不足時，matches 必須為 false。',
             'matchedCriteria、matchedTechnologies 與 matchedExclusions 只能填入規則中提供的 id。',
@@ -564,8 +700,37 @@ function createAiFilter(config, fetchImpl = fetch) {
             'readingRecommendation 只有在文章提供足夠具體事實，可以完整交代一次重要資安事件時才使用 must_read。',
             'must_read 必須具備明確證據，且至少符合以下一項：正在遭利用或造成重大影響；提出可實作的新技術或防禦方法；直接改變研究方向的重要背景。',
             '一般漏洞公告、產品宣傳、重複報導、增量更新或缺少技術內容的文章不得標為 must_read。',
-            'readingRecommendation 不是 must_read 時，headline、publicSummary、technicalOutcome 必須是空字串，technicalFocus、attackChainGroups、evidenceBoundaries、confirmedConsequences 必須是空陣列；不要替不會推送的文章撰寫文案。',
-            '只有 must_read 才填寫 headline、publicSummary、technicalFocus、technicalOutcome、attackChainGroups、evidenceBoundaries 與 confirmedConsequences。headline 使用自然的繁體中文新聞標題，不照抄英文標題。',
+            '所有自然語言欄位使用繁體中文。',
+            JSON_ONLY_INSTRUCTION,
+          ].join('\n'),
+        },
+        {
+          role: 'user',
+          content: JSON.stringify({ filterRule: toAiRule(rule.config), article: articlePayload }),
+        },
+    ], fetchImpl, providerState, {
+      allowSafeRejection: true,
+      schema: SCREENING_SCHEMA,
+      schemaName: 'news_screening_decision',
+      plainJsonInstruction: SCREENING_PLAIN_JSON_INSTRUCTION,
+      validator: validateScreening,
+      expectedKeys: SCREENING_KEYS,
+    });
+    if (screeningResult.warning) {
+      console.warn(`[AI filter] ${article.id} screening: ${screeningResult.warning}`);
+    }
+    const screening = screeningResult.decision;
+    if (!screening.matches || screening.readingRecommendation !== 'must_read') {
+      return safeRejectedDecision();
+    }
+
+    const detailResult = await requestCompletion(config, [
+        {
+          role: 'system',
+          content: [
+            '你是資安讀書會編輯。篩選器已判定文章必讀；這一步只根據文章與篩選結果撰寫完整事件敘事與技術細節。',
+            '不可猜測文章未提及的內容，不得把能力存在誤寫成已有受害者。',
+            'headline 使用自然的繁體中文新聞標題，不照抄英文標題。',
             'must_read 的 confirmedConsequences 至少列出一項文章明確證實的結果，例如後門實際具備的能力、已遭入侵的組織、被竊取的資料、服務中斷，或事件公開後已完成的撤回與封鎖。不得填入預測。',
             'exploitationStatus 只能依文章明說的狀態判斷；文章明確表示尚無成功利用證據時才用 no_confirmed_exploitation，沒有交代就用 not_reported。',
             'publicSummary 寫成 180 至 500 個繁體中文字的公開敘事，不使用列點、標題或欄位名稱，並依事件發生順序敘述。',
@@ -592,20 +757,28 @@ function createAiFilter(config, fetchImpl = fetch) {
           role: 'user',
           content: JSON.stringify({
             filterRule: toAiRule(rule.config),
-            article: {
-              title: article.title,
-              summary: article.summary,
-              content: article.analysisText || article.summary,
-              contentDepth: article.contentDepth || 'summary_only',
-              categories: article.categories,
-              sourceUrl: article.url,
-              publishedAt: article.published.toISOString(),
-            },
+            article: articlePayload,
+            screeningDecision: screening,
           }),
         },
-    ], fetchImpl, providerState, { allowSafeRejection: true });
-    if (result.warning) console.warn(`[AI filter] ${article.id}: ${result.warning}`);
-    return result.decision;
+    ], fetchImpl, providerState, {
+      allowSafeRejection: true,
+      schema: DETAIL_SCHEMA,
+      schemaName: 'news_editorial_detail',
+      plainJsonInstruction: DETAIL_PLAIN_JSON_INSTRUCTION,
+      validator: validateDetail,
+      expectedKeys: DETAIL_KEYS,
+    });
+    if (detailResult.warning) {
+      console.warn(`[AI filter] ${article.id} detail: ${detailResult.warning}`);
+      return safeRejectedDecision();
+    }
+    const decision = { ...screening, ...detailResult.decision };
+    if (!validateDecision(decision)) {
+      console.warn(`[AI filter] ${article.id} merged: AI endpoint response did not match the required decision schema (${validationSummary(decision, DECISION_SCHEMA.required)})`);
+      return safeRejectedDecision();
+    }
+    return decision;
   }
 
   async function check() {

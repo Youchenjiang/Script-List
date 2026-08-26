@@ -44,17 +44,53 @@ function completeDecision(overrides = {}) {
   };
 }
 
+function screeningDecision(overrides = {}) {
+  const decision = completeDecision(overrides);
+  return {
+    matches: decision.matches,
+    confidence: decision.confidence,
+    severity: decision.severity,
+    regionRelevance: decision.regionRelevance,
+    reason: decision.reason,
+    readingRecommendation: decision.readingRecommendation,
+    matchedCriteria: decision.matchedCriteria,
+    matchedTechnologies: decision.matchedTechnologies,
+    matchedExclusions: decision.matchedExclusions,
+    evidence: decision.evidence,
+  };
+}
+
+function detailDecision(overrides = {}) {
+  const decision = completeDecision(overrides);
+  return {
+    headline: decision.headline,
+    publicSummary: decision.publicSummary,
+    technicalFocus: decision.technicalFocus,
+    technicalOutcome: decision.technicalOutcome,
+    attackChainGroups: decision.attackChainGroups,
+    evidenceBoundaries: decision.evidenceBoundaries,
+    exploitationStatus: decision.exploitationStatus,
+    confirmedConsequences: decision.confirmedConsequences,
+    difficulty: decision.difficulty,
+    researchRelevance: decision.researchRelevance,
+  };
+}
+
 test('AI filter uses a generic chat completions endpoint and strict JSON schema', async () => {
-  let request;
+  const requests = [];
   const fetchImpl = async (url, options) => {
-    request = { url, options, body: JSON.parse(options.body) };
+    const request = { url, options, body: JSON.parse(options.body) };
+    requests.push(request);
     return {
       ok: true,
+      status: 200,
       async json() {
         return {
           choices: [{
             message: {
-              content: JSON.stringify(completeDecision({ confidence: 0.92 })),
+              content: JSON.stringify(requests.length === 1
+                ? screeningDecision({ confidence: 0.92 })
+                : detailDecision()),
             },
           }],
         };
@@ -77,19 +113,88 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   }, { config: cloneDefaultRule() });
 
   assert.equal(decision.matches, true);
-  assert.equal(request.url, 'https://provider.example/v1/chat/completions');
-  assert.equal(request.options.headers.authorization, 'Bearer test-key');
-  assert.equal(request.body.model, 'provider-model');
-  assert.equal(request.body.max_tokens, 800);
-  assert.equal(request.body.response_format.type, 'json_schema');
-  assert.equal(request.body.response_format.json_schema.strict, true);
-  assert.equal(request.body.response_format.json_schema.schema.properties.headline.minLength, undefined);
-  assert.equal(request.body.response_format.json_schema.schema.properties.publicSummary.minLength, undefined);
-  assert.equal(request.body.response_format.json_schema.schema.properties.confirmedConsequences.minItems, undefined);
-  assert.match(request.body.messages[1].content, /critical_vulnerability/);
-  assert.match(request.body.messages[0].content, /confirmedConsequences/);
-  assert.match(request.body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v9:'));
+  assert.equal(requests.length, 2);
+  assert.equal(requests[0].url, 'https://provider.example/v1/chat/completions');
+  assert.equal(requests[0].options.headers.authorization, 'Bearer test-key');
+  assert.equal(requests[0].body.model, 'provider-model');
+  assert.equal(requests[0].body.max_tokens, 800);
+  assert.equal(requests[0].body.response_format.type, 'json_schema');
+  assert.equal(requests[0].body.response_format.json_schema.strict, true);
+  assert.equal(requests[0].body.response_format.json_schema.name, 'news_screening_decision');
+  assert.equal(requests[0].body.response_format.json_schema.schema.properties.headline, undefined);
+  assert.equal(requests[1].body.response_format.json_schema.name, 'news_editorial_detail');
+  assert.equal(requests[1].body.response_format.json_schema.schema.properties.matches, undefined);
+  assert.match(requests[0].body.messages[1].content, /critical_vulnerability/);
+  assert.match(requests[1].body.messages[0].content, /confirmedConsequences/);
+  assert.match(requests[1].body.messages[0].content, /不得推演未來/);
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v10:'));
+});
+
+test('AI filter accepts the provider global alias during screening', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          choices: [{ message: { content: JSON.stringify(calls === 1
+            ? screeningDecision({ regionRelevance: 'global' })
+            : detailDecision()) } }],
+        };
+      },
+    };
+  });
+
+  const decision = await filter.evaluate({
+    id: 'global-alias',
+    title: 'Critical vulnerability',
+    summary: 'A critical remote code execution vulnerability.',
+    categories: ['Vulnerability'],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-14T12:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.equal(calls, 2);
+  assert.equal(decision.matches, true);
+  assert.equal(decision.regionRelevance, 'global_major');
+});
+
+test('AI filter does not request editorial copy for a rejected screening result', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { choices: [{ message: { content: '{"matches":false}' } }] };
+      },
+    };
+  });
+
+  const decision = await filter.evaluate({
+    id: 'rejected-screening',
+    title: 'Routine update',
+    summary: 'Routine update',
+    categories: [],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-25T00:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.equal(calls, 1);
+  assert.deepEqual(decision, safeRejectedDecision());
 });
 
 test('AI filter fingerprint changes with endpoint or model', () => {
