@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v11';
+const FILTER_CONTRACT_VERSION = 'news-filter-v12';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -612,6 +612,7 @@ async function requestCompletion(
     plainJsonInstruction = PLAIN_JSON_SHAPE_INSTRUCTION,
     validator = validateDecision,
     expectedKeys = DECISION_SCHEMA.required,
+    ignoredKeys = [],
   } = {},
 ) {
   let { response, detail } = await sendWithRateLimitRetry(
@@ -667,6 +668,9 @@ async function requestCompletion(
   let decision;
   try {
     decision = normalizeKnownAliases(parseDecisionContent(content));
+    if (decision && typeof decision === 'object' && !Array.isArray(decision)) {
+      ignoredKeys.forEach((key) => { delete decision[key]; });
+    }
   } catch (error) {
     if (allowSafeRejection) {
       return { decision: safeRejectedDecision(), httpStatus: response.status, warning: error.message };
@@ -740,6 +744,7 @@ function createAiFilter(config, fetchImpl = fetch) {
       plainJsonInstruction: SCREENING_PLAIN_JSON_INSTRUCTION,
       validator: validateScreening,
       expectedKeys: SCREENING_KEYS,
+      ignoredKeys: DETAIL_KEYS,
     });
     if (screeningResult.warning) {
       console.warn(`[AI filter] ${article.id} screening: ${screeningResult.warning}`);
