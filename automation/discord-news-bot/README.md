@@ -73,7 +73,7 @@ npm start
 
 Bot 會先顯示所有設定面向，管理者可直接採用建議設定，或依序選擇事件類型、技術領域、讀書會共用研究方向、嚴重度、地區、排除內容與信心門檻；只有最後確認後才會儲存。設定流程只對管理者顯示，儲存後 Bot 會在頻道公開張貼版本與完整規則。舊版規則缺少技術領域或研究方向時會自動補上安全的預設值。
 
-沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；一般模型每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens。此值是輸出上限，不代表每次都會消耗相同數量。為產生完整攻擊鏈，`gpt-oss` 推理模型會自動使用 `reasoning_effort=low`、保留至少 2,400 tokens，並將請求間隔設為 45 秒，降低免費額度發生 429 的機率。
+沒有規則、缺少任何 AI 連線設定或 AI 判斷失敗時，Bot 採取預設拒絕，不會直接推送未篩選的文章。每輪最多新判斷 `MAX_AI_EVALUATIONS_PER_RUN=10` 篇；每篇先用精簡 schema 判斷是否為 `must_read`，只有命中的文章才進行第二次生成，產生公開敘事與完整攻擊鏈。一般模型每次回覆預設允許 `AI_MAX_OUTPUT_TOKENS=800` tokens。此值是輸出上限，不代表每次都會消耗相同數量。為產生完整攻擊鏈，`gpt-oss` 推理模型會自動使用 `reasoning_effort=low`、保留至少 2,400 tokens，並將請求間隔設為 45 秒，降低免費額度發生 429 的機率。
 
 Bot 使用通用的 OpenAI-compatible `chat/completions` 協定，不綁定特定供應商。更換服務時只需修改 `AI_BASE_URL`、`AI_API_KEY`、`AI_MODEL`。所選模型必須支援 `response_format` 的 JSON Schema structured outputs，例如：
 
@@ -91,7 +91,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 實際免費額度、模型 ID 與 structured outputs 支援會隨供應商調整，應以供應商文件為準。
 
-部署後，具「管理伺服器」權限者可執行 `/news_ai_check`。Bot 會送出一筆合成新聞測試請求，確認端點、API key、模型及 structured output 契約皆可使用，並顯示供應商回傳的 HTTP status 與訊息。若相容端點明確以 `json_validate_failed` 拒絕 strict structured output，Bot 會自動重試純 JSON、記住該執行個體不支援 strict generation，並把完整頂層 JSON 範本加入系統指令後執行相同的本地 schema 驗證，避免弱相容端點自行巢狀化或改名欄位；若 `HTTP 429` 訊息明確提供等待秒數，Bot 最多等待 20 秒後重試一次。部分端點若將完整 JSON 包在 Markdown code fence 中，Bot 也會移除此外層後再驗證。定時評估若收到空白、無效 JSON 或不符合 schema 的內容，會記錄警告並轉成信心值為零的安全拒絕結果，避免同一篇文章無限消耗免費額度；`/news_ai_check` 仍會嚴格回報錯誤。結果只對執行者顯示，不會顯示 API key，也不會讀寫新聞狀態或推送文章；測試與自動重試仍可能計入供應商用量。
+部署後，具「管理伺服器」權限者可執行 `/news_ai_check`。Bot 會送出一筆合成新聞測試請求，確認端點、API key、模型及 structured output 契約皆可使用，並顯示供應商回傳的 HTTP status 與訊息。若相容端點明確以 `json_validate_failed` 拒絕 strict structured output，Bot 會自動重試純 JSON、記住該執行個體不支援 strict generation，並把該階段的完整頂層 JSON 範本加入系統指令後執行相同的本地 schema 驗證，避免弱相容端點自行巢狀化或改名欄位；若 `HTTP 429` 訊息明確提供等待秒數，Bot 最多等待 20 秒後重試一次。部分端點若將完整 JSON 包在 Markdown code fence 中，Bot 也會移除此外層後再驗證。定時評估若收到空白、無效 JSON 或不符合 schema 的內容，會記錄發生問題的階段與欄位，再轉成信心值為零的安全拒絕結果，避免同一篇文章無限消耗免費額度；已知的 `global` 地區別名會正規化為 `global_major`，但不會替模型補寫缺漏的新聞內容。`/news_ai_check` 仍會嚴格回報錯誤。結果只對執行者顯示，不會顯示 API key，也不會讀寫新聞狀態或推送文章；測試與自動重試仍可能計入供應商用量。
 
 ## PostgreSQL 與雲端部署
 
@@ -112,7 +112,7 @@ PUBLISH_INITIAL_ARTICLES=false
 
 1. 從 Blogger JSON Feed 讀取文章標題、摘要、可取得的文章內容、日期、分類與連結；顯示摘要與 AI 分析內容分開限制長度。
 2. 僅保留 `LOOKBACK_HOURS` 內且未出現在狀態檔的文章。
-3. 使用目前頻道規則與文章資料呼叫 AI，一次取得符合／拒絕判斷、公開敘事、具體技術焦點、分組攻擊鏈及證據邊界。
+3. 使用目前頻道規則與文章資料呼叫 AI：先取得符合／拒絕判斷；只有 `must_read` 再取得公開敘事、具體技術焦點、分組攻擊鏈及證據邊界。
 4. AI 結果會依「文章、頻道、規則版本、Base URL、模型、判斷契約版本」快取；更新規則或切換供應商／模型後會重新判斷。
 5. 只推送符合規則且判定為 `must_read` 的文章；公開訊息不顯示判斷名稱，只呈現中文標題、完整事件摘要、技術焦點與閱讀門檻。
 6. 將完整技術細節以短鍵保存；成員按下「查看技術細節」後，由全域互動處理器讀取資料並以 ephemeral 訊息呈現，因此不會建立大量討論串，Bot 重啟後舊按鈕仍可使用。
