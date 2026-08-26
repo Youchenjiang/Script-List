@@ -386,6 +386,15 @@ function minimumRequestIntervalMs(config) {
   return /gpt-oss/iu.test(config.aiModel) ? GPT_OSS_MIN_REQUEST_INTERVAL_MS : 0;
 }
 
+function isExplicitRawRejection(content) {
+  return /^\s*(?:```(?:json)?\s*)?\{\s*"matches"\s*:\s*false(?:\s*[,}])/iu.test(content);
+}
+
+function isExplicitParsedRejection(decision) {
+  return decision?.matches === false
+    || ['recommended', 'skim', 'skip', 'none'].includes(decision?.readingRecommendation);
+}
+
 function createRequestScheduler(config) {
   const intervalMs = minimumRequestIntervalMs(config);
   let nextRequestAt = 0;
@@ -499,6 +508,9 @@ async function requestCompletion(
     }
     throw error;
   }
+  if (allowSafeRejection && isExplicitRawRejection(content)) {
+    return { decision: safeRejectedDecision(), httpStatus: response.status };
+  }
   let decision;
   try {
     decision = parseDecisionContent(content);
@@ -507,6 +519,9 @@ async function requestCompletion(
       return { decision: safeRejectedDecision(), httpStatus: response.status, warning: error.message };
     }
     throw error;
+  }
+  if (allowSafeRejection && isExplicitParsedRejection(decision)) {
+    return { decision: safeRejectedDecision(), httpStatus: response.status };
   }
   if (!validateDecision(decision)) {
     if (allowSafeRejection) {

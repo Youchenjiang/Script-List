@@ -328,6 +328,62 @@ test('AI filter safely rejects malformed article evaluations and caches a valid 
   assert.match(warning, /malformed-article.*required decision schema/);
 });
 
+test('AI filter accepts an explicit truncated non-match as a safe rejection', async () => {
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        choices: [{ message: { content: '{"matches":false,"confidence":0,"reason":"不符合規則"' } }],
+      };
+    },
+  }));
+
+  const decision = await filter.evaluate({
+    id: 'explicit-reject',
+    title: 'Advertisement',
+    summary: 'Advertisement',
+    categories: [],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-25T00:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.deepEqual(decision, safeRejectedDecision());
+});
+
+test('AI filter normalizes a parsed non-publish recommendation to a safe rejection', async () => {
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return {
+        choices: [{ message: { content: '{"matches":true,"readingRecommendation":"skip"}' } }],
+      };
+    },
+  }));
+
+  const decision = await filter.evaluate({
+    id: 'skip-recommendation',
+    title: 'Routine update',
+    summary: 'Routine update',
+    categories: [],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-25T00:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.deepEqual(decision, safeRejectedDecision());
+});
+
 test('AI filter rejects English, list-formatted, and encoded public copy', () => {
   assert.equal(validateDecision(completeDecision({ headline: 'Critical security update' })), false);
   assert.equal(validateDecision(completeDecision({
