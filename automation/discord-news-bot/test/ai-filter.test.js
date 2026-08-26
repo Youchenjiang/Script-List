@@ -127,7 +127,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.match(requests[0].body.messages[1].content, /critical_vulnerability/);
   assert.match(requests[1].body.messages[0].content, /confirmedConsequences/);
   assert.match(requests[1].body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v10:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v11:'));
 });
 
 test('AI filter accepts the provider global alias during screening', async () => {
@@ -164,6 +164,44 @@ test('AI filter accepts the provider global alias during screening', async () =>
   assert.equal(calls, 2);
   assert.equal(decision.matches, true);
   assert.equal(decision.regionRelevance, 'global_major');
+});
+
+test('AI filter normalizes numeric confidence and caps screening evidence', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return {
+          choices: [{ message: { content: JSON.stringify(calls === 1
+            ? screeningDecision({
+              confidence: '0.92',
+              evidence: ['一', '二', '三', '四', '五', '六'],
+            })
+            : detailDecision()) } }],
+        };
+      },
+    };
+  });
+
+  const decision = await filter.evaluate({
+    id: 'minor-format-deviations',
+    title: 'Critical vulnerability',
+    summary: 'A critical remote code execution vulnerability.',
+    categories: ['Vulnerability'],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-14T12:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.equal(decision.confidence, 0.92);
+  assert.deepEqual(decision.evidence, ['一', '二', '三', '四', '五']);
 });
 
 test('AI filter does not request editorial copy for a rejected screening result', async () => {

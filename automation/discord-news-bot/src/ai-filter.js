@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v10';
+const FILTER_CONTRACT_VERSION = 'news-filter-v11';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -432,6 +432,15 @@ function normalizeKnownAliases(decision) {
   const normalized = { ...decision };
   if (normalized.regionRelevance === 'global') normalized.regionRelevance = 'global_major';
   if (normalized.readingRecommendation === 'none') normalized.readingRecommendation = 'skip';
+  if (typeof normalized.confidence === 'string' && normalized.confidence.trim() !== '') {
+    const numericConfidence = Number(normalized.confidence);
+    if (Number.isFinite(numericConfidence)) normalized.confidence = numericConfidence;
+  }
+  ['matchedCriteria', 'matchedTechnologies', 'matchedExclusions', 'evidence'].forEach((key) => {
+    if (Array.isArray(normalized[key]) && normalized[key].every((item) => typeof item === 'string')) {
+      normalized[key] = normalized[key].slice(0, 5);
+    }
+  });
   return normalized;
 }
 
@@ -488,6 +497,22 @@ function validationSummary(decision, keys) {
   if ('readingRecommendation' in decision && !RECOMMENDATIONS.has(decision.readingRecommendation)) {
     issues.push(`readingRecommendation:${String(decision.readingRecommendation)}`);
   }
+  if ('matches' in decision && typeof decision.matches !== 'boolean') {
+    issues.push(`matches:type=${typeof decision.matches}`);
+  }
+  if ('confidence' in decision && (!Number.isFinite(decision.confidence)
+    || decision.confidence < 0 || decision.confidence > 1)) {
+    issues.push(`confidence:${String(decision.confidence)}`);
+  }
+  if ('severity' in decision && !SEVERITIES.has(decision.severity)) {
+    issues.push(`severity:${String(decision.severity)}`);
+  }
+  if ('reason' in decision && typeof decision.reason !== 'string') {
+    issues.push(`reason:type=${typeof decision.reason}`);
+  }
+  ['matchedCriteria', 'matchedTechnologies', 'matchedExclusions', 'evidence'].forEach((key) => {
+    if (key in decision && !isStringArray(decision[key])) issues.push(`${key}:invalid`);
+  });
   if ('publicSummary' in decision && (typeof decision.publicSummary !== 'string'
     || decision.publicSummary.length < 120 || decision.publicSummary.length > 650)) {
     issues.push(`publicSummary:length=${typeof decision.publicSummary === 'string' ? decision.publicSummary.length : 'invalid'}`);
