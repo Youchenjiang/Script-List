@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v15';
+const FILTER_CONTRACT_VERSION = 'news-filter-v16';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -521,6 +521,16 @@ function validateScreening(decision) {
     && isStringArray(decision.evidence);
 }
 
+function validateScreeningForRule(decision, ruleConfig) {
+  if (!validateScreening(decision)) return false;
+  if (!decision.matches) return true;
+  return decision.readingRecommendation === 'must_read'
+    && decision.confidence >= ruleConfig.confidenceThreshold
+    && decision.severity !== 'unknown'
+    && decision.matchedCriteria.length > 0
+    && decision.evidence.length > 0;
+}
+
 function validateDetail(detail) {
   if (!hasExactKeys(detail, DETAIL_KEYS)) return false;
   return validateDecision({
@@ -827,6 +837,7 @@ function createAiFilter(config, fetchImpl = fetch) {
             'evidence 必須是文章資料中可核對的簡短依據，不得捏造。',
             'researchRelevance 只能使用規則提供的研究方向 id；僅列出確實相關的方向。',
             'readingRecommendation 只有在文章提供足夠具體事實，可以完整交代一次重要資安事件時才使用 must_read。',
+            'matches 為 true 時，readingRecommendation 必須是 must_read，confidence 必須達到規則的 confidenceThreshold，severity 不得為 unknown，且 matchedCriteria 與 evidence 均不得為空；否則 matches 必須為 false。',
             'must_read 必須具備明確證據，且至少符合以下一項：正在遭利用或造成重大影響；提出可實作的新技術或防禦方法；直接改變研究方向的重要背景。',
             '一般漏洞公告、產品宣傳、重複報導、增量更新或缺少技術內容的文章不得標為 must_read。',
             '所有自然語言欄位使用繁體中文。',
@@ -842,7 +853,7 @@ function createAiFilter(config, fetchImpl = fetch) {
       schema: SCREENING_SCHEMA,
       schemaName: 'news_screening_decision',
       plainJsonInstruction: SCREENING_PLAIN_JSON_INSTRUCTION,
-      validator: validateScreening,
+      validator: (decision) => validateScreeningForRule(decision, rule.config),
       expectedKeys: SCREENING_KEYS,
       ignoredKeys: DETAIL_KEYS,
       maxOutputTokens: 800,

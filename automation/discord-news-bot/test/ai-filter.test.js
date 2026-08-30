@@ -127,7 +127,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.match(requests[0].body.messages[1].content, /critical_vulnerability/);
   assert.match(requests[1].body.messages[0].content, /confirmedConsequences/);
   assert.match(requests[1].body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v15:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v16:'));
 });
 
 test('AI filter accepts the provider global alias during screening', async () => {
@@ -654,6 +654,39 @@ test('AI filter retries malformed screening once without structured output', asy
   assert.equal(requests[0].response_format.type, 'json_schema');
   assert.equal(requests[1].response_format, undefined);
   assert.equal(decision.matches, true);
+});
+
+test('AI filter retries a contradictory must-read screening decision', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    const content = calls === 1
+      ? screeningDecision({ confidence: 0, severity: 'unknown' })
+      : calls === 2 ? screeningDecision() : detailDecision();
+    return {
+      ok: true,
+      status: 200,
+      async json() { return { choices: [{ message: { content: JSON.stringify(content) } }] }; },
+    };
+  });
+
+  const decision = await filter.evaluate({
+    id: 'contradictory-screening',
+    title: 'Critical vulnerability',
+    summary: 'A critical vulnerability is being exploited.',
+    categories: ['Vulnerability'],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-25T00:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.equal(calls, 3);
+  assert.equal(decision.confidence, 0.95);
+  assert.equal(decision.severity, 'critical');
 });
 
 test('AI filter extracts a complete JSON object from provider commentary', async () => {
