@@ -127,7 +127,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.match(requests[0].body.messages[1].content, /critical_vulnerability/);
   assert.match(requests[1].body.messages[0].content, /confirmedConsequences/);
   assert.match(requests[1].body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v14:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v15:'));
 });
 
 test('AI filter accepts the provider global alias during screening', async () => {
@@ -239,6 +239,43 @@ test('AI filter accepts confirmed impact evidence from compatible providers', as
   }, { config: cloneDefaultRule() });
 
   assert.equal(decision.evidenceBoundaries[0].status, 'confirmed_impact');
+});
+
+test('AI filter maps confirmed entry evidence to confirmed exposure', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { choices: [{ message: { content: JSON.stringify(calls === 1
+          ? screeningDecision()
+          : detailDecision({
+            evidenceBoundaries: [
+              { status: 'confirmed_entry', claim: '惡意程式已進入目標環境' },
+              { status: 'confirmed_victim', claim: '受害主機已遭隔離' },
+            ],
+          })) } }] };
+      },
+    };
+  });
+
+  const decision = await filter.evaluate({
+    id: 'confirmed-entry',
+    title: 'Confirmed malicious entry',
+    summary: 'The malicious program entered the target environment.',
+    categories: ['Incident'],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-25T00:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.equal(decision.evidenceBoundaries[0].status, 'confirmed_exposure');
 });
 
 test('AI filter ignores known editorial fields returned during screening', async () => {

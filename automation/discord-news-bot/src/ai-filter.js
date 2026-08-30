@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v14';
+const FILTER_CONTRACT_VERSION = 'news-filter-v15';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -483,7 +483,10 @@ function normalizeKnownAliases(decision) {
   if (Array.isArray(normalized.evidenceBoundaries)) {
     normalized.evidenceBoundaries = normalized.evidenceBoundaries.slice(0, 6).map((item) => {
       if (!item || typeof item !== 'object' || Array.isArray(item)) return item;
-      return { status: item.status, claim: item.claim };
+      return {
+        status: item.status === 'confirmed_entry' ? 'confirmed_exposure' : item.status,
+        claim: item.claim,
+      };
     });
   }
   if (Array.isArray(normalized.researchRelevance)) {
