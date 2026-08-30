@@ -128,6 +128,7 @@ function createNewsMessage(article, sourceName, decision, ruleConfig, detailKey 
 
 const BOUNDARY_LABELS = {
   confirmed_capability: '已證實能力',
+  confirmed_impact: '已確認影響',
   confirmed_exposure: '已確認曝露',
   confirmed_victim: '已確認受害',
   not_confirmed: '尚未確認',

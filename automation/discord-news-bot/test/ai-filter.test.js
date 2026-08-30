@@ -127,7 +127,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.match(requests[0].body.messages[1].content, /critical_vulnerability/);
   assert.match(requests[1].body.messages[0].content, /confirmedConsequences/);
   assert.match(requests[1].body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v13:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v14:'));
 });
 
 test('AI filter accepts the provider global alias during screening', async () => {
@@ -182,7 +182,7 @@ test('AI filter normalizes numeric confidence and caps screening evidence', asyn
         return {
           choices: [{ message: { content: JSON.stringify(calls === 1
             ? screeningDecision({
-              confidence: '0.92',
+              confidence: '92',
               evidence: ['一', '二', '三', '四', '五', '六'],
             })
             : detailDecision()) } }],
@@ -202,6 +202,43 @@ test('AI filter normalizes numeric confidence and caps screening evidence', asyn
 
   assert.equal(decision.confidence, 0.92);
   assert.deepEqual(decision.evidence, ['一', '二', '三', '四', '五']);
+});
+
+test('AI filter accepts confirmed impact evidence from compatible providers', async () => {
+  let calls = 0;
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => {
+    calls += 1;
+    return {
+      ok: true,
+      status: 200,
+      async json() {
+        return { choices: [{ message: { content: JSON.stringify(calls === 1
+          ? screeningDecision()
+          : detailDecision({
+            evidenceBoundaries: [
+              { status: 'confirmed_impact', claim: '服務已確認中斷' },
+              { status: 'confirmed_victim', claim: '受害主機已遭隔離' },
+            ],
+          })) } }] };
+      },
+    };
+  });
+
+  const decision = await filter.evaluate({
+    id: 'confirmed-impact',
+    title: 'Confirmed service disruption',
+    summary: 'The incident caused a confirmed service disruption.',
+    categories: ['Incident'],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-25T00:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.equal(decision.evidenceBoundaries[0].status, 'confirmed_impact');
 });
 
 test('AI filter ignores known editorial fields returned during screening', async () => {
@@ -546,6 +583,58 @@ test('AI filter safely rejects malformed article evaluations and caches a valid 
   assert.deepEqual(decision, safeRejectedDecision());
   assert.equal(validateDecision(decision), true);
   assert.match(warning, /malformed-article.*required decision schema/);
+});
+
+test('AI filter retries malformed screening once without structured output', async () => {
+  const requests = [];
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async (_url, options) => {
+    requests.push(JSON.parse(options.body));
+    const content = requests.length === 1
+      ? 'Here is the decision: {not valid JSON}'
+      : JSON.stringify(requests.length === 2 ? screeningDecision() : detailDecision());
+    return {
+      ok: true,
+      status: 200,
+      async json() { return { choices: [{ message: { content } }] }; },
+    };
+  });
+
+  const decision = await filter.evaluate({
+    id: 'retry-malformed',
+    title: 'Critical vulnerability',
+    summary: 'A critical vulnerability is being exploited.',
+    categories: ['Vulnerability'],
+    url: 'https://example.com/article',
+    published: new Date('2026-08-25T00:00:00Z'),
+  }, { config: cloneDefaultRule() });
+
+  assert.equal(requests.length, 3);
+  assert.equal(requests[0].response_format.type, 'json_schema');
+  assert.equal(requests[1].response_format, undefined);
+  assert.equal(decision.matches, true);
+});
+
+test('AI filter extracts a complete JSON object from provider commentary', async () => {
+  const decision = completeDecision({ reason: 'Recovered JSON', evidence: ['Synthetic evidence'] });
+  const filter = createAiFilter({
+    aiFilteringEnabled: true,
+    aiApiKey: 'test-key',
+    aiModel: 'provider-model',
+    aiBaseUrl: 'https://provider.example/v1',
+  }, async () => ({
+    ok: true,
+    status: 200,
+    async json() {
+      return { choices: [{ message: { content: `Decision follows:\n${JSON.stringify(decision)}\nDone.` } }] };
+    },
+  }));
+
+  assert.equal((await filter.check()).decision.reason, 'Recovered JSON');
 });
 
 test('AI filter accepts an explicit truncated non-match as a safe rejection', async () => {

@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v13';
+const FILTER_CONTRACT_VERSION = 'news-filter-v14';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -65,6 +65,7 @@ const DECISION_SCHEMA = {
             type: 'string',
             enum: [
               'confirmed_capability',
+              'confirmed_impact',
               'confirmed_exposure',
               'confirmed_victim',
               'not_confirmed',
@@ -375,6 +376,15 @@ function parseDecisionContent(content) {
   try {
     return JSON.parse(candidate);
   } catch {
+    const firstBrace = candidate.indexOf('{');
+    const lastBrace = candidate.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      try {
+        return JSON.parse(candidate.slice(firstBrace, lastBrace + 1));
+      } catch {
+        // Preserve the original provider output in the error below.
+      }
+    }
     const detail = trimmed.replace(/\s+/g, ' ').slice(0, 300);
     throw new Error(`AI endpoint returned invalid JSON content${detail ? `: ${detail}` : ''}`);
   }
@@ -435,6 +445,11 @@ function normalizeKnownAliases(decision) {
   if (typeof normalized.confidence === 'string' && normalized.confidence.trim() !== '') {
     const numericConfidence = Number(normalized.confidence);
     if (Number.isFinite(numericConfidence)) normalized.confidence = numericConfidence;
+  }
+  if (Number.isFinite(normalized.confidence)
+      && normalized.confidence > 1
+      && normalized.confidence <= 100) {
+    normalized.confidence /= 100;
   }
   ['matchedCriteria', 'matchedTechnologies', 'matchedExclusions', 'evidence'].forEach((key) => {
     if (Array.isArray(normalized[key]) && normalized[key].every((item) => typeof item === 'string')) {
@@ -591,6 +606,7 @@ async function sendCompletion(config, messages, fetchImpl, {
   schema = DECISION_SCHEMA,
   schemaName = 'news_filter_decision',
   plainJsonInstruction = PLAIN_JSON_SHAPE_INSTRUCTION,
+  maxOutputTokens,
 }) {
   await beforeRequest();
   const usesGptOss = /gpt-oss/iu.test(config.aiModel);
@@ -602,9 +618,9 @@ async function sendCompletion(config, messages, fetchImpl, {
   const body = {
     model: config.aiModel,
     messages: requestMessages,
-    max_tokens: usesGptOss
+    max_tokens: maxOutputTokens || (usesGptOss
       ? Math.max(config.aiMaxOutputTokens || 800, 2400)
-      : config.aiMaxOutputTokens || 800,
+      : config.aiMaxOutputTokens || 800),
   };
   if (usesGptOss) body.reasoning_effort = 'low';
   if (strictSchema) {
@@ -662,6 +678,8 @@ async function requestCompletion(
     validator = validateDecision,
     expectedKeys = DECISION_SCHEMA.required,
     ignoredKeys = [],
+    maxOutputTokens,
+    retryMalformed = true,
   } = {},
 ) {
   let { response, detail } = await sendWithRateLimitRetry(
@@ -674,6 +692,7 @@ async function requestCompletion(
       schema,
       schemaName,
       plainJsonInstruction,
+      maxOutputTokens,
     },
   );
 
@@ -696,6 +715,7 @@ async function requestCompletion(
         schema,
         schemaName,
         plainJsonInstruction,
+        maxOutputTokens,
       },
     ));
     if (!response.ok) {
@@ -721,6 +741,20 @@ async function requestCompletion(
       ignoredKeys.forEach((key) => { delete decision[key]; });
     }
   } catch (error) {
+    if (allowSafeRejection && retryMalformed) {
+      providerState.strictSchema = false;
+      return requestCompletion(config, messages, fetchImpl, providerState, {
+        allowSafeRejection,
+        schema,
+        schemaName,
+        plainJsonInstruction,
+        validator,
+        expectedKeys,
+        ignoredKeys,
+        maxOutputTokens,
+        retryMalformed: false,
+      });
+    }
     if (allowSafeRejection) {
       return { decision: safeRejectedDecision(), httpStatus: response.status, warning: error.message };
     }
@@ -730,6 +764,20 @@ async function requestCompletion(
     return { decision: safeRejectedDecision(), httpStatus: response.status };
   }
   if (!validator(decision)) {
+    if (allowSafeRejection && retryMalformed) {
+      providerState.strictSchema = false;
+      return requestCompletion(config, messages, fetchImpl, providerState, {
+        allowSafeRejection,
+        schema,
+        schemaName,
+        plainJsonInstruction,
+        validator,
+        expectedKeys,
+        ignoredKeys,
+        maxOutputTokens,
+        retryMalformed: false,
+      });
+    }
     if (allowSafeRejection) {
       return {
         decision: safeRejectedDecision(),
@@ -794,6 +842,7 @@ function createAiFilter(config, fetchImpl = fetch) {
       validator: validateScreening,
       expectedKeys: SCREENING_KEYS,
       ignoredKeys: DETAIL_KEYS,
+      maxOutputTokens: 800,
     });
     if (screeningResult.warning) {
       console.warn(`[AI filter] ${article.id} screening: ${screeningResult.warning}`);
@@ -847,6 +896,7 @@ function createAiFilter(config, fetchImpl = fetch) {
       plainJsonInstruction: DETAIL_PLAIN_JSON_INSTRUCTION,
       validator: validateDetail,
       expectedKeys: DETAIL_KEYS,
+      maxOutputTokens: 2400,
     });
     if (detailResult.warning) {
       console.warn(`[AI filter] ${article.id} detail: ${detailResult.warning}`);

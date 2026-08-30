@@ -286,7 +286,7 @@ AI 信心門檻：80%
 
 `readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題。`publicSummary` 必須以 180 至 500 個繁體中文字，依時間順序用連貫敘事交代人、事、時、地、物、攻擊或發現經過、技術效果、已確認後果與事件收尾；不得使用列點、小標題、未來推演、處置建議或重複的閱讀判斷。
 
-`technicalFocus` 必須使用一至四個具體技術詞組，不能使用「重大漏洞」或「網路安全」等泛用分類。`technicalOutcome` 直接說明攻擊鏈完成後造成的權限、控制能力、資料結果或服務結果。`attackChainGroups` 將不同性質的攻擊階段分成最多兩條相接的鏈，每組至少兩步、合計至少四步；每一步都必須交代動作者與動作、處理機制及交給下一步的結果。`evidenceBoundaries` 則使用 `confirmed_capability`、`confirmed_exposure`、`confirmed_victim`、`not_confirmed` 或 `unknown`，區分已證實能力、實際曝露環境、確認受害者與尚未確認事項。
+`technicalFocus` 必須使用一至四個具體技術詞組，不能使用「重大漏洞」或「網路安全」等泛用分類。`technicalOutcome` 直接說明攻擊鏈完成後造成的權限、控制能力、資料結果或服務結果。`attackChainGroups` 將不同性質的攻擊階段分成最多兩條相接的鏈，每組至少兩步、合計至少四步；每一步都必須交代動作者與動作、處理機制及交給下一步的結果。`evidenceBoundaries` 則使用 `confirmed_capability`、`confirmed_impact`、`confirmed_exposure`、`confirmed_victim`、`not_confirmed` 或 `unknown`，區分已證實能力、已確認影響、實際曝露環境、確認受害者與尚未確認事項。
 
 只有 `must_read` 會進入第二階段，且 `confirmedConsequences` 至少要有一項文章可核對的實際結果，可以是後門已證實具備的能力、已發生的入侵／外洩／中斷，或事件後已完成的撤回與封鎖。其他閱讀判斷在第一階段結束後直接轉成安全拒絕，不要求模型浪費輸出生成空白文案。`exploitationStatus` 只能是 `confirmed_exploitation`、`attempted_exploitation`、`no_confirmed_exploitation` 或 `not_reported`；只有原文明確表示沒有成功利用證據時，才能使用 `no_confirmed_exploitation`。`difficulty` 只能是 `beginner`、`intermediate`、`advanced` 或 `specialist`。`researchRelevance.area` 只能引用目前頻道規則選取的研究方向。
 
