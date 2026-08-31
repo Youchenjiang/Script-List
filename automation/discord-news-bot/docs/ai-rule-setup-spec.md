@@ -284,7 +284,7 @@ AI 信心門檻：80%
 }
 ```
 
-`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題。`publicSummary` 必須以 180 至 500 個繁體中文字，依時間順序用連貫敘事交代人、事、時、地、物、攻擊或發現經過、技術效果、已確認後果與事件收尾；不得使用列點、小標題、未來推演、處置建議或重複的閱讀判斷。
+`readingRecommendation` 只能是 `must_read`、`recommended`、`skim` 或 `skip`，但程式只推送 `must_read`。`headline` 必須是自然的繁體中文標題。`publicSummary` 必須以 90 至 180 個繁體中文字、最多三句，從事件中最反常或最具畫面的技術動作切入，使用具體主詞與強動詞交代「誰對什麼做了什麼、系統如何處理、最後實際發生什麼」。原文已有產品、組織、元件或攻擊動作名稱時不得改用空泛代稱，也不得使用列點、小標題、未來推演、處置建議、「值得關注」等報告式套話或重複的閱讀判斷。
 
 `technicalFocus` 必須使用一至四個具體技術詞組，不能使用「重大漏洞」或「網路安全」等泛用分類。`technicalOutcome` 直接說明攻擊鏈完成後造成的權限、控制能力、資料結果或服務結果。`attackChainGroups` 將不同性質的攻擊階段分成最多兩條相接的鏈，每組至少兩步、合計至少四步；每一步都必須交代動作者與動作、處理機制及交給下一步的結果。`evidenceBoundaries` 則使用 `confirmed_capability`、`confirmed_impact`、`confirmed_exposure`、`confirmed_victim`、`not_confirmed` 或 `unknown`，區分已證實能力、已確認影響、實際曝露環境、確認受害者與尚未確認事項。
 

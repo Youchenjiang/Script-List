@@ -1,7 +1,7 @@
 const { createHash } = require('node:crypto');
 const { cloneDefaultRule, toAiRule } = require('./rule-options');
 
-const FILTER_CONTRACT_VERSION = 'news-filter-v16';
+const FILTER_CONTRACT_VERSION = 'news-filter-v17';
 const GPT_OSS_MIN_REQUEST_INTERVAL_MS = 45_000;
 const DECISION_SCHEMA = {
   type: 'object',
@@ -22,7 +22,7 @@ const DECISION_SCHEMA = {
       enum: ['must_read', 'recommended', 'skim', 'skip'],
     },
     headline: { type: 'string', maxLength: 80 },
-    publicSummary: { type: 'string', maxLength: 650 },
+    publicSummary: { type: 'string', maxLength: 240 },
     technicalFocus: {
       type: 'array',
       items: { type: 'string', maxLength: 80 },
@@ -246,6 +246,11 @@ function isChineseDisplayText(value, { narrative = false } = {}) {
     && (!narrative || (!/[\r\n]/u.test(value) && !/^\s*[-*•]\s+/mu.test(value)));
 }
 
+function hasGenericPublicCopy(value) {
+  return /^(?:本文|本篇|這篇(?:文章|報導)|該(?:文章|報導)|此(?:文章|報導))\s*(?:介紹|說明|探討|分析|報導)/u.test(value.trim())
+    || /值得關注|可能造成(?:重大)?影響|資安風險(?:日益)?(?:升高|增加)|企業(?:與組織)?應(?:立即)?(?:注意|關注)|提醒我們/u.test(value);
+}
+
 function validateDecision(decision) {
   if (!decision || typeof decision !== 'object' || Array.isArray(decision)) return false;
   if (JSON.stringify(Object.keys(decision).sort()) !== JSON.stringify(DECISION_KEYS)) return false;
@@ -260,7 +265,7 @@ function validateDecision(decision) {
     && typeof decision.headline === 'string'
     && decision.headline.length <= 80
     && typeof decision.publicSummary === 'string'
-    && decision.publicSummary.length <= 650
+    && decision.publicSummary.length <= 240
     && isStringArray(decision.technicalFocus, 4)
     && decision.technicalFocus.every((item) => item.length <= 80)
     && typeof decision.technicalOutcome === 'string'
@@ -290,7 +295,8 @@ function validateDecision(decision) {
   return isChineseDisplayText(decision.headline)
     && decision.headline.trim().length >= 4
     && isChineseDisplayText(decision.publicSummary, { narrative: true })
-    && decision.publicSummary.trim().length >= 120
+    && decision.publicSummary.trim().length >= 90
+    && !hasGenericPublicCopy(decision.publicSummary)
     && decision.technicalFocus.length >= 1
     && decision.technicalFocus.every((item) => isChineseDisplayText(item))
     && isChineseDisplayText(decision.technicalOutcome)
@@ -578,7 +584,7 @@ function validationSummary(decision, keys) {
     if (key in decision && !isStringArray(decision[key])) issues.push(`${key}:invalid`);
   });
   if ('publicSummary' in decision && (typeof decision.publicSummary !== 'string'
-    || decision.publicSummary.length < 120 || decision.publicSummary.length > 650)) {
+    || decision.publicSummary.length < 90 || decision.publicSummary.length > 240)) {
     issues.push(`publicSummary:length=${typeof decision.publicSummary === 'string' ? decision.publicSummary.length : 'invalid'}`);
   }
   if ('attackChainGroups' in decision && !isAttackChainGroups(decision.attackChainGroups)) {
@@ -875,9 +881,12 @@ function createAiFilter(config, fetchImpl = fetch) {
             'headline 使用自然的繁體中文新聞標題，不照抄英文標題。',
             'must_read 的 confirmedConsequences 至少列出一項文章明確證實的結果，例如後門實際具備的能力、已遭入侵的組織、被竊取的資料、服務中斷，或事件公開後已完成的撤回與封鎖。不得填入預測。',
             'exploitationStatus 只能依文章明說的狀態判斷；文章明確表示尚無成功利用證據時才用 no_confirmed_exploitation，沒有交代就用 not_reported。',
-            'publicSummary 寫成 180 至 500 個繁體中文字的公開敘事，不使用列點、標題或欄位名稱，並依事件發生順序敘述。',
-            '開頭先用文章提供的時間、人物或組織、地點或系統，以及事件背景建立場景；缺少的資訊直接省略，不得以「某人」「某公司」代替或自行補寫。',
-            '接著寫發現或攻擊經過、關鍵技術機制、confirmedConsequences 中的實際結果，以及事件當下已確認的收尾。',
+            'publicSummary 寫成 90 至 180 個繁體中文字、最多三句的公開敘事，不使用列點、標題或欄位名稱。',
+            '直接從事件中最反常、最具畫面的技術動作切入；使用文章提供的產品、組織、研究者、元件與攻擊動作等具體名稱，不得以「受影響設備」「特製請求」「相關單位」取代原文已有的明確資訊。',
+            '使用具體主詞與強動詞，把「誰對什麼做了什麼、系統如何處理、最後實際發生什麼」接成因果。可在符合原文時自然使用「本該……卻……」「不需要……只要……就……」等對比，但不得每篇硬套同一句型。',
+            '不得以「本文介紹」「這篇報導說明」開場，不得使用「值得關注」「可能造成影響」「資安風險日益增加」「企業應注意」等空泛套話。',
+            '摘要可以有張力，但不得使用「震撼」「史上最嚴重」等標題黨詞彙，也不得添加原文沒有的動機、受害者、範圍或結果。',
+            '接著交代關鍵技術機制、confirmedConsequences 中的實際結果，以及事件當下已確認的收尾；原文沒有交代的部分直接省略。',
             '後門或漏洞已證實具備的能力必須明確寫出；同時要區分「具備入侵能力」與「已有受害者」兩件事。',
             '不得推演未來可能影響的對象或範圍，不得提供處置建議、研究建議、閱讀價值或防禦清單。',
             '若 exploitationStatus 是 no_confirmed_exploitation，敘事必須明確寫出尚無已知成功利用；若是 not_reported，則不得聲稱沒有受害者。',

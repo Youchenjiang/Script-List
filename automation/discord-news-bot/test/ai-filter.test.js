@@ -14,7 +14,7 @@ function completeDecision(overrides = {}) {
     reason: '符合重大漏洞規則',
     readingRecommendation: 'must_read',
     headline: '重大遠端程式碼執行漏洞已遭利用',
-    publicSummary: '八月中旬，研究團隊在檢查公開伺服器時發現異常連線，追查後確認攻擊者先利用對外服務的遠端程式碼執行漏洞送入惡意指令，再由服務行程下載並啟動植入程式，最終取得受感染主機的系統權限。調查人員確認異常程序與新增帳號後，已將受感染主機隔離並保存證據。',
+    publicSummary: '本該只處理公開查詢的管理服務，卻把攻擊者送入的惡意指令一路交給系統執行。八月中旬，研究團隊追查異常連線後確認，攻擊者利用遠端程式碼執行漏洞下載植入程式、建立高權限帳號，最終取得主機控制權；調查人員隨後隔離主機並保存證據。',
     technicalFocus: ['遠端程式碼執行', '服務行程植入'],
     technicalOutcome: '攻擊者完成攻擊鏈後，能以對外服務的執行權限植入惡意程式，並進一步取得受感染主機的系統控制權。',
     attackChainGroups: [{
@@ -127,7 +127,7 @@ test('AI filter uses a generic chat completions endpoint and strict JSON schema'
   assert.match(requests[0].body.messages[1].content, /critical_vulnerability/);
   assert.match(requests[1].body.messages[0].content, /confirmedConsequences/);
   assert.match(requests[1].body.messages[0].content, /不得推演未來/);
-  assert.ok(filter.evaluatorId.startsWith('news-filter-v16:'));
+  assert.ok(filter.evaluatorId.startsWith('news-filter-v17:'));
 });
 
 test('AI filter accepts the provider global alias during screening', async () => {
@@ -773,6 +773,15 @@ test('AI filter rejects English, list-formatted, and encoded public copy', () =>
   })), false);
   assert.equal(validateDecision(completeDecision({ confirmedConsequences: [] })), false);
   assert.equal(validateDecision(completeDecision({ exploitationStatus: 'assumed_safe' })), false);
+});
+
+test('AI filter rejects long and report-like public summaries', () => {
+  assert.equal(validateDecision(completeDecision({
+    publicSummary: `本文介紹一項重大漏洞。${'攻擊者利用管理服務執行系統命令。'.repeat(8)}`,
+  })), false);
+  assert.equal(validateDecision(completeDecision({
+    publicSummary: `${'研究人員確認攻擊者利用管理服務執行系統命令，並在主機建立高權限帳號。'.repeat(4)}值得關注。`,
+  })), false);
 });
 
 test('AI filter accepts empty public copy for an article that will not be published', () => {
