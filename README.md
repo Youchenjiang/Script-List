@@ -54,7 +54,6 @@ Script-List/
 │   ├── code-split/             # Codebase text splitting utility
 │   ├── discord-news-bot/       # Scheduled Discord news notification bot
 │   ├── tapster/                # Lightweight input automation utility (typer, key hold, clicker)
-│   ├── tapster-native/         # High-performance C# WinUI 3 input automation helper
 │   ├── sync-github-stars/      # GitHub Star Lists Sync Utility
 │   ├── url-health-checker/     # Concurrent URL availability and HTTP status checker
 │   ├── bannerlord-mod-checker/ # Mount & Blade II Bannerlord localization checker
