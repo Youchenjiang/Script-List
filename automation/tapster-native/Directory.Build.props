@@ -1,7 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <!-- Disable MSBuild node reuse and shared compilation background daemons -->
-    <UseSharedCompilation>false</UseSharedCompilation>
-    <NodeReuse>false</NodeReuse>
-  </PropertyGroup>
-</Project>
