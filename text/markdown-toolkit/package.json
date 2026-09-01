@@ -1,0 +1,24 @@
+{
+  "name": "markdown-toolkit",
+  "version": "1.0.0",
+  "description": "Unified toolkit for Markdown conversions, parsing, code block extraction, and formatting",
+  "main": "src/index.js",
+  "bin": {
+    "mdtool": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "keywords": [
+    "markdown",
+    "txt2md",
+    "html2md",
+    "code-extractor",
+    "toc-generator"
+  ],
+  "author": "Youchen Jiang",
+  "license": "MIT",
+  "dependencies": {
+    "pdfjs-dist": "^4.10.38"
+  }
+}
