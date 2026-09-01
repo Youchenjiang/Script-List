@@ -1,0 +1,94 @@
+{
+  "presets": {
+    "desktop": {
+      "description": "Windows / .NET / WinUI / C# / Python 桌面端應用 (如 Tapster, Clickra)",
+      "agentRules": [
+        "core.md",
+        "memory-protocol.md",
+        "git-discipline.md",
+        "dotnet-hygiene.md",
+        "store-release.md"
+      ],
+      "gitFiles": [
+        ".gitmessage.txt",
+        ".editorconfig",
+        "hooks/commit-msg"
+      ],
+      "githubWorkflows": [
+        "policy.yml",
+        "trufflehog.yml",
+        "codeql.yml"
+      ],
+      "githubFiles": [
+        "pull_request_template.md",
+        "dependabot.yml",
+        "SECURITY.md"
+      ]
+    },
+    "web": {
+      "description": "Web / Frontend / React / Ionic / 全端應用 (如 NCUIM2026-Fresher)",
+      "agentRules": [
+        "core.md",
+        "memory-protocol.md",
+        "git-discipline.md",
+        "web-guidelines.md"
+      ],
+      "gitFiles": [
+        ".gitmessage.txt",
+        ".editorconfig",
+        "hooks/commit-msg"
+      ],
+      "githubWorkflows": [
+        "policy.yml",
+        "trufflehog.yml",
+        "zap-scan.yml"
+      ],
+      "githubFiles": [
+        "pull_request_template.md",
+        "dependabot.yml",
+        "SECURITY.md"
+      ]
+    },
+    "research": {
+      "description": "AI 論文分析 / 資安漏洞挖掘 / 實驗專案 (如 code-security-research)",
+      "agentRules": [
+        "core.md",
+        "memory-protocol.md",
+        "git-discipline.md"
+      ],
+      "gitFiles": [
+        ".gitmessage.txt",
+        ".editorconfig",
+        "hooks/commit-msg"
+      ],
+      "githubWorkflows": [
+        "policy.yml",
+        "trufflehog.yml",
+        "pr_agent.yml"
+      ],
+      "githubFiles": [
+        "pull_request_template.md",
+        "SECURITY.md"
+      ]
+    },
+    "minimal": {
+      "description": "極簡小工具 / 輕量腳本庫 / 快速原型",
+      "agentRules": [
+        "core.md",
+        "memory-protocol.md",
+        "git-discipline.md"
+      ],
+      "gitFiles": [
+        ".gitmessage.txt",
+        ".editorconfig",
+        "hooks/commit-msg"
+      ],
+      "githubWorkflows": [
+        "policy.yml"
+      ],
+      "githubFiles": [
+        "pull_request_template.md"
+      ]
+    }
+  }
+}
