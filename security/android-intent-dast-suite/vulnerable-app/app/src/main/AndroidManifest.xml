@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.vulnerableapp">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:label="VulnerableApp"
+        android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+
+        <!-- ✅ 正常的主頁面 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ⚠️ 漏洞點：exported=true 的 ProxyActivity -->
+        <!-- 開發者可能為了 deep link 跳轉而導出，但沒做白名單校驗 -->
+        <activity
+            android:name=".ProxyActivity"
+            android:exported="true" />
+
+        <!-- ✅ 修復版：加了白名單校驗的 ProxyActivity -->
+        <activity
+            android:name=".SafeProxyActivity"
+            android:exported="true" />
+
+        <!-- 🔒 私有頁面：exported=false，外部 App 不能直接啟動 -->
+        <activity
+            android:name=".internal.AdminSecretActivity"
+            android:exported="false" />
+
+        <!-- 🔒 另一個私有頁面 -->
+        <activity
+            android:name=".internal.PrivateDataActivity"
+            android:exported="false" />
+
+    </application>
+
+</manifest>

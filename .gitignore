@@ -21,3 +21,10 @@ __pycache__/
 **/news_output/
 **/output/
 **/test_output/
+
+# Gradle and Android build outputs
+.gradle/
+**/build/
+**/local.properties
+*.iml
+.idea/

@@ -72,6 +72,7 @@ Script-List/
 │   ├── photo-splitter/         # Student photo extraction/splitting tool
 │   └── ppt-to-pdf/             # PowerPoint to PDF converter
 ├── security/                   # Security & Analysis tools
+│   ├── android-intent-dast-suite/ # Android Intent Redirection DAST scanner & testbed suite
 │   ├── password-security-checker/ # HIBP breach and strength checker
 │   ├── pdf-password-cracker/   # High-performance PDF password recovery & crypto tool
 │   ├── frida-apk-tool/         # Android APK patching with Frida hooks
@@ -119,6 +120,7 @@ Practical script tools categorized by function:
 - **Photo Splitter** ([media/photo-splitter/](media/photo-splitter/)) - Extract individual student portraits from group photos using face detection and roster mapping. → [Details](media/photo-splitter/README.md)
 
 ### 🛡️ Security
+- **Android Intent DAST Suite** ([security/android-intent-dast-suite/](security/android-intent-dast-suite/)) - Dynamic application security testing scanner, automated verification scripts, and companion vulnerable/attacker testbed apps for Android Intent Redirection vulnerabilities. → [Details](security/android-intent-dast-suite/README.md)
 - **Password Security Checker** ([security/password-security-checker/](security/password-security-checker/)) - PowerShell tool to check if passwords have been exposed in data breaches using HIBP API. → [Details](security/password-security-checker/README.md)
 - **PDF Password Cracker** ([security/pdf-password-cracker/](security/pdf-password-cracker/)) - High-performance Python tool for cracking Standard Security Handler (R2-R4, 40/128-bit RC4) password-protected PDFs. → [Details](security/pdf-password-cracker/README.md)
 - **Frida APK Tool** ([security/frida-apk-tool/](security/frida-apk-tool/)) - Toolkit for patching Android APKs with Frida hooks for dynamic analysis and instrumentation. → [Details](security/frida-apk-tool/README.md)

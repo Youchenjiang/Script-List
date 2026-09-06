@@ -66,7 +66,8 @@ Script-List/
 │   ├── photo-splitter/         # 學生照片自動分割工具
 │   └── ppt-to-pdf/             # PPT 轉 PDF 工具
 ├── security/                   # 安全性與分析工具
-│   ├── password-security-checker/ # 密碼外洩與強度檢查工具
+│   ├── android-intent-dast-suite/ # Android Intent 重定向 DAST 掃描器與漏洞靶場工具組
+│   ├── password-security-checker/ # 密碼安全檢查工具 (HIBP API)
 │   ├── pdf-password-cracker/   # PDF 密碼破解與加密分析工具 (MD5+RC4 高速多行程)
 │   ├── frida-apk-tool/         # Android APK 修補與 Frida Hook 工具組
 │   ├── cybersec-slide-downloader/ # CYBERSEC 2026 簡報下載器
@@ -113,6 +114,7 @@ Script-List/
 - **學生照片分割工具** ([media/photo-splitter/](media/photo-splitter/)) - 使用人臉偵測技術與名單映射，從團體照中自動提取個人肖像。 → [詳細說明](media/photo-splitter/README.md)
 
 ### 🛡️ 安全性工具
+- **Android Intent 重定向 DAST 掃描與測試套件** ([security/android-intent-dast-suite/](security/android-intent-dast-suite/)) - 提供 Android Intent 重定向動態掃描器（DAST）、自動化漏洞利用與修復驗證腳本，以及配套的 Vulnerable/Attacker 測試 App 靶場。 → [詳細說明](security/android-intent-dast-suite/README.md)
 - **密碼安全檢查工具** ([security/password-security-checker/](security/password-security-checker/)) - 使用 HIBP API 檢查密碼是否在資料外洩事件中曝光，並提供破解時間估算。 → [詳細說明](security/password-security-checker/README.md)
 - **PDF 密碼破解與加密分析工具** ([security/pdf-password-cracker/](security/pdf-password-cracker/)) - 高效能 Python 工具，支援 Standard Security Handler (R2-R4, 40/128-bit RC4) 加密分析與多行程破解。 → [詳細說明](security/pdf-password-cracker/README.zh-TW.md)
 - **Frida APK 修補工具** ([security/frida-apk-tool/](security/frida-apk-tool/)) - 用於為 Android APK 注入 Frida Hook 進行動態分析與測試的工具組。 → [詳細說明](security/frida-apk-tool/README.md)
