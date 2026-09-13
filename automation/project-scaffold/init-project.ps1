@@ -228,6 +228,9 @@ foreach ($ghFile in $SelectedPreset.githubFiles) {
 $ApiKey = $env:SILICONFLOW_API_KEY
 $SecretName = "SILICONFLOW_API_KEY"
 if (-not $ApiKey) {
+  $ApiKey = $env:DEFAULT_API_KEY
+}
+if (-not $ApiKey) {
   $ApiKey = $env:OPENAI_KEY
   $SecretName = "OPENAI_KEY"
 }
