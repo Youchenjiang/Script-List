@@ -1,23 +1,45 @@
+# ==============================================================================
+# 🛡️ OWASP ZAP Baseline Security Scan (DAST - 動態應用程式安全測試)
+#
+# 【功能說明】
+# 透過 OWASP ZAP 容器對目標 Web 應用程式發起黑箱動態漏洞掃描（如 XSS、CORS、
+# 安全 Header 缺失、Cookie 安全性等常見 Web 弱點）。
+#
+# 【觸發方式】
+# 1. 預設為手動觸發（workflow_dispatch），避免在一般 PR 自動執行時因本機服務未啟動
+#    或無對外公開 URL 而造成非預期中斷。
+# 2. 前往 GitHub Repository -> Actions -> "OWASP ZAP Security Scan" -> "Run workflow"
+# 3. 輸入正在運行的目標服務網址（例如 Staging/Dev 伺服器 URL，預設: http://localhost:3000）
+#
+# 【掃描結果】
+# 掃描完成後，若發現安全弱點，ZAP 會自動在該 Repository 中建立一份結構化的 GitHub Issue。
+# ==============================================================================
+
 name: OWASP ZAP Security Scan
 
 on:
   workflow_dispatch:
     inputs:
       target_url:
-        description: 'Target URL to scan'
+        description: 'Target Web Application URL to scan (e.g., https://staging.example.com)'
         required: true
         default: 'http://localhost:3000'
 
+permissions:
+  contents: read
+  issues: write # 建立安全性漏洞報告 Issue
+
 jobs:
   zap_scan:
+    name: Run OWASP ZAP Baseline Scan
     runs-on: ubuntu-latest
-    name: Run ZAP Baseline Scan
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: ZAP Scan
+      - name: Execute ZAP Baseline Scan
         uses: zaproxy/action-baseline@v0.14.0
         with:
           target: ${{ github.event.inputs.target_url }}
-          issue_title: 'Security Alert: ZAP Scan Baseline Findings'
+          issue_title: 'Security Findings: OWASP ZAP Baseline Scan'
+          fail_action: false # 設為 false 確保只作為安全審查報告產出，不阻塞工作流
