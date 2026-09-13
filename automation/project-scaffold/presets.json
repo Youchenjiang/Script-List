@@ -43,6 +43,7 @@
       "githubWorkflows": [
         "policy.yml",
         "trufflehog.yml",
+        "codeql.yml",
         "zap-scan.yml"
       ],
       "githubFiles": [
@@ -67,6 +68,7 @@
       "githubWorkflows": [
         "policy.yml",
         "trufflehog.yml",
+        "codeql.yml",
         "pr_agent.yml"
       ],
       "githubFiles": [
