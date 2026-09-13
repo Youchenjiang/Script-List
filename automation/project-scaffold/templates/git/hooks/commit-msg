@@ -2,9 +2,10 @@
 # Git commit-msg hook enforcing Conventional Commits and subject format
 
 COMMIT_MSG_FILE="$1"
-FIRST_LINE=$(head -n 1 "$COMMIT_MSG_FILE")
+# Strip trailing carriage returns (\r) to guarantee compatibility across Windows CRLF and Linux LF
+FIRST_LINE=$(head -n 1 "$COMMIT_MSG_FILE" | tr -d '\r')
 
-# Allow merge commits or fixup commits
+# Allow merge commits, reverts, or git internal fixup commits
 if [[ "$FIRST_LINE" =~ ^(Merge|Revert|fixup!|squash!) ]]; then
   exit 0
 fi
@@ -22,12 +23,14 @@ if ! [[ "$FIRST_LINE" =~ $PATTERN ]]; then
 fi
 
 if [[ "$FIRST_LINE" =~ \.$ ]]; then
-  echo -e "\033[31m[ERROR] Commit header must not end with a period.\033[0m"
+  echo -e "\033[31m[ERROR] Commit header must not end with a trailing period ('.').\033[0m"
+  echo "Actual commit header: '$FIRST_LINE'"
   exit 1
 fi
 
 if [ ${#FIRST_LINE} -gt 72 ]; then
   echo -e "\033[31m[ERROR] Commit header is too long (${#FIRST_LINE} chars). Maximum is 72 chars.\033[0m"
+  echo "Actual commit header: '$FIRST_LINE'"
   exit 1
 fi
 
