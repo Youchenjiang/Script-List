@@ -63,6 +63,7 @@
         ".gitignore",
         ".gitmessage.txt",
         ".editorconfig",
+        ".pr_agent.toml",
         "hooks/commit-msg"
       ],
       "githubWorkflows": [

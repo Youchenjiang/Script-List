@@ -159,28 +159,17 @@ if (-not (Test-Path $MemoryPath) -or $Force) {
 # 2. Setup Git Policies & Templates
 Write-Host "[2/4] Configuring Git Templates & Hooks..." -ForegroundColor Yellow
 
-$EditorConfigSrc = Join-Path $TemplatesDir "git\.editorconfig"
-$EditorConfigDst = Join-Path $TargetDir ".editorconfig"
-if (Test-Path $EditorConfigSrc) {
-  Copy-Item $EditorConfigSrc $EditorConfigDst -Force
-  Write-Host "  + Created: .editorconfig" -ForegroundColor Gray
-}
-
-$GitMessageSrc = Join-Path $TemplatesDir "git\.gitmessage.txt"
-$GitMessageDst = Join-Path $TargetDir ".gitmessage.txt"
-if (Test-Path $GitMessageSrc) {
-  Copy-Item $GitMessageSrc $GitMessageDst -Force
-  Write-Host "  + Created: .gitmessage.txt" -ForegroundColor Gray
-}
-
-$GitIgnoreSrc = Join-Path $TemplatesDir "git\.gitignore"
-$GitIgnoreDst = Join-Path $TargetDir ".gitignore"
-if (Test-Path $GitIgnoreSrc) {
-  if (-not (Test-Path $GitIgnoreDst) -or $Force) {
-    Copy-Item $GitIgnoreSrc $GitIgnoreDst -Force
-    Write-Host "  + Created: .gitignore" -ForegroundColor Gray
-  } else {
-    Write-Host "  = Retained: .gitignore (already exists)" -ForegroundColor DarkGray
+foreach ($gf in $SelectedPreset.gitFiles) {
+  if ($gf -like "hooks/*") { continue }
+  $gfSrc = Join-Path $TemplatesDir "git\$gf"
+  $gfDst = Join-Path $TargetDir $gf
+  if (Test-Path $gfSrc) {
+    if ($gf -eq ".gitignore" -and (Test-Path $gfDst) -and -not $Force) {
+      Write-Host "  = Retained: $gf (already exists)" -ForegroundColor DarkGray
+    } else {
+      Copy-Item $gfSrc $gfDst -Force
+      Write-Host "  + Created: $gf" -ForegroundColor Gray
+    }
   }
 }
 
@@ -232,6 +221,32 @@ foreach ($ghFile in $SelectedPreset.githubFiles) {
   if (Test-Path $ghSrc) {
     Copy-Item $ghSrc $ghDst -Force
     Write-Host "  + Deployed GitHub Template: .github/$ghFile" -ForegroundColor Gray
+  }
+}
+
+# Auto-inject Secrets via gh CLI if present in environment
+$ApiKey = $env:SILICONFLOW_API_KEY
+$SecretName = "SILICONFLOW_API_KEY"
+if (-not $ApiKey) {
+  $ApiKey = $env:OPENAI_KEY
+  $SecretName = "OPENAI_KEY"
+}
+
+if ($ApiKey -and (Test-Path $GitDir)) {
+  try {
+    Push-Location $TargetDir
+    $remoteUrl = git remote get-url origin 2>$null
+    Pop-Location
+    if ($remoteUrl -match 'github\.com[:/](?<owner>[^/]+)/(?<repo>[^/.]+)') {
+      $repoSlug = "$($Matches['owner'])/$($Matches['repo'])"
+      Write-Host "  + Auto-injecting $SecretName into GitHub repo $repoSlug via gh CLI..." -ForegroundColor Cyan
+      gh secret set $SecretName --body "$ApiKey" -R $repoSlug 2>$null
+      if ($LASTEXITCODE -eq 0) {
+        Write-Host "  + Successfully configured GitHub Secret: $SecretName on $repoSlug" -ForegroundColor Green
+      }
+    }
+  } catch {
+    # Non-fatal if remote repo is not set or gh fails
   }
 }
 
