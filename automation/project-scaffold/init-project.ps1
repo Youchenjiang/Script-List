@@ -173,6 +173,17 @@ if (Test-Path $GitMessageSrc) {
   Write-Host "  + Created: .gitmessage.txt" -ForegroundColor Gray
 }
 
+$GitIgnoreSrc = Join-Path $TemplatesDir "git\.gitignore"
+$GitIgnoreDst = Join-Path $TargetDir ".gitignore"
+if (Test-Path $GitIgnoreSrc) {
+  if (-not (Test-Path $GitIgnoreDst) -or $Force) {
+    Copy-Item $GitIgnoreSrc $GitIgnoreDst -Force
+    Write-Host "  + Created: .gitignore" -ForegroundColor Gray
+  } else {
+    Write-Host "  = Retained: .gitignore (already exists)" -ForegroundColor DarkGray
+  }
+}
+
 # Setup Git Hook if .git repository exists
 $GitDir = Join-Path $TargetDir ".git"
 if (Test-Path $GitDir) {
