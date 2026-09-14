@@ -112,13 +112,22 @@ jobs:
 
             for (const c of commits) {
               const shaShort = c.sha.slice(0, 7);
-              const firstLine = (c.commit.message || "").split("\n")[0].trim();
+              const lines = (c.commit.message || "").replace(/\r\n/g, "\n").split("\n");
+              const firstLine = lines[0].trim();
               // Ignore merge or fixup commits
               if (/^(Merge|Revert|fixup!|squash!)/.test(firstLine)) {
                 summaryRows.push([`Commit ${shaShort}`, `\`${firstLine}\``, "⚪ Ignored", "Merge / fixup commit"]);
                 continue;
               }
               const commitIssues = checkSubject(firstLine, `Commit ${shaShort}`, 72);
+
+              // Check body for numbered list (NCUIM parity)
+              const bodyLines = lines.slice(1).filter((l) => !l.trim().startsWith("#"));
+              const body = bodyLines.join("\n");
+              if (!/^\s{0,3}1[.)]\s+/m.test(body)) {
+                commitIssues.push("Commit body must contain a numbered list in English (e.g. `1. Explain what changed.`).");
+              }
+
               if (commitIssues.length > 0) {
                 blockers.push({ target: `Commit ${shaShort}`, text: firstLine, issues: commitIssues });
                 summaryRows.push([`Commit ${shaShort}`, `\`${firstLine}\``, "❌ Failed", commitIssues.join("<br>")]);

@@ -34,4 +34,17 @@ if [ ${#FIRST_LINE} -gt 72 ]; then
   exit 1
 fi
 
+# NCUIM-inspired Commit Body Validation:
+# Strip comments (lines starting with #) and check if body contains a numbered list starting with "1. " or "1) "
+BODY=$(grep -v '^#' "$COMMIT_MSG_FILE" | tr -d '\r' | tail -n +2)
+
+# Check if non-empty body exists and contains numbered list (e.g. 1. or 1) )
+if ! echo "$BODY" | grep -Eq '^[[:space:]]*1[.)][[:space:]]+'; then
+  echo -e "\033[31m[ERROR] Commit body must contain a numbered list starting with '1. ' or '1) '!\033[0m"
+  echo "Example:"
+  echo "  1. Explain what changed and the technical rationale."
+  echo "  2. Additional details if needed."
+  exit 1
+fi
+
 exit 0
