@@ -5,6 +5,11 @@ function buildCommands() {
   return [
     new SlashCommandBuilder().setName('ping').setDescription('檢查 Bot 是否在線'),
     new SlashCommandBuilder().setName('news_status').setDescription('查看新聞推送狀態'),
+    new SlashCommandBuilder().setName('events_status').setDescription('查看資安活動推送狀態'),
+    new SlashCommandBuilder()
+      .setName('events_now')
+      .setDescription('立即搜尋並公告新的資安活動')
+      .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
     new SlashCommandBuilder()
       .setName('news_now')
       .setDescription('立即執行一次新聞檢查')

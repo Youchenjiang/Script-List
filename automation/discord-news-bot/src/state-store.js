@@ -101,6 +101,7 @@ async function saveState(filePath, state) {
 
 function createFileStateStore(filePath) {
   const filtersPath = `${filePath}.filters`;
+  const namedStatesPath = `${filePath}.states`;
 
   async function loadFilters() {
     const data = await readJson(filtersPath, {});
@@ -113,10 +114,32 @@ function createFileStateStore(filePath) {
     };
   }
 
+  async function loadNamedState(stateKey) {
+    if (stateKey === 'default') return loadState(filePath);
+    const states = await readJson(namedStatesPath, {});
+    const state = states[stateKey] || {};
+    return {
+      sentIds: Array.isArray(state.sentIds) ? state.sentIds : [],
+      lastCheckedAt: state.lastCheckedAt || null,
+    };
+  }
+
+  async function saveNamedState(stateKey, state) {
+    if (stateKey === 'default') return saveState(filePath, state);
+    const states = await readJson(namedStatesPath, {});
+    states[stateKey] = {
+      sentIds: [...new Set(state.sentIds)].slice(-MAX_HISTORY),
+      lastCheckedAt: state.lastCheckedAt,
+    };
+    await writeJson(namedStatesPath, states);
+  }
+
   return {
     kind: 'file',
-    load: () => loadState(filePath),
-    save: (state) => saveState(filePath, state),
+    load: () => loadNamedState('default'),
+    save: (state) => saveNamedState('default', state),
+    loadNamedState,
+    saveNamedState,
     async getFilterRule(channelId) {
       const rule = (await loadFilters()).rules[channelId];
       return rule?.config?.topics?.length
@@ -215,33 +238,39 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
     initialized = true;
   }
 
+  async function loadNamedState(stateKey) {
+    await initialize();
+    const result = await pool.query(
+      'SELECT sent_ids, last_checked_at FROM news_bot_state WHERE state_key = $1',
+      [stateKey],
+    );
+    if (result.rowCount === 0) return { sentIds: [], lastCheckedAt: null };
+    const row = result.rows[0];
+    return {
+      sentIds: Array.isArray(row.sent_ids) ? row.sent_ids : [],
+      lastCheckedAt: row.last_checked_at ? new Date(row.last_checked_at).toISOString() : null,
+    };
+  }
+
+  async function saveNamedState(stateKey, state) {
+    await initialize();
+    const sentIds = [...new Set(state.sentIds)].slice(-MAX_HISTORY);
+    await pool.query(
+      `INSERT INTO news_bot_state (state_key, sent_ids, last_checked_at)
+       VALUES ($1, $2::jsonb, $3)
+       ON CONFLICT (state_key) DO UPDATE SET
+         sent_ids = EXCLUDED.sent_ids,
+         last_checked_at = EXCLUDED.last_checked_at`,
+      [stateKey, JSON.stringify(sentIds), state.lastCheckedAt],
+    );
+  }
+
   return {
     kind: 'postgres',
-    async load() {
-      await initialize();
-      const result = await pool.query(
-        'SELECT sent_ids, last_checked_at FROM news_bot_state WHERE state_key = $1',
-        ['default'],
-      );
-      if (result.rowCount === 0) return { sentIds: [], lastCheckedAt: null };
-      const row = result.rows[0];
-      return {
-        sentIds: Array.isArray(row.sent_ids) ? row.sent_ids : [],
-        lastCheckedAt: row.last_checked_at ? new Date(row.last_checked_at).toISOString() : null,
-      };
-    },
-    async save(state) {
-      await initialize();
-      const sentIds = [...new Set(state.sentIds)].slice(-MAX_HISTORY);
-      await pool.query(
-        `INSERT INTO news_bot_state (state_key, sent_ids, last_checked_at)
-         VALUES ($1, $2::jsonb, $3)
-         ON CONFLICT (state_key) DO UPDATE SET
-           sent_ids = EXCLUDED.sent_ids,
-           last_checked_at = EXCLUDED.last_checked_at`,
-        ['default', JSON.stringify(sentIds), state.lastCheckedAt],
-      );
-    },
+    loadNamedState,
+    saveNamedState,
+    load: () => loadNamedState('default'),
+    save: (state) => saveNamedState('default', state),
     async getFilterRule(channelId, guildId = '') {
       await initialize();
       const result = await pool.query(

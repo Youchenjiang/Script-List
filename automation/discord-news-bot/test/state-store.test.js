@@ -32,6 +32,20 @@ test('file state store persists technical details and scopes them to the channel
   assert.equal(await store.getNewsDetail('detail-1', 'channel-2'), null);
 });
 
+test('file state store keeps event publication state separate from news state', async () => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'news-state-'));
+  const store = createFileStateStore(path.join(tempDir, 'state.json'));
+
+  await store.save({ sentIds: ['news-1'], lastCheckedAt: '2026-09-18T01:00:00Z' });
+  await store.saveNamedState('security-events:channel-1', {
+    sentIds: ['event-1'],
+    lastCheckedAt: '2026-09-18T02:00:00Z',
+  });
+
+  assert.deepEqual((await store.load()).sentIds, ['news-1']);
+  assert.deepEqual((await store.loadNamedState('security-events:channel-1')).sentIds, ['event-1']);
+});
+
 test('PostgreSQL state store initializes, saves, and loads state', async () => {
   const calls = [];
   const pool = {

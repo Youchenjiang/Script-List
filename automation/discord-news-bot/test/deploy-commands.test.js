@@ -7,6 +7,8 @@ const { buildCommands } = require('../src/deploy-commands');
 test('Discord command definition exposes guided rule setup', () => {
   const commands = buildCommands();
   assert.ok(commands.some((command) => command.name === 'news_ai_check'));
+  assert.ok(commands.some((command) => command.name === 'events_status'));
+  assert.ok(commands.some((command) => command.name === 'events_now'));
   const ruleCommand = commands.find((command) => command.name === 'news_rule');
   assert.ok(ruleCommand);
   assert.deepEqual(ruleCommand.options.map((option) => option.name), ['setup', 'show', 'clear']);

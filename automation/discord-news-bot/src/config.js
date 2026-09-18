@@ -24,6 +24,26 @@ function required(name) {
   return value;
 }
 
+function readHour(name, fallback) {
+  const raw = process.env[name];
+  if (raw === undefined || raw === '') return fallback;
+  const value = Number(raw);
+  if (!Number.isInteger(value) || value < 0 || value > 23) {
+    throw new Error(`${name} must be an integer from 0 to 23`);
+  }
+  return value;
+}
+
+function readTimeZone(name, fallback) {
+  const value = process.env[name]?.trim() || fallback;
+  try {
+    new Intl.DateTimeFormat('en', { timeZone: value }).format();
+  } catch {
+    throw new Error(`${name} must be a valid IANA time zone`);
+  }
+  return value;
+}
+
 function loadConfig() {
   return {
     token: required('DISCORD_TOKEN'),
@@ -44,9 +64,20 @@ function loadConfig() {
     feedUrl: process.env.NEWS_FEED_URL?.trim()
       || 'https://thehackernews.com/feeds/posts/default?alt=json&redirect=false&max-results=50',
     sourceName: process.env.NEWS_SOURCE_NAME?.trim() || 'The Hacker News',
+    eventsEnabled: readBoolean('EVENTS_ENABLED', true),
+    eventChannelId: process.env.EVENT_CHANNEL_ID?.trim() || '1536696484286824519',
+    eventPollIntervalMs: readPositiveInteger('EVENT_POLL_INTERVAL_MINUTES', 30) * 60_000,
+    eventScanHour: readHour('EVENT_SCAN_HOUR', 9),
+    eventTimeZone: readTimeZone('EVENT_TIME_ZONE', 'Asia/Taipei'),
+    eventLookaheadDays: readPositiveInteger('EVENT_LOOKAHEAD_DAYS', 120),
+    maxEventsPerRun: readPositiveInteger('MAX_EVENTS_PER_RUN', 5),
+    ctfTimeEventsUrl: process.env.CTFTIME_EVENTS_URL?.trim()
+      || 'https://ctftime.org/api/v1/events/',
+    owaspEventsUrl: process.env.OWASP_EVENTS_URL?.trim()
+      || 'https://raw.githubusercontent.com/OWASP/owasp.github.io/main/_data/events.yml',
     databaseUrl: process.env.DATABASE_URL?.trim() || '',
     statePath: path.join(__dirname, '..', 'data', 'state.json'),
   };
 }
 
-module.exports = { loadConfig, readBoolean, readPositiveInteger };
+module.exports = { loadConfig, readBoolean, readHour, readPositiveInteger, readTimeZone };

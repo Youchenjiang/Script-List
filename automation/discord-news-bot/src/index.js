@@ -8,14 +8,18 @@ const {
   PermissionFlagsBits,
 } = require('discord.js');
 const { loadConfig } = require('./config');
+const { createEventPublisher } = require('./event-publisher');
 const { createPublisher, createTechnicalDetailReply } = require('./publisher');
 const { formatRuleConfig } = require('./rule-options');
 const { createRuleSetupManager } = require('./rule-setup');
+const { createStateStore } = require('./state-store');
 
 async function main() {
   const config = loadConfig();
   const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+  const stateStore = createStateStore(config);
   let publisher;
+  let eventPublisher;
   let ruleSetup;
 
   client.once(Events.ClientReady, async (readyClient) => {
@@ -31,7 +35,7 @@ async function main() {
         throw new Error(`DISCORD_CHANNEL_ID ${config.channelId} is not a sendable text channel`);
       }
 
-      publisher = createPublisher({ channel, config });
+      publisher = createPublisher({ channel, config, stateStore });
       ruleSetup = createRuleSetupManager({
         channelId: config.channelId,
         saveRule: (ruleConfig, userId) => publisher.setFilterRule(ruleConfig, userId),
@@ -46,6 +50,22 @@ async function main() {
       });
       console.log(`[Bot] State store: ${config.databaseUrl ? 'PostgreSQL' : 'local file'}`);
       console.log(`[Bot] AI filtering: ${config.aiFilteringEnabled ? 'enabled' : 'disabled'}`);
+      if (config.eventsEnabled) {
+        const eventChannel = await readyClient.channels.fetch(config.eventChannelId);
+        if (!eventChannel?.isTextBased() || !('send' in eventChannel)) {
+          throw new Error(`EVENT_CHANNEL_ID ${config.eventChannelId} is not a sendable text channel`);
+        }
+        eventPublisher = createEventPublisher({
+          channel: eventChannel,
+          config,
+          stateStore,
+        });
+        await runEventPublisher('startup').catch(() => {});
+        setInterval(() => {
+          void runEventPublisher('schedule').catch(() => {});
+        }, config.eventPollIntervalMs).unref();
+        console.log(`[Bot] Security events: daily at ${String(config.eventScanHour).padStart(2, '0')}:00 ${config.eventTimeZone}`);
+      }
       if (config.pushOnStart) await runPublisher('startup').catch(() => {});
       setInterval(() => {
         void runPublisher('schedule').catch(() => {});
@@ -65,6 +85,17 @@ async function main() {
       return result;
     } catch (error) {
       console.error(`[News:${trigger}] ${error.stack || error.message}`);
+      throw error;
+    }
+  }
+
+  async function runEventPublisher(trigger, options = {}) {
+    try {
+      const result = await eventPublisher.run(options);
+      console.log(`[Events:${trigger}]`, result);
+      return result;
+    } catch (error) {
+      console.error(`[Events:${trigger}] ${error.stack || error.message}`);
       throw error;
     }
   }
@@ -127,6 +158,48 @@ async function main() {
         ].filter(Boolean).join('\n')
         : '尚未完成任何一次新聞檢查。';
       await interaction.reply({ content: text, flags: MessageFlags.Ephemeral });
+      return;
+    }
+
+    if (interaction.commandName === 'events_status') {
+      if (!config.eventsEnabled) {
+        await interaction.reply({ content: '資安活動推送目前未啟用。', flags: MessageFlags.Ephemeral });
+        return;
+      }
+      const status = eventPublisher?.getStatus();
+      const latest = status?.latestResult;
+      const text = latest
+        ? [
+          `執行中：${status.running ? '是' : '否'}`,
+          `上次檢查：${latest.at}`,
+          latest.skipped
+            ? `狀態：${latest.reason}`
+            : `讀取 ${latest.checked} 場／新發現 ${latest.discovered} 場／公告 ${latest.published} 場`,
+          latest.sourceErrors?.length ? `來源錯誤：${latest.sourceErrors.join('；')}` : null,
+        ].filter(Boolean).join('\n')
+        : '尚未完成任何一次資安活動檢查。';
+      await interaction.reply({ content: text, flags: MessageFlags.Ephemeral });
+      return;
+    }
+
+    if (interaction.commandName === 'events_now') {
+      if (!interaction.memberPermissions?.has(PermissionFlagsBits.ManageGuild)) {
+        await interaction.reply({ content: '你需要「管理伺服器」權限。', flags: MessageFlags.Ephemeral });
+        return;
+      }
+      if (!eventPublisher) {
+        await interaction.reply({ content: '活動推送尚未啟用或 Bot 尚未完成啟動。', flags: MessageFlags.Ephemeral });
+        return;
+      }
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      try {
+        const result = await runEventPublisher('command', { force: true });
+        await interaction.editReply(
+          `檢查完成：讀取 ${result.checked} 場，新發現 ${result.discovered} 場，公告 ${result.published} 場。`,
+        );
+      } catch (error) {
+        await interaction.editReply(`活動檢查失敗：${error.message}`);
+      }
       return;
     }
 
@@ -239,7 +312,7 @@ async function main() {
     shuttingDown = true;
     console.log(`[Bot] Received ${signal}, shutting down`);
     client.destroy();
-    await publisher?.close();
+    await stateStore.close();
   }
 
   process.once('SIGINT', () => void shutdown('SIGINT'));
