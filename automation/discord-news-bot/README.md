@@ -1,6 +1,6 @@
 # Discord 自動新聞推送 Bot
 
-定時抓取 The Hacker News，由 AI 依 Discord 頻道中設定的規則篩選，再將符合條件的資安新聞用 Discord Embed 推送到指定頻道。專案沿用 `Script-List/security/hacker-news-scraper` 的 Blogger JSON Feed 抓取方式，以及 `loss-found-app-bot` 的 `discord.js` Bot／slash command 架構。
+定時抓取 The Hacker News，由 AI 依 Discord 頻道中設定的規則篩選，再將符合條件的資安新聞用 Discord Embed 推送到指定頻道。Bot 也會每日從官方結構化來源尋找新的資安競賽、社群與研討會活動，去重後公告至獨立活動頻道。專案沿用 `Script-List/security/hacker-news-scraper` 的 Blogger JSON Feed 抓取方式，以及 `loss-found-app-bot` 的 `discord.js` Bot／slash command 架構。
 
 互動式規則設定的使用流程、欄位與判斷契約請見 [Discord AI 新聞規則設定規格](./docs/ai-rule-setup-spec.md)。
 
@@ -11,7 +11,7 @@
 - 將「事件類型」與「技術領域」分開設定，例如只接收影響雲端／容器的零日或供應鏈事件
 - 以頻道共用研究方向標示每篇文章對漏洞研究、威脅情報、偵測工程等領域的關聯
 - 只推送真正需要投入時間閱讀的文章，不在訊息中重複顯示「必讀」判斷
-- 公開訊息以自然的繁體中文標題與 180 至 500 字敘事，交代事件背景、技術效果、已確認後果與收尾
+- 公開訊息以自然的繁體中文標題與 90 至 180 字短敘事，從最具體的技術動作切入，交代技術效果與已確認後果
 - 以具體技術焦點與閱讀門檻取代泛用 hashtag，讓成員直接判斷研究關聯與理解難度
 - 每則新聞提供「查看技術細節」按鈕，以私人回覆展開分組攻擊鏈、最終結果與證據邊界，不建立 Discord 討論串
 - 只處理指定時間範圍內的新文章，並永久保存推送及判斷紀錄
@@ -22,6 +22,9 @@
 - `/news_now`：具「管理伺服器」權限者可立即檢查
 - `/news_ai_check`：實際測試 AI 供應商連線與結構化輸出
 - `/news_status`：查看上次檢查與推送數量
+- 每日從 CTFtime 官方 API 與 OWASP 官方活動資料尋找未公告過的競賽、社群及研討會，時間統一換算為台灣時間
+- `/events_now`：具「管理伺服器」權限者可立即搜尋新活動
+- `/events_status`：查看活動來源、搜尋與公告狀態
 - `/ping`：檢查 Bot 延遲
 - Feed、頻道、週期、回溯時間及單輪上限均可由環境變數設定
 - 雲端環境可使用 PostgreSQL 保存去重狀態，本機則自動使用 JSON 檔案
@@ -44,6 +47,7 @@ DISCORD_TOKEN=機器人權杖
 DISCORD_CLIENT_ID=Application_ID
 DISCORD_GUILD_ID=測試伺服器_ID
 DISCORD_CHANNEL_ID=新聞頻道_ID
+EVENT_CHANNEL_ID=1536696484286824519
 AI_BASE_URL=供應商的_OpenAI_相容端點
 AI_API_KEY=供應商的_API_Key
 AI_MODEL=供應商的模型_ID
@@ -64,6 +68,8 @@ npm start
 `npm run deploy:branding` 會將 Bot 顯示名稱更新為 `Cyber News Sentinel`，並套用專案內的資安新聞守望者頭像。Discord 對 Bot 使用者名稱變更有較嚴格的頻率限制，不應在每次服務啟動時執行。
 
 若不希望啟動時立刻抓取，將 `PUSH_ON_START=false`。其他設定及預設值可參考 [.env.example](./.env.example)。
+
+活動雷達預設每天台灣時間 09:00 後執行一次，公告新發現且未公告過的活動；服務重啟不會重複發送。`EVENT_SCAN_HOUR`、`EVENT_TIME_ZONE`、`EVENT_LOOKAHEAD_DAYS` 與 `MAX_EVENTS_PER_RUN` 可調整時間、預看天數及單日公告上限。`EVENT_CHANNEL_ID` 預設為 `1536696484286824519`，因此既有 Northflank 環境不必新增變數；若要停用則設定 `EVENTS_ENABLED=false`。
 
 啟動後，具「管理伺服器」權限者需在指定新聞頻道執行：
 
@@ -95,7 +101,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 ## PostgreSQL 與雲端部署
 
-設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations`、`news_article_details` 資料表，保存已推送文章、以 Discord 伺服器／頻道識別的共用規則、AI 判斷及按鈕所需的完整技術細節。部署新版時會以可重複執行的 migration 補齊結構；未設定資料庫時則使用本機 JSON 檔案。
+設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations`、`news_article_details` 資料表，保存已推送文章與活動、以 Discord 伺服器／頻道識別的共用規則、AI 判斷及按鈕所需的完整技術細節。新聞與活動使用不同的 state key，不會互相覆寫。部署新版時會以可重複執行的 migration 補齊結構；未設定資料庫時則使用本機 JSON 檔案。
 
 第一次從既有本機 Bot 搬到雲端時，建議設定：
 
@@ -117,5 +123,7 @@ PUBLISH_INITIAL_ARTICLES=false
 5. 只推送符合規則且判定為 `must_read` 的文章；公開訊息不顯示判斷名稱，只呈現中文標題、完整事件摘要、技術焦點與閱讀門檻。
 6. 將完整技術細節以短鍵保存；成員按下「查看技術細節」後，由全域互動處理器讀取資料並以 ephemeral 訊息呈現，因此不會建立大量討論串，Bot 重啟後舊按鈕仍可使用。
 7. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
+
+活動雷達另以獨立流程運作：每天讀取 CTFtime 的時間範圍 API 與 OWASP 官方 `events.yml`，只保留尚未結束的活動，依開始時間排序後公告。CTF 隊伍人數只在官方活動說明明確提供時顯示；不會把報名人數誤當成隊伍上限。若其中一個來源暫時失效，仍會使用另一個來源並在 `/events_status` 顯示來源錯誤。
 
 `NEWS_FEED_URL` 目前預期為 Blogger JSON Feed 格式；預設值已指向 The Hacker News。
