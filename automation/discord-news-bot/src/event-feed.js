@@ -3,6 +3,7 @@ const { classifyEvent } = require('./event-classifier');
 const { deduplicateEvents, eventEndTime, eventStartTime, normalizeEventRecord } = require('./event-model');
 const { fetchTaiwanDeadlineEvents } = require('./event-sources/taiwan-deadlines');
 const { fetchKktixEvents } = require('./event-sources/kktix');
+const { fetchIcalEvents } = require('./event-sources/ical');
 const { loadEventSourceRegistry } = require('./event-source-registry');
 
 function cleanScalar(value) {
@@ -176,6 +177,13 @@ async function fetchSecurityEvents(config, { fetchImpl = fetch, now = new Date()
         fetchImpl,
         maxDetails: config.maxKktixEventsPerSource,
       }));
+    }
+  }
+  if (config.icalEventsEnabled) {
+    const calendarSources = loadEventSourceRegistry()
+      .filter((source) => source.status === 'active' && source.mode === 'ical_calendar');
+    for (const source of calendarSources) {
+      requests.push(fetchIcalEvents({ source, start: now, finish, fetchImpl }));
     }
   }
   const sources = await Promise.allSettled(requests);

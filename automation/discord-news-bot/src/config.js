@@ -83,6 +83,7 @@ function loadConfig() {
       || 'https://raw.githubusercontent.com/stwater20/taiwan-security-deadlines/main/_data/conferences.yml',
     kktixEventsEnabled: readBoolean('KKTIX_EVENTS_ENABLED', true),
     maxKktixEventsPerSource: readPositiveInteger('MAX_KKTIX_EVENTS_PER_SOURCE', 20),
+    icalEventsEnabled: readBoolean('ICAL_EVENTS_ENABLED', true),
     databaseUrl: process.env.DATABASE_URL?.trim() || '',
     statePath: path.join(__dirname, '..', 'data', 'state.json'),
   };

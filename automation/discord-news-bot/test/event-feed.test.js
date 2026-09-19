@@ -26,6 +26,7 @@ test('security event feed includes active KKTIX organizers without AI evaluation
     taiwanDeadlinesEnabled: false,
     kktixEventsEnabled: true,
     maxKktixEventsPerSource: 20,
+    icalEventsEnabled: false,
   }, {
     now: new Date('2026-09-19T00:00:00Z'),
     fetchImpl: async (url) => {
@@ -42,6 +43,41 @@ test('security event feed includes active KKTIX organizers without AI evaluation
   assert.equal(events.events[0].sourceId, 'kktix:hitcon');
   assert.deepEqual(events.events[0].directions, ['blue']);
   assert.equal(events.events[0].deadlines[0].kind, 'registration');
+});
+
+test('security event feed includes active public calendars without AI evaluation', async () => {
+  const calendar = `BEGIN:VCALENDAR\r
+BEGIN:VEVENT\r
+DTSTART:20261007T103000Z\r
+DTEND:20261007T130000Z\r
+UID:web-security@example.com\r
+SUMMARY:第一次社課 - Web Security\r
+LOCATION:EC329\r
+END:VEVENT\r
+END:VCALENDAR`;
+  const result = await fetchSecurityEvents({
+    eventLookaheadDays: 120,
+    ctfTimeEventsUrl: 'https://ctftime.test/events',
+    owaspEventsUrl: 'https://owasp.test/events.yml',
+    taiwanDeadlinesEnabled: false,
+    kktixEventsEnabled: false,
+    icalEventsEnabled: true,
+  }, {
+    now: new Date('2026-09-19T00:00:00Z'),
+    fetchImpl: async (url) => {
+      const value = String(url);
+      if (value.startsWith('https://ctftime.test/')) return { ok: true, text: async () => '[]' };
+      if (value === 'https://owasp.test/events.yml') return { ok: true, text: async () => '' };
+      if (value.includes('nctucscbamboofox')) return { ok: true, text: async () => calendar };
+      if (value.includes('calendar.google.com/calendar/ical/')) {
+        return { ok: true, text: async () => 'BEGIN:VCALENDAR\r\nEND:VCALENDAR' };
+      }
+      throw new Error(`Unexpected URL ${value}`);
+    },
+  });
+  assert.equal(result.events.length, 1);
+  assert.equal(result.events[0].sourceId, 'ical:bamboofox');
+  assert.deepEqual(result.events[0].topics, ['web']);
 });
 
 test('CTFtime source requests a bounded window and normalizes official event links', async () => {

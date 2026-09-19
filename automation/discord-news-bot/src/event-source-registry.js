@@ -1,6 +1,6 @@
 const registry = require('../data/event-source-registry.json');
 
-const MODES = new Set(['official_page', 'kktix_listing', 'recurring_watch']);
+const MODES = new Set(['official_page', 'ical_calendar', 'kktix_listing', 'recurring_watch']);
 const STATUSES = new Set(['candidate', 'active', 'paused']);
 
 function validHttpsUrl(value) {
@@ -27,7 +27,18 @@ function validateEventSource(source) {
     if (!validHttpsUrl(source.feedUrl)) errors.push('KKTIX source needs an HTTPS feed');
     else if (!new URL(source.feedUrl).hostname.endsWith('.kktix.cc')) errors.push('KKTIX feed must use kktix.cc');
   }
-  if (source?.status === 'active' && source?.mode !== 'kktix_listing') errors.push('only verified structured sources can be active');
+  if (source?.mode === 'ical_calendar') {
+    if (!validHttpsUrl(source.calendarUrl)) errors.push('iCalendar source needs an HTTPS calendar');
+    if (!String(source.calendarId || '').trim()) errors.push('iCalendar source needs a calendar id');
+    try { new Intl.DateTimeFormat('en', { timeZone: source.timeZone }).format(); } catch { errors.push('iCalendar source needs a valid time zone'); }
+    for (const key of ['includeKeywords', 'excludeKeywords']) {
+      if (source[key] !== undefined && (!Array.isArray(source[key])
+          || source[key].some((keyword) => typeof keyword !== 'string'))) errors.push(`invalid ${key}`);
+    }
+  }
+  if (source?.status === 'active' && !['ical_calendar', 'kktix_listing'].includes(source?.mode)) {
+    errors.push('only verified structured sources can be active');
+  }
   return errors;
 }
 
@@ -38,7 +49,14 @@ function loadEventSourceRegistry() {
     if (ids.has(source.id)) errors.push('duplicate id');
     ids.add(source.id);
     if (errors.length) throw new Error(`Invalid event source ${source.id || '<unknown>'}: ${errors.join(', ')}`);
-    return Object.freeze({ ...source, language: [...source.language], audience: [...source.audience], usualAnnouncementMonths: [...source.usualAnnouncementMonths] });
+    return Object.freeze({
+      ...source,
+      language: [...source.language],
+      audience: [...source.audience],
+      usualAnnouncementMonths: [...source.usualAnnouncementMonths],
+      ...(source.includeKeywords ? { includeKeywords: [...source.includeKeywords] } : {}),
+      ...(source.excludeKeywords ? { excludeKeywords: [...source.excludeKeywords] } : {}),
+    });
   });
 }
 

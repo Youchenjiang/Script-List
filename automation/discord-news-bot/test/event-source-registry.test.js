@@ -2,13 +2,16 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadEventSourceRegistry, validateEventSource } = require('../src/event-source-registry');
 
-test('event source registry activates only verified KKTIX feeds', () => {
+test('event source registry activates only verified structured feeds', () => {
   const sources = loadEventSourceRegistry();
   const organizers = sources.filter(({ mode }) => mode !== 'recurring_watch');
   assert.equal(organizers.length, 11);
   assert.ok(organizers.every(({ homepage }) => homepage.startsWith('https://')));
-  assert.deepEqual(organizers.filter(({ status }) => status === 'active').map(({ id }) => id), ['hitcon', 'devcore-meet', 'twcsa']);
-  assert.ok(organizers.filter(({ status }) => status === 'active').every(({ feedUrl }) => feedUrl.includes('.kktix.cc/events.atom')));
+  assert.deepEqual(organizers.filter(({ status }) => status === 'active').map(({ id }) => id), [
+    'hitcon', 'devcore-meet', 'scist', 'bamboofox', 'twcsa',
+  ]);
+  assert.ok(organizers.filter(({ mode }) => mode === 'kktix_listing').every(({ feedUrl }) => feedUrl.includes('.kktix.cc/events.atom')));
+  assert.ok(organizers.filter(({ mode }) => mode === 'ical_calendar').every(({ calendarUrl }) => calendarUrl.endsWith('.ics')));
   assert.deepEqual(organizers.map(({ id }) => id), [
     'ais3', 'hitcon', 'devcore-meet', 'devcore-conf', 'teamt5',
     'cybersec', 'nics', 'scist', 'bamboofox', 'balsn', 'twcsa',

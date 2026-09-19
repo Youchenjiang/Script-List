@@ -114,6 +114,7 @@ const SOURCE_PRIORITY = {
 
 function sourcePriority(event) {
   if (event.sourceId.startsWith('kktix:')) return 35;
+  if (event.sourceId.startsWith('ical:')) return 35;
   return SOURCE_PRIORITY[event.sourceId] || 10;
 }
 
