@@ -2,9 +2,16 @@
 # 預設 AI 審查模型與端點配置 (SiliconFlow / Qwen3-8B)
 model = "openai/Qwen/Qwen3-8B"
 model_turbo = "openai/Qwen/Qwen3-8B"
-fallback_models = ["openai/Qwen/Qwen3-8B"]
-custom_model_max_tokens = 65536
+fallback_models = []
+custom_model_max_tokens = 16000
+ai_timeout = 90
+retry_same_model_on_timeout = false
 pr_actions = ["opened", "reopened", "ready_for_review", "synchronize"]
+
+[github_action_config]
+auto_describe = true
+auto_review = true
+auto_improve = false
 
 [pr_reviewer]
 # 自動審查設定：開啟安全與測試檢驗，關閉打分雜訊
