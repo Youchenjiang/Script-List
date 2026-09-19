@@ -1,4 +1,5 @@
 const USER_AGENT = 'CyberNewsSentinel/1.0 (+Discord security event notifier)';
+const { deduplicateEvents, eventEndTime, eventStartTime, normalizeEventRecord } = require('./event-model');
 
 function cleanScalar(value) {
   const text = String(value || '').trim();
@@ -46,8 +47,9 @@ function normalizeCtfTimeEvent(event) {
       || !Number.isFinite(finish.getTime())) return null;
   const url = String(event.url || event.ctftime_url || '').trim();
   if (!/^https?:\/\//iu.test(url)) return null;
-  return {
+  return normalizeEventRecord({
     id: `ctftime:${event.id}`,
+    sourceId: 'ctftime',
     title: String(event.title).trim(),
     url,
     start,
@@ -58,7 +60,7 @@ function normalizeCtfTimeEvent(event) {
     location: String(event.location || (event.onsite ? '' : 'On-line')).trim(),
     source: 'CTFtime',
     kind: 'competition',
-  };
+  });
 }
 
 async function fetchCtfTimeEvents({ baseUrl, start, finish, fetchImpl = fetch }) {
@@ -120,8 +122,9 @@ function normalizeOwaspEvent(event) {
   const startDate = /^\d{4}-\d{2}-\d{2}$/u.test(event.startDate) ? event.startDate : '';
   if (!startDate || !event.name || !/^https?:\/\//iu.test(event.url || '')) return null;
   const start = new Date(`${startDate}T00:00:00Z`);
-  return {
+  return normalizeEventRecord({
     id: `owasp:${startDate}:${event.name.toLowerCase().replace(/[^a-z0-9]+/gu, '-').slice(0, 80)}`,
+    sourceId: 'owasp',
     title: event.name,
     url: event.url,
     start,
@@ -135,7 +138,7 @@ function normalizeOwaspEvent(event) {
     kind: event.category === 'Global' || event.category === 'AppSec Days'
       ? 'conference'
       : 'community',
-  };
+  });
 }
 
 async function fetchOwaspEvents({ url, fetchImpl = fetch }) {
@@ -150,9 +153,11 @@ async function fetchSecurityEvents(config, { fetchImpl = fetch, now = new Date()
     fetchCtfTimeEvents({ baseUrl: config.ctfTimeEventsUrl, start, finish, fetchImpl }),
     fetchOwaspEvents({ url: config.owaspEventsUrl, fetchImpl }),
   ]);
-  const events = sources.flatMap((result) => (result.status === 'fulfilled' ? result.value : []))
-    .filter((event) => event.finish.getTime() >= now.getTime())
-    .filter((event) => event.start.getTime() <= finish.getTime());
+  const events = deduplicateEvents(
+    sources.flatMap((result) => (result.status === 'fulfilled' ? result.value : [])),
+  )
+    .filter((event) => eventEndTime(event) >= now.getTime())
+    .filter((event) => eventStartTime(event) <= finish.getTime());
   const errors = sources
     .filter((result) => result.status === 'rejected')
     .map((result) => result.reason?.message || String(result.reason));
