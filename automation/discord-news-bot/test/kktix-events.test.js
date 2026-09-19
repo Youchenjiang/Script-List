@@ -1,6 +1,8 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { fetchKktixEvents, parseKktixAtom, parseKktixEventPage, safeEventUrl } = require('../src/event-sources/kktix');
+const {
+  fetchKktixEvents, isActionableKktixEvent, parseKktixAtom, parseKktixEventPage, safeEventUrl,
+} = require('../src/event-sources/kktix');
 
 const source = {
   id: 'hitcon', name: 'HITCON', feedUrl: 'https://hitcon.kktix.cc/events.atom?locale=zh-TW',
@@ -18,7 +20,7 @@ const atom = `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom">
     <title>Injected</title><content>時間：2026/10/03 10:00(+0800)~17:00</content></entry>
 </feed>`;
 
-const detail = `<html><script type="application/ld+json">[{"@context":"http://schema.org","@type":"Event","name":"Cyber Range","url":"https://hitcon.kktix.cc/events/cyber-range","startDate":"2026-10-02T10:00:00.000+08:00","endDate":"2026-10-02T17:00:00.000+08:00","location":{"@type":"EventVenue","name":"台北會議中心","address":"台北市"},"offers":[{"@type":"Offer","name":"參賽票","validThrough":"2026-09-18T23:59:00.000+08:00"}]}]</script></html>`;
+const detail = `<html><script type="application/ld+json">[{"@context":"http://schema.org","@type":"Event","name":"Cyber Range","url":"https://hitcon.kktix.cc/events/cyber-range","startDate":"2026-10-02T10:00:00.000+08:00","endDate":"2026-10-02T17:00:00.000+08:00","location":{"@type":"EventVenue","name":"台北會議中心","address":"台北市"},"offers":[{"@type":"Offer","name":"參賽票","validThrough":"2026-09-30T23:59:00.000+08:00"}]}]</script></html>`;
 
 test('KKTIX Atom parser extracts event time, venue and security category without following foreign links', () => {
   const events = parseKktixAtom(atom, source);
@@ -35,7 +37,7 @@ test('KKTIX event page parser uses matching JSON-LD dates, location and ticket d
   const event = parseKktixEventPage(detail, 'https://hitcon.kktix.cc/events/cyber-range');
   assert.equal(event.endsAt.toISOString(), '2026-10-02T09:00:00.000Z');
   assert.equal(event.location, '台北會議中心 / 台北市');
-  assert.equal(event.deadlines[0].at.toISOString(), '2026-09-18T15:59:00.000Z');
+  assert.equal(event.deadlines[0].at.toISOString(), '2026-09-30T15:59:00.000Z');
   assert.equal(event.deadlines[0].kind, 'registration');
   assert.throws(() => parseKktixEventPage(detail, 'https://hitcon.kktix.cc/events/other'), /matching structured data/u);
 });
@@ -60,4 +62,19 @@ test('KKTIX event URLs are restricted to the organizer feed host', () => {
   assert.equal(safeEventUrl('https://evil.example/events/test', source.feedUrl), '');
   assert.equal(safeEventUrl('https://hitcon.kktix.cc/account', source.feedUrl), '');
   assert.equal(safeEventUrl('https://hitcon.kktix.cc/events/test?locale=en', source.feedUrl), 'https://hitcon.kktix.cc/events/test');
+});
+
+test('KKTIX publication skips events that started or explicitly closed registration', () => {
+  const now = new Date('2026-09-19T00:00:00Z');
+  assert.equal(isActionableKktixEvent({
+    startsAt: new Date('2026-09-18T00:00:00Z'), deadlines: [],
+  }, now), false);
+  assert.equal(isActionableKktixEvent({
+    startsAt: new Date('2026-10-02T00:00:00Z'),
+    deadlines: [{ at: new Date('2026-09-18T15:59:00Z') }],
+  }, now), false);
+  assert.equal(isActionableKktixEvent({
+    startsAt: new Date('2026-10-16T00:00:00Z'),
+    deadlines: [{ at: new Date('2026-09-30T15:59:00Z') }],
+  }, now), true);
 });

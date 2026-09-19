@@ -132,6 +132,12 @@ function parseKktixEventPage(html, expectedUrl) {
   };
 }
 
+function isActionableKktixEvent(event, now) {
+  if (!event?.startsAt || event.startsAt < now) return false;
+  if (!event.deadlines?.length) return true;
+  return event.deadlines.some(({ at }) => new Date(at) >= now);
+}
+
 async function fetchText(url, accept, fetchImpl) {
   const response = await fetchImpl(url, {
     headers: { Accept: accept, 'User-Agent': USER_AGENT },
@@ -146,7 +152,7 @@ async function fetchKktixEvents({ source, start, finish, fetchImpl = fetch, maxD
   const candidates = parseKktixAtom(xml, source)
     .filter((event) => event.endsAt >= start && event.startsAt <= finish)
     .slice(0, maxDetails);
-  return Promise.all(candidates.map(async (event) => {
+  const enriched = await Promise.all(candidates.map(async (event) => {
     try {
       const html = await fetchText(event.url, 'text/html', fetchImpl);
       const detail = parseKktixEventPage(html, event.url);
@@ -162,6 +168,7 @@ async function fetchKktixEvents({ source, start, finish, fetchImpl = fetch, maxD
       return event;
     }
   }));
+  return enriched.filter((event) => isActionableKktixEvent(event, start));
 }
 
-module.exports = { fetchKktixEvents, parseKktixAtom, parseKktixEventPage, parseSchedule, safeEventUrl };
+module.exports = { fetchKktixEvents, isActionableKktixEvent, parseKktixAtom, parseKktixEventPage, parseSchedule, safeEventUrl };
