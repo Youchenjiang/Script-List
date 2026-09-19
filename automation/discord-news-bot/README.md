@@ -104,7 +104,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 ## PostgreSQL 與雲端部署
 
-設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations`、`news_article_details`、`news_source_health` 資料表，保存已推送文章與活動、以 Discord 伺服器／頻道識別的共用規則、AI 判斷、按鈕所需的完整技術細節及觀察來源健康狀態。新聞與活動使用不同的 state key，不會互相覆寫。部署新版時會以可重複執行的 migration 補齊結構；未設定資料庫時則使用本機 JSON 檔案。
+設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations`、`news_article_details`、`news_source_health` 資料表，保存已推送文章與活動、以 Discord 伺服器／頻道識別的共用規則、AI 判斷、按鈕所需的完整技術細節及觀察來源健康狀態。新聞與活動使用不同的 state key，不會互相覆寫。活動去重 ID 最多保留 2,000 筆；AI 判斷與技術細節預設保留 90 天，Bot 初始化及寫入時會自動清理過期資料，可用 `STATE_RETENTION_DAYS` 調整。部署新版時會以可重複執行的 migration 補齊結構；未設定資料庫時則使用本機 JSON 檔案。
 
 第一次從既有本機 Bot 搬到雲端時，建議設定：
 
