@@ -160,14 +160,14 @@ function deduplicateEvents(events) {
 
 function eventEndTime(event) {
   const end = validDate(event.endsAt ?? event.finish ?? event.startsAt ?? event.start);
-  return end?.getTime() ?? Number.NEGATIVE_INFINITY;
+  const lastDeadline = normalizeDeadlines(event.deadlines).at(-1)?.at;
+  return end?.getTime() ?? lastDeadline?.getTime() ?? Number.NEGATIVE_INFINITY;
 }
 
 function eventStartTime(event) {
   const start = validDate(event.startsAt ?? event.start);
-  const nextDeadline = normalizeDeadlines(event.deadlines)
-    .find((deadline) => deadline.at.getTime() >= Date.now());
-  return start?.getTime() ?? nextDeadline?.at.getTime() ?? Number.POSITIVE_INFINITY;
+  const firstDeadline = normalizeDeadlines(event.deadlines)[0]?.at;
+  return start?.getTime() ?? firstDeadline?.getTime() ?? Number.POSITIVE_INFINITY;
 }
 
 module.exports = {

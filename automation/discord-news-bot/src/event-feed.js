@@ -1,6 +1,7 @@
 const USER_AGENT = 'CyberNewsSentinel/1.0 (+Discord security event notifier)';
 const { classifyEvent } = require('./event-classifier');
 const { deduplicateEvents, eventEndTime, eventStartTime, normalizeEventRecord } = require('./event-model');
+const { fetchTaiwanDeadlineEvents } = require('./event-sources/taiwan-deadlines');
 
 function cleanScalar(value) {
   const text = String(value || '').trim();
@@ -150,10 +151,19 @@ async function fetchOwaspEvents({ url, fetchImpl = fetch }) {
 async function fetchSecurityEvents(config, { fetchImpl = fetch, now = new Date() } = {}) {
   const start = new Date(now.getTime() - (7 * 24 * 60 * 60_000));
   const finish = new Date(now.getTime() + (config.eventLookaheadDays * 24 * 60 * 60_000));
-  const sources = await Promise.allSettled([
+  const requests = [
     fetchCtfTimeEvents({ baseUrl: config.ctfTimeEventsUrl, start, finish, fetchImpl }),
     fetchOwaspEvents({ url: config.owaspEventsUrl, fetchImpl }),
-  ]);
+  ];
+  if (config.taiwanDeadlinesEnabled) {
+    requests.push(fetchTaiwanDeadlineEvents({
+      url: config.taiwanDeadlinesUrl,
+      start: now,
+      finish,
+      fetchImpl,
+    }));
+  }
+  const sources = await Promise.allSettled(requests);
   const events = deduplicateEvents(
     sources.flatMap((result) => (result.status === 'fulfilled' ? result.value : [])),
   )

@@ -75,6 +75,9 @@ function loadConfig() {
       || 'https://ctftime.org/api/v1/events/',
     owaspEventsUrl: process.env.OWASP_EVENTS_URL?.trim()
       || 'https://raw.githubusercontent.com/OWASP/owasp.github.io/main/_data/events.yml',
+    taiwanDeadlinesEnabled: readBoolean('TAIWAN_DEADLINES_ENABLED', true),
+    taiwanDeadlinesUrl: process.env.TAIWAN_DEADLINES_URL?.trim()
+      || 'https://raw.githubusercontent.com/stwater20/taiwan-security-deadlines/main/_data/conferences.yml',
     databaseUrl: process.env.DATABASE_URL?.trim() || '',
     statePath: path.join(__dirname, '..', 'data', 'state.json'),
   };
