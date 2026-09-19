@@ -18,7 +18,7 @@ test('event announcement exposes the fields needed for a quick reading decision'
   assert.equal(message.content, [
     '[Holmes CTF 2026: The Reichenbach Directive](https://ctf.hackthebox.com/event/details/holmes-3504)',
     '🔴 紅隊 · CTF｜具基礎｜最多 5 人', '🧩 Web、Pwn、Reverse',
-    '📅 2026/09/18 12:00～09/22 17:00（台灣時間）', '🌐 線上',
+    '📅 2026/09/18 12:00～09/22 17:00', '🌐 線上',
   ].join('\n'));
   assert.deepEqual(message.allowedMentions, { parse: [] });
 });

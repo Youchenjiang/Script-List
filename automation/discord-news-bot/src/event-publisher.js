@@ -42,6 +42,7 @@ function directionLabel(directions) {
 }
 
 function participationLabel(event) {
+  if (['不限人數', '人數不限'].includes(event.teamSize)) return '不限人數';
   if (event.teamSizeMin && event.teamSizeMax) return event.teamSizeMin === event.teamSizeMax ? `${event.teamSizeMax} 人` : `${event.teamSizeMin}～${event.teamSizeMax} 人`;
   if (event.teamSizeMax) return `最多 ${event.teamSizeMax} 人`;
   const range = String(event.teamSize || '').match(/^(\d+)～(\d+)人$/u);
@@ -68,7 +69,7 @@ function topicLine(topics) {
 function scheduleLine(event, timeZone) {
   const start = event.startsAt || event.start;
   const finish = event.endsAt || event.finish || start;
-  if (start && finish && !event.allDay) return `📅 ${formatDisplayDate(start, timeZone, true)}～${formatDisplayDate(finish, timeZone, true, false)}（台灣時間）`;
+  if (start && finish && !event.allDay) return `📅 ${formatDisplayDate(start, timeZone, true)}～${formatDisplayDate(finish, timeZone, true, false)}`;
   if (start && finish && event.allDay) {
     const end = start.getTime() === finish.getTime() ? '' : `～${formatDisplayDate(finish, timeZone, false, false)}`;
     return `📅 ${formatDisplayDate(start, timeZone)}${end}`;
