@@ -2,6 +2,7 @@ const fs = require('node:fs/promises');
 const path = require('node:path');
 const { Pool } = require('pg');
 const { normalizeRuleConfig } = require('./rule-options');
+const { createEventDocuments } = require('./event-documents');
 
 const MAX_HISTORY = 2_000;
 const MAX_EVALUATIONS = 5_000;
@@ -145,6 +146,7 @@ function createFileStateStore(filePath) {
 
   return {
     kind: 'file',
+    ...createEventDocuments({ filePath }),
     load: () => loadNamedState('default'),
     save: (state) => saveNamedState('default', state),
     loadNamedState,
@@ -301,6 +303,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
 
   return {
     kind: 'postgres',
+    ...createEventDocuments({ pool }),
     loadNamedState,
     saveNamedState,
     load: () => loadNamedState('default'),
