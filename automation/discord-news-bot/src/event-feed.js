@@ -61,7 +61,7 @@ function normalizeCtfTimeEvent(event) {
     teamSize: parseTeamSize(event.description),
     location: String(event.location || (event.onsite ? '' : 'On-line')).trim(),
     source: 'CTFtime',
-    kind: 'competition',
+    kind: 'ctf',
   });
 }
 

@@ -55,7 +55,8 @@ function deadlineKind(text) {
 }
 
 function eventKind(text) {
-  if (/\bctf\b|競賽|挑戰賽|技能競賽/iu.test(text)) return 'competition';
+  if (/\bctf\b/iu.test(text)) return 'ctf';
+  if (/競賽|挑戰賽|技能競賽/iu.test(text)) return 'competition';
   if (/workshop|工作坊/iu.test(text)) return 'workshop';
   if (/課程|培訓|training|camp/iu.test(text)) return 'training';
   if (/conference|summit|研討會|高峰會|大會|hitcon|cybersec/iu.test(text)) return 'conference';

@@ -35,6 +35,14 @@ test('Taiwan deadline normalizer preserves multiple deadlines without inventing 
   assert.deepEqual(event.deadlines.map(({ kind }) => kind), ['unknown', 'unknown']);
 });
 
+test('Taiwan deadline normalizer distinguishes CTF from generic competitions', () => {
+  const event = normalizeTaiwanDeadlineEvent({
+    name: 'Example CTF', year: 2026, link: 'https://example.com/ctf',
+    deadline: ['2026-10-01 23:59'], timezone: 'Asia/Taipei', tags: ['ONLINE'],
+  });
+  assert.equal(event.kind, 'ctf');
+});
+
 test('Taiwan deadline source keeps current events and drops expired history', async () => {
   const events = await fetchTaiwanDeadlineEvents({
     url: 'https://example.test/conferences.yml',
