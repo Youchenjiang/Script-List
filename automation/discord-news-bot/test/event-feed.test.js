@@ -51,7 +51,8 @@ BEGIN:VEVENT\r
 DTSTART:20261007T103000Z\r
 DTEND:20261007T130000Z\r
 UID:web-security@example.com\r
-SUMMARY:第一次社課 - Web Security\r
+SUMMARY:Web Security 公開工作坊\r
+DESCRIPTION:對外開放，歡迎校外參加\r
 LOCATION:EC329\r
 END:VEVENT\r
 END:VCALENDAR`;

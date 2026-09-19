@@ -1,5 +1,6 @@
 const USER_AGENT = 'CyberNewsSentinel/1.0 (+Discord security event notifier)';
 const { classifyEvent } = require('./event-classifier');
+const { isEligibleEvent } = require('./event-eligibility');
 const { deduplicateEvents, eventEndTime, eventStartTime, normalizeEventRecord } = require('./event-model');
 const { fetchTaiwanDeadlineEvents } = require('./event-sources/taiwan-deadlines');
 const { fetchKktixEvents } = require('./event-sources/kktix');
@@ -191,6 +192,7 @@ async function fetchSecurityEvents(config, { fetchImpl = fetch, now = new Date()
     sources.flatMap((result) => (result.status === 'fulfilled' ? result.value : [])),
   )
     .map(classifyEvent)
+    .filter(isEligibleEvent)
     .filter((event) => eventEndTime(event) >= now.getTime())
     .filter((event) => eventStartTime(event) <= finish.getTime());
   const errors = sources
