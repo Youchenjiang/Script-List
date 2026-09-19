@@ -1,4 +1,5 @@
 const USER_AGENT = 'CyberNewsSentinel/1.0 (+Discord security event notifier)';
+const { classifyEvent } = require('./event-classifier');
 const { deduplicateEvents, eventEndTime, eventStartTime, normalizeEventRecord } = require('./event-model');
 
 function cleanScalar(value) {
@@ -156,6 +157,7 @@ async function fetchSecurityEvents(config, { fetchImpl = fetch, now = new Date()
   const events = deduplicateEvents(
     sources.flatMap((result) => (result.status === 'fulfilled' ? result.value : [])),
   )
+    .map(classifyEvent)
     .filter((event) => eventEndTime(event) >= now.getTime())
     .filter((event) => eventStartTime(event) <= finish.getTime());
   const errors = sources
