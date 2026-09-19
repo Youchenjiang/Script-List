@@ -2,15 +2,16 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { loadEventSourceRegistry, validateEventSource } = require('../src/event-source-registry');
 
-test('event source registry keeps organizer pages as non-publishing candidates', () => {
+test('event source registry activates only verified KKTIX feeds', () => {
   const sources = loadEventSourceRegistry();
   const organizers = sources.filter(({ mode }) => mode !== 'recurring_watch');
-  assert.equal(organizers.length, 10);
-  assert.ok(organizers.every(({ status }) => status === 'candidate'));
+  assert.equal(organizers.length, 11);
   assert.ok(organizers.every(({ homepage }) => homepage.startsWith('https://')));
+  assert.deepEqual(organizers.filter(({ status }) => status === 'active').map(({ id }) => id), ['hitcon', 'devcore-meet', 'twcsa']);
+  assert.ok(organizers.filter(({ status }) => status === 'active').every(({ feedUrl }) => feedUrl.includes('.kktix.cc/events.atom')));
   assert.deepEqual(organizers.map(({ id }) => id), [
     'ais3', 'hitcon', 'devcore-meet', 'devcore-conf', 'teamt5',
-    'cybersec', 'nics', 'scist', 'bamboofox', 'balsn',
+    'cybersec', 'nics', 'scist', 'bamboofox', 'balsn', 'twcsa',
   ]);
 });
 
@@ -26,5 +27,5 @@ test('event source validation rejects unsafe or incomplete registry entries', ()
     id: 'Bad ID', name: '', homepage: 'http://example.com', sourceProject: '', mode: 'html_scrape',
     status: 'active', region: 'US', language: [], audience: [], usualAnnouncementMonths: [0, 13],
   });
-  assert.ok(errors.length >= 8);
+  assert.ok(errors.length >= 9);
 });

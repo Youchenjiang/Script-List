@@ -2,6 +2,8 @@ const USER_AGENT = 'CyberNewsSentinel/1.0 (+Discord security event notifier)';
 const { classifyEvent } = require('./event-classifier');
 const { deduplicateEvents, eventEndTime, eventStartTime, normalizeEventRecord } = require('./event-model');
 const { fetchTaiwanDeadlineEvents } = require('./event-sources/taiwan-deadlines');
+const { fetchKktixEvents } = require('./event-sources/kktix');
+const { loadEventSourceRegistry } = require('./event-source-registry');
 
 function cleanScalar(value) {
   const text = String(value || '').trim();
@@ -162,6 +164,19 @@ async function fetchSecurityEvents(config, { fetchImpl = fetch, now = new Date()
       finish,
       fetchImpl,
     }));
+  }
+  if (config.kktixEventsEnabled) {
+    const kktixSources = loadEventSourceRegistry()
+      .filter((source) => source.status === 'active' && source.mode === 'kktix_listing');
+    for (const source of kktixSources) {
+      requests.push(fetchKktixEvents({
+        source,
+        start: now,
+        finish,
+        fetchImpl,
+        maxDetails: config.maxKktixEventsPerSource,
+      }));
+    }
   }
   const sources = await Promise.allSettled(requests);
   const events = deduplicateEvents(

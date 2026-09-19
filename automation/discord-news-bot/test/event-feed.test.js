@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const {
   fetchCtfTimeEvents,
   fetchOwaspEvents,
+  fetchSecurityEvents,
   parseTeamSize,
 } = require('../src/event-feed');
 
@@ -10,6 +11,37 @@ test('event feed extracts CTF team sizes without treating participant count as a
   assert.equal(parseTeamSize('Team Size: 1–4 Members'), '1～4人');
   assert.equal(parseTeamSize('Teams of 5 players compete together'), '5人');
   assert.equal(parseTeamSize('Open to everyone with 500 registered participants'), '');
+});
+
+test('security event feed includes active KKTIX organizers without AI evaluation', async () => {
+  const atom = `<?xml version="1.0"?><feed xmlns="http://www.w3.org/2005/Atom"><entry>
+    <published>2026-10-02T10:00:00+08:00</published><link rel="alternate" type="text/html" href="https://hitcon.kktix.cc/events/cyber-range"/>
+    <title>HITCON Cyber Range 企業藍隊競賽</title><summary>藍隊事件應變實戰</summary>
+    <content>時間：2026/10/02 10:00(+0800)~17:00\n地點：台北</content></entry></feed>`;
+  const detail = `<script type="application/ld+json">[{"@type":"Event","url":"https://hitcon.kktix.cc/events/cyber-range","startDate":"2026-10-02T10:00:00+08:00","endDate":"2026-10-02T17:00:00+08:00","location":{"name":"台北"},"offers":[{"name":"參賽票","validThrough":"2026-09-30T23:59:00+08:00"}]}]</script>`;
+  const events = await fetchSecurityEvents({
+    eventLookaheadDays: 120,
+    ctfTimeEventsUrl: 'https://ctftime.test/events',
+    owaspEventsUrl: 'https://owasp.test/events.yml',
+    taiwanDeadlinesEnabled: false,
+    kktixEventsEnabled: true,
+    maxKktixEventsPerSource: 20,
+  }, {
+    now: new Date('2026-09-19T00:00:00Z'),
+    fetchImpl: async (url) => {
+      const value = String(url);
+      if (value.startsWith('https://ctftime.test/')) return { ok: true, text: async () => '[]' };
+      if (value === 'https://owasp.test/events.yml') return { ok: true, text: async () => '' };
+      if (value === 'https://hitcon.kktix.cc/events/cyber-range') return { ok: true, text: async () => detail };
+      if (value.includes('hitcon.kktix.cc/events.atom')) return { ok: true, text: async () => atom };
+      if (value.includes('.kktix.cc/events.atom')) return { ok: true, text: async () => '<feed xmlns="http://www.w3.org/2005/Atom"></feed>' };
+      throw new Error(`Unexpected URL ${value}`);
+    },
+  });
+  assert.equal(events.events.length, 1);
+  assert.equal(events.events[0].sourceId, 'kktix:hitcon');
+  assert.deepEqual(events.events[0].directions, ['blue']);
+  assert.equal(events.events[0].deadlines[0].kind, 'registration');
 });
 
 test('CTFtime source requests a bounded window and normalizes official event links', async () => {

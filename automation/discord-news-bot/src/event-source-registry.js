@@ -23,6 +23,11 @@ function validateEventSource(source) {
     errors.push('invalid announcement months');
   }
   if (source?.mode === 'recurring_watch' && source.usualAnnouncementMonths.length === 0) errors.push('recurring source needs announcement months');
+  if (source?.mode === 'kktix_listing') {
+    if (!validHttpsUrl(source.feedUrl)) errors.push('KKTIX source needs an HTTPS feed');
+    else if (!new URL(source.feedUrl).hostname.endsWith('.kktix.cc')) errors.push('KKTIX feed must use kktix.cc');
+  }
+  if (source?.status === 'active' && source?.mode !== 'kktix_listing') errors.push('only verified structured sources can be active');
   return errors;
 }
 

@@ -81,6 +81,8 @@ function loadConfig() {
     taiwanDeadlinesEnabled: readBoolean('TAIWAN_DEADLINES_ENABLED', true),
     taiwanDeadlinesUrl: process.env.TAIWAN_DEADLINES_URL?.trim()
       || 'https://raw.githubusercontent.com/stwater20/taiwan-security-deadlines/main/_data/conferences.yml',
+    kktixEventsEnabled: readBoolean('KKTIX_EVENTS_ENABLED', true),
+    maxKktixEventsPerSource: readPositiveInteger('MAX_KKTIX_EVENTS_PER_SOURCE', 20),
     databaseUrl: process.env.DATABASE_URL?.trim() || '',
     statePath: path.join(__dirname, '..', 'data', 'state.json'),
   };
