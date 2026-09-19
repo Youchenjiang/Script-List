@@ -33,7 +33,7 @@
 實作狀態（2026-09-19）：
 
 - 標準活動模型、可解釋分類、Taiwan Security Deadlines adapter、跨來源去重與新公告格式已完成。
-- 10 個臺灣主辦單位入口與 3 個週期活動已登錄為 `candidate`，不直接產生公告。
+- 臺灣主辦單位名冊中，HITCON、DEVCORE 與台灣數位安全聯盟已通過 KKTIX Atom／JSON-LD 實際驗證並升級為 `active`；其餘入口與 3 個週期活動仍為 `candidate`。
 - 9 個 RSS／Atom 來源已登錄為 `observing`且 `delivery:false`，通用 parser 已完成，但尚未接入新聞推送。
 - 來源健康狀態與分批觀察器已完成，且 `SOURCE_OBSERVATION_ENABLED` 預設為 `false`。
 
