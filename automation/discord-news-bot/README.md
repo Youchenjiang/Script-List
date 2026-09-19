@@ -14,7 +14,7 @@
 - 公開訊息以自然的繁體中文標題與 90 至 180 字短敘事，從最具體的技術動作切入，交代技術效果與已確認後果
 - 以具體技術焦點與閱讀門檻取代泛用 hashtag，讓成員直接判斷研究關聯與理解難度
 - 每則新聞提供「查看技術細節」按鈕，以私人回覆展開分組攻擊鏈、最終結果與證據邊界，不建立 Discord 討論串
-- 只處理指定時間範圍內的新文章，並永久保存推送及判斷紀錄
+- 只處理指定時間範圍內的新文章，推送與判斷紀錄依保留政策儲存
 - 每輪限制推送數量，避免第一次啟動洗版
 - `/news_rule setup`：由 Bot 列出選項並逐步設定篩選規則
 - `/news_rule show`：任何頻道成員都可公開查看目前規則
@@ -23,7 +23,9 @@
 - `/news_ai_check`：實際測試 AI 供應商連線與結構化輸出
 - `/news_status`：查看上次檢查與推送數量
 - 每日從 CTFtime、OWASP、Taiwan Security Deadlines、已驗證的 KKTIX feed，以及 SCIST、BambooFox 公開日曆尋找未公告過的競賽、培訓、社群及研討會
-- 活動公告顯示方向、類型、程度、人數、技術主題、時程、期限、地點與資格；來源缺資料時明確標示未知，不自行推測
+- 活動總表每天編輯同一則置頂訊息，支援私人分頁及比賽／社群分類，不再逐場公告
+- 每週整理未來四週活動及報名期限；週內修改原週報，內容沒有變化時不新增公告
+- 成員可訂閱個別活動，在報名截止與開始前 24 小時收到私訊，並隨時取消
 - `/events_now`：具「管理伺服器」權限者可立即搜尋新活動
 - `/events_status`：查看活動來源、搜尋與公告狀態
 - `/ping`：檢查 Bot 延遲
@@ -104,7 +106,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 ## PostgreSQL 與雲端部署
 
-設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations`、`news_article_details`、`news_source_health` 資料表，保存已推送文章與活動、以 Discord 伺服器／頻道識別的共用規則、AI 判斷、按鈕所需的完整技術細節及觀察來源健康狀態。新聞與活動使用不同的 state key，不會互相覆寫。活動去重 ID 最多保留 2,000 筆；AI 判斷與技術細節預設保留 90 天，Bot 初始化及寫入時會自動清理過期資料，可用 `STATE_RETENTION_DAYS` 調整。部署新版時會以可重複執行的 migration 補齊結構；未設定資料庫時則使用本機 JSON 檔案。
+設定 `DATABASE_URL` 後，Bot 自動建立新聞狀態、頻道規則、AI 判斷、技術細節與來源健康資料表。AI 判斷及技術細節預設保留 90 天，可用 `STATE_RETENTION_DAYS` 調整。活動功能另以 `bot_event_documents` 保存各頻道的目前活動、總表／週報訊息 ID 與個人訂閱；每次掃描替換快照，清除結束或已移除活動的訂閱。部分來源失敗時，尚未結束的舊活動會暫留並標示未確認。舊版逐場公告的去重 ID 維持原本 2,000 筆上限，但新版不再使用該清單決定逐場發送。未設定資料庫時使用本機 JSON 檔案。
 
 第一次從既有本機 Bot 搬到雲端時，建議設定：
 
@@ -127,7 +129,9 @@ PUBLISH_INITIAL_ARTICLES=false
 6. 將完整技術細節以短鍵保存；成員按下「查看技術細節」後，由全域互動處理器讀取資料並以 ephemeral 訊息呈現，因此不會建立大量討論串，Bot 重啟後舊按鈕仍可使用。
 7. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
 
-活動雷達另以獨立流程運作：每天讀取 CTFtime 的時間範圍 API、OWASP 官方 `events.yml`、Taiwan Security Deadlines 的結構化 YAML、HITCON／DEVCORE／台灣數位安全聯盟的 KKTIX Atom feed，以及 SCIST、BambooFox 的官方公開 iCal。KKTIX 活動再以同一主辦網域的 Schema.org JSON-LD 補齊精確起迄時間、地點與報名截止日；公開日曆則使用 UID 建立穩定的 Google Calendar 活動連結。兩者都不需要 AI。SCIST 日曆混有演算法課程，因此只保留明確含資安主題的項目；BambooFox 日曆本身就是資安社群行事曆。跨來源活動會合併官方網址與別名，公告依最近 deadline、再依活動開始時間排序。若其中一個來源暫時失效，其他來源仍會繼續運作並在 `/events_status` 顯示來源錯誤。
+活動雷達每天讀取 CTFtime、OWASP、Taiwan Security Deadlines、KKTIX 及公開 iCal，再更新同一則置頂總表。SCIST、BambooFox 必須有明確對外開放資訊與資安內容，例行社課、迎新及內部培訓不收錄。週報採週一為週起點，首次啟動或停機恢復時可補發當週；同週新增資料會編輯原週報，跨週內容相同不另發。超出訊息長度的完整清單附在文字檔，也可從總表私人分頁查閱。全部活動功能均不使用 AI。
+
+成員從總表選擇活動，再按「訂閱私訊提醒」。提醒依 `EVENT_POLL_INTERVAL_MINUTES` 檢查，預設每 30 分鐘；沒有明確報名期限就只檢查活動開始時間。完整操作、部署權限與資料保留方式見 [活動總表、週報與訂閱](docs/event-delivery.md)。
 
 未驗證的臺灣主辦單位入口與三個週期活動仍只作候選監控名冊，不會直接解析首頁或沿用往年日期。來源取捨、公告格式、資料模型及後續升級條件記錄於 [`docs/external-source-research.md`](docs/external-source-research.md)。
 
