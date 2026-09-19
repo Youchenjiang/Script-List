@@ -68,12 +68,12 @@ function createEventService({ channel, config, stateStore, fetchEventsImpl = fet
           updated[aliasKey || keyFor(event)] = { event, verifiedAt: current.toISOString(), stale: false };
         }
         state.events = updated;
+        state.sourceErrors = errors;
         pruneSubscriptions(state, current);
         state.lastCheckedAt = current.toISOString();
         await save(state);
         const boardError = await updateBoard(state);
-        // Avoid announcing additions/removals based on an incomplete collection.
-        const published = errors.length ? 0 : await publishWeekly({ state, channel, config, now: current, save });
+        const published = await publishWeekly({ state, channel, config, now: current, save });
         state.lastCompletedAt = current.toISOString();
         await save(state);
         const reminders = await deliverReminders({ state, config, now: current, save, send: sendReminderImpl });

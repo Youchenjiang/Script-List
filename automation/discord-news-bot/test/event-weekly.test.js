@@ -38,3 +38,11 @@ test('stale entries and distant activities are excluded, but upcoming deadlines 
   } } };
   assert.equal(weeklyData(state, config, new Date('2026-09-21T02:00:00Z')).count, 1);
 });
+
+test('a partial source outage still permits confirmed events in the weekly digest', () => {
+  const state = { sourceErrors: ['other source offline'], events: { one: { event } } };
+  const result = weeklyData(state, config, new Date('2026-09-21T02:00:00Z'));
+  assert.equal(result.count, 1);
+  assert.match(result.payload.content, /部分來源暫時無法更新/);
+  assert.match(result.payload.content, /Example CTF/);
+});

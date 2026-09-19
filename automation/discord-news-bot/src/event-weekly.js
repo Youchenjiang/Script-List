@@ -16,9 +16,10 @@ function weeklyData(state, config, now) {
   const entries = currentEvents(state, now).filter(({ event, stale }) => !stale
     && (eventStartTime(event) <= limit
       || event.deadlines.some(({ at }) => at.getTime() >= now.getTime() && at.getTime() <= limit)));
-  const signature = fingerprint(entries.map(({ key, event }) => ({ key, event })));
+  const signature = fingerprint({ entries: entries.map(({ key, event }) => ({ key, event })), partial: Boolean(state.sourceErrors?.length) });
   const week = weekKey(now, config.eventTimeZone);
   let content = `**資安活動週報｜${week}**\n未來四週活動及報名期限\n`;
+  if (state.sourceErrors?.length) content += '部分來源暫時無法更新；本期僅列已確認活動。\n';
   const complete = [];
   let shown = 0;
   for (const { event } of entries) {
