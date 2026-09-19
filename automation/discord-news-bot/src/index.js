@@ -13,6 +13,7 @@ const { createPublisher, createTechnicalDetailReply } = require('./publisher');
 const { formatRuleConfig } = require('./rule-options');
 const { createRuleSetupManager } = require('./rule-setup');
 const { createStateStore } = require('./state-store');
+const { createSourceObserver } = require('./source-observer');
 
 async function main() {
   const config = loadConfig();
@@ -20,6 +21,7 @@ async function main() {
   const stateStore = createStateStore(config);
   let publisher;
   let eventPublisher;
+  let sourceObserver;
   let ruleSetup;
 
   client.once(Events.ClientReady, async (readyClient) => {
@@ -50,6 +52,14 @@ async function main() {
       });
       console.log(`[Bot] State store: ${config.databaseUrl ? 'PostgreSQL' : 'local file'}`);
       console.log(`[Bot] AI filtering: ${config.aiFilteringEnabled ? 'enabled' : 'disabled'}`);
+      if (config.sourceObservationEnabled) {
+        sourceObserver = createSourceObserver({ config, stateStore });
+        void runSourceObserver('startup').catch(() => {});
+        setInterval(() => {
+          void runSourceObserver('schedule').catch(() => {});
+        }, config.sourceObservationIntervalMs).unref();
+        console.log(`[Bot] Source observation: enabled, ${config.maxSourcesPerRun} source(s) per run`);
+      }
       if (config.eventsEnabled) {
         const eventChannel = await readyClient.channels.fetch(config.eventChannelId);
         if (!eventChannel?.isTextBased() || !('send' in eventChannel)) {
@@ -96,6 +106,17 @@ async function main() {
       return result;
     } catch (error) {
       console.error(`[Events:${trigger}] ${error.stack || error.message}`);
+      throw error;
+    }
+  }
+
+  async function runSourceObserver(trigger) {
+    try {
+      const result = await sourceObserver.run();
+      console.log(`[Sources:${trigger}]`, result);
+      return result;
+    } catch (error) {
+      console.error(`[Sources:${trigger}] ${error.stack || error.message}`);
       throw error;
     }
   }

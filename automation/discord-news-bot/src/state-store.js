@@ -51,6 +51,13 @@ const CREATE_DETAILS_TABLE = `
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
   )
 `;
+const CREATE_SOURCE_HEALTH_TABLE = `
+  CREATE TABLE IF NOT EXISTS news_source_health (
+    source_id TEXT PRIMARY KEY,
+    health JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  )
+`;
 const ADD_EVALUATION_TECHNOLOGIES_COLUMN = `
   ALTER TABLE news_article_evaluations
   ADD COLUMN IF NOT EXISTS matched_technologies JSONB NOT NULL DEFAULT '[]'::jsonb
@@ -102,6 +109,7 @@ async function saveState(filePath, state) {
 function createFileStateStore(filePath) {
   const filtersPath = `${filePath}.filters`;
   const namedStatesPath = `${filePath}.states`;
+  const sourceHealthPath = `${filePath}.source-health`;
 
   async function loadFilters() {
     const data = await readJson(filtersPath, {});
@@ -140,6 +148,14 @@ function createFileStateStore(filePath) {
     save: (state) => saveNamedState('default', state),
     loadNamedState,
     saveNamedState,
+    async loadSourceHealth(sourceId) {
+      return (await readJson(sourceHealthPath, {}))[sourceId] || null;
+    },
+    async saveSourceHealth(sourceId, health) {
+      const values = await readJson(sourceHealthPath, {});
+      values[sourceId] = health;
+      await writeJson(sourceHealthPath, values);
+    },
     async getFilterRule(channelId) {
       const rule = (await loadFilters()).rules[channelId];
       return rule?.config?.topics?.length
@@ -231,6 +247,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
     await pool.query(CREATE_RULES_TABLE);
     await pool.query(CREATE_EVALUATIONS_TABLE);
     await pool.query(CREATE_DETAILS_TABLE);
+    await pool.query(CREATE_SOURCE_HEALTH_TABLE);
     await pool.query(ADD_EVALUATION_TECHNOLOGIES_COLUMN);
     await pool.query(ADD_RULE_GUILD_COLUMN);
     await pool.query(ADD_EVALUATION_GUILD_COLUMN);
@@ -271,6 +288,20 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
     saveNamedState,
     load: () => loadNamedState('default'),
     save: (state) => saveNamedState('default', state),
+    async loadSourceHealth(sourceId) {
+      await initialize();
+      const result = await pool.query('SELECT health FROM news_source_health WHERE source_id = $1', [sourceId]);
+      return result.rows[0]?.health || null;
+    },
+    async saveSourceHealth(sourceId, health) {
+      await initialize();
+      await pool.query(
+        `INSERT INTO news_source_health (source_id, health)
+         VALUES ($1, $2::jsonb)
+         ON CONFLICT (source_id) DO UPDATE SET health = EXCLUDED.health, updated_at = NOW()`,
+        [sourceId, JSON.stringify(health)],
+      );
+    },
     async getFilterRule(channelId, guildId = '') {
       await initialize();
       const result = await pool.query(

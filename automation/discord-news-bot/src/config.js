@@ -64,6 +64,9 @@ function loadConfig() {
     feedUrl: process.env.NEWS_FEED_URL?.trim()
       || 'https://thehackernews.com/feeds/posts/default?alt=json&redirect=false&max-results=50',
     sourceName: process.env.NEWS_SOURCE_NAME?.trim() || 'The Hacker News',
+    sourceObservationEnabled: readBoolean('SOURCE_OBSERVATION_ENABLED', false),
+    sourceObservationIntervalMs: readPositiveInteger('SOURCE_OBSERVATION_INTERVAL_MINUTES', 1440) * 60_000,
+    maxSourcesPerRun: readPositiveInteger('MAX_SOURCES_PER_RUN', 3),
     eventsEnabled: readBoolean('EVENTS_ENABLED', true),
     eventChannelId: process.env.EVENT_CHANNEL_ID?.trim() || '1536696484286824519',
     eventPollIntervalMs: readPositiveInteger('EVENT_POLL_INTERVAL_MINUTES', 30) * 60_000,

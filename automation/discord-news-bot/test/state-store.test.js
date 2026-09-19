@@ -67,7 +67,7 @@ test('PostgreSQL state store initializes, saves, and loads state', async () => {
   const state = await store.load();
 
   assert.equal(store.kind, 'postgres');
-  assert.equal(calls.filter((call) => call.sql.includes('CREATE TABLE')).length, 4);
+  assert.equal(calls.filter((call) => call.sql.includes('CREATE TABLE')).length, 5);
   assert.equal(calls.filter((call) => call.sql.includes('ADD COLUMN IF NOT EXISTS')).length, 4);
   const saveCall = calls.find((call) => call.sql.includes('INSERT INTO news_bot_state'));
   assert.deepEqual(JSON.parse(saveCall.params[1]), ['article-1']);
