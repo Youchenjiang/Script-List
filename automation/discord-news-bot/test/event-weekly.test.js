@@ -1,0 +1,40 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const { publishWeekly, weeklyData, weekKey } = require('../src/event-weekly');
+const config = { eventTimeZone: 'Asia/Taipei' };
+const event = { id: 'one', sourceId: 'ctftime', title: 'Example CTF', url: 'https://example.org',
+  startsAt: '2026-10-01T00:00:00Z', endsAt: '2026-10-02T00:00:00Z', kind: 'ctf' };
+
+test('weekly digest uses Monday in the configured timezone', () => {
+  assert.equal(weekKey(new Date('2026-09-20T16:01:00Z'), 'Asia/Taipei'), '2026-09-21');
+  assert.equal(weekKey(new Date('2026-09-20T15:59:00Z'), 'Asia/Taipei'), '2026-09-14');
+});
+
+test('same-week additions edit the digest; unchanged weeks do not publish', async () => {
+  const state = { events: { one: { event } } }; const calls = [];
+  const message = { id: '123', edit: async () => calls.push('edit') };
+  const channel = { send: async () => { calls.push('send'); return message; }, messages: { fetch: async () => message } };
+  const run = (date) => publishWeekly({ state, channel, config, now: new Date(date), save: async () => {} });
+  await run('2026-09-21T02:00:00Z');
+  await run('2026-09-22T02:00:00Z');
+  state.events.one.event = { ...event, title: 'Updated CTF' };
+  await run('2026-09-23T02:00:00Z');
+  await run('2026-09-28T02:00:00Z');
+  assert.deepEqual(calls, ['send', 'edit']);
+});
+
+test('large weekly digests keep the complete list in an attachment', () => {
+  const state = { events: Object.fromEntries(Array.from({ length: 50 }, (_, i) => [String(i), { event: { ...event, id: `id${i}`, title: `CTF ${i}` } }])) };
+  const result = weeklyData(state, config, new Date('2026-09-21T02:00:00Z'));
+  assert.equal(result.count, 50);
+  assert.ok(result.payload.content.length <= 2000);
+  assert.match(result.payload.files[0].attachment.toString(), /CTF 49/);
+});
+
+test('stale entries and distant activities are excluded, but upcoming deadlines qualify', () => {
+  const distant = { ...event, startsAt: '2027-01-01T00:00:00Z', endsAt: '2027-01-02T00:00:00Z' };
+  const state = { events: { stale: { event, stale: true }, distant: { event: distant }, deadline: {
+    event: { ...distant, deadlines: [{ kind: 'registration', at: '2026-09-24T00:00:00Z' }] },
+  } } };
+  assert.equal(weeklyData(state, config, new Date('2026-09-21T02:00:00Z')).count, 1);
+});

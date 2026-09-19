@@ -4,6 +4,7 @@ const { isEligibleEvent } = require('./event-eligibility');
 const { normalizeEventRecord, eventEndTime } = require('./event-model');
 const { formatCompactDate, createEventMessage } = require('./event-publisher');
 const { keyFor, boardMessage } = require('./event-board');
+const { publishWeekly } = require('./event-weekly');
 
 function createEventService({ channel, config, stateStore, fetchEventsImpl = fetchSecurityEvents, now = () => new Date() }) {
   let queue = Promise.resolve();
@@ -63,10 +64,12 @@ function createEventService({ channel, config, stateStore, fetchEventsImpl = fet
         state.lastCheckedAt = current.toISOString();
         await save(state);
         const boardError = await updateBoard(state);
+        // Avoid announcing additions/removals based on an incomplete collection.
+        const published = errors.length ? 0 : await publishWeekly({ state, channel, config, now: current, save });
         state.lastCompletedAt = current.toISOString();
         await save(state);
         latestResult = { checked: events.length, discovered: Object.keys(updated).filter((key) => !old[key]).length,
-          published: 0, boardId: state.boardId, sourceErrors: [...errors, ...(boardError ? [boardError] : [])], at: state.lastCheckedAt };
+          published, boardId: state.boardId, sourceErrors: [...errors, ...(boardError ? [boardError] : [])], at: state.lastCheckedAt };
         return latestResult;
       });
     } finally { running = false; }

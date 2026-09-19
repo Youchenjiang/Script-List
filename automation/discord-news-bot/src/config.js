@@ -71,6 +71,7 @@ function loadConfig() {
     eventChannelId: process.env.EVENT_CHANNEL_ID?.trim() || '1536696484286824519',
     eventPollIntervalMs: readPositiveInteger('EVENT_POLL_INTERVAL_MINUTES', 30) * 60_000,
     eventScanHour: readHour('EVENT_SCAN_HOUR', 9),
+    eventWeeklyEnabled: readBoolean('EVENT_WEEKLY_ENABLED', true),
     eventTimeZone: readTimeZone('EVENT_TIME_ZONE', 'Asia/Taipei'),
     eventLookaheadDays: readPositiveInteger('EVENT_LOOKAHEAD_DAYS', 120),
     maxEventsPerRun: readPositiveInteger('MAX_EVENTS_PER_RUN', 5),
