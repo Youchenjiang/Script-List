@@ -5,6 +5,7 @@ const { normalizeRuleConfig } = require('./rule-options');
 
 const MAX_HISTORY = 2_000;
 const MAX_EVALUATIONS = 5_000;
+const DEFAULT_RETENTION_DAYS = 90;
 const CREATE_STATE_TABLE = `
   CREATE TABLE IF NOT EXISTS news_bot_state (
     state_key TEXT PRIMARY KEY,
@@ -238,8 +239,23 @@ function normalizeEvaluation(row) {
   };
 }
 
-function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionString: databaseUrl })) {
+function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionString: databaseUrl }), options = {}) {
+  const retentionDays = Number.isInteger(options.retentionDays) && options.retentionDays > 0
+    ? options.retentionDays : DEFAULT_RETENTION_DAYS;
   let initialized = false;
+
+  async function cleanupExpiredData() {
+    await pool.query(
+      `DELETE FROM news_article_evaluations
+       WHERE evaluated_at < NOW() - ($1 * INTERVAL '1 day')`,
+      [retentionDays],
+    );
+    await pool.query(
+      `DELETE FROM news_article_details
+       WHERE created_at < NOW() - ($1 * INTERVAL '1 day')`,
+      [retentionDays],
+    );
+  }
 
   async function initialize() {
     if (initialized) return;
@@ -252,6 +268,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
     await pool.query(ADD_RULE_GUILD_COLUMN);
     await pool.query(ADD_EVALUATION_GUILD_COLUMN);
     await pool.query(ADD_EVALUATION_READING_CARD_COLUMN);
+    await cleanupExpiredData();
     initialized = true;
   }
 
@@ -382,6 +399,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
           JSON.stringify(decision),
         ],
       );
+      await cleanupExpiredData();
     },
     async saveNewsDetail(detailKey, detail, channelId, guildId = '') {
       await initialize();
@@ -395,6 +413,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
            detail_card = EXCLUDED.detail_card`,
         [detailKey, channelId, guildId, JSON.stringify(detail)],
       );
+      await cleanupExpiredData();
     },
     async getNewsDetail(detailKey, channelId) {
       await initialize();
@@ -412,7 +431,7 @@ function createPostgresStateStore(databaseUrl, pool = new Pool({ connectionStrin
 
 function createStateStore(config) {
   return config.databaseUrl
-    ? createPostgresStateStore(config.databaseUrl)
+    ? createPostgresStateStore(config.databaseUrl, undefined, { retentionDays: config.stateRetentionDays })
     : createFileStateStore(config.statePath);
 }
 

@@ -71,10 +71,30 @@ test('PostgreSQL state store initializes, saves, and loads state', async () => {
   assert.equal(calls.filter((call) => call.sql.includes('ADD COLUMN IF NOT EXISTS')).length, 4);
   const saveCall = calls.find((call) => call.sql.includes('INSERT INTO news_bot_state'));
   assert.deepEqual(JSON.parse(saveCall.params[1]), ['article-1']);
+  const cleanupCalls = calls.filter((call) => call.sql.includes('DELETE FROM news_article_'));
+  assert.equal(cleanupCalls.length, 2);
+  assert.deepEqual(cleanupCalls.map((call) => call.params), [[90], [90]]);
   assert.deepEqual(state, {
     sentIds: ['article-1'],
     lastCheckedAt: '2026-08-14T12:00:00.000Z',
   });
+});
+
+test('PostgreSQL state store accepts a shorter retention window', async () => {
+  const calls = [];
+  const pool = {
+    async query(sql, params) {
+      calls.push({ sql, params });
+      return { rowCount: 0, rows: [] };
+    },
+    async end() {},
+  };
+  const store = createPostgresStateStore('postgres://unused', pool, { retentionDays: 30 });
+
+  await store.load();
+  const cleanupCalls = calls.filter((call) => call.sql.includes('DELETE FROM news_article_'));
+  assert.equal(cleanupCalls.length, 2);
+  assert.deepEqual(cleanupCalls.map((call) => call.params), [[30], [30]]);
 });
 
 test('PostgreSQL state store returns an empty state before first save', async () => {

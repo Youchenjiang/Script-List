@@ -84,6 +84,7 @@ function loadConfig() {
     kktixEventsEnabled: readBoolean('KKTIX_EVENTS_ENABLED', true),
     maxKktixEventsPerSource: readPositiveInteger('MAX_KKTIX_EVENTS_PER_SOURCE', 20),
     icalEventsEnabled: readBoolean('ICAL_EVENTS_ENABLED', true),
+    stateRetentionDays: readPositiveInteger('STATE_RETENTION_DAYS', 90),
     databaseUrl: process.env.DATABASE_URL?.trim() || '',
     statePath: path.join(__dirname, '..', 'data', 'state.json'),
   };
