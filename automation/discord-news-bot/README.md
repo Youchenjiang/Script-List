@@ -22,7 +22,7 @@
 - `/news_now`：具「管理伺服器」權限者可立即檢查
 - `/news_ai_check`：實際測試 AI 供應商連線與結構化輸出
 - `/news_status`：查看上次檢查與推送數量
-- 每日從 CTFtime、OWASP、Taiwan Security Deadlines 及已驗證的 KKTIX 主辦單位 feed 尋找未公告過的競賽、培訓、社群及研討會
+- 每日從 CTFtime、OWASP、Taiwan Security Deadlines、已驗證的 KKTIX feed，以及 SCIST、BambooFox 公開日曆尋找未公告過的競賽、培訓、社群及研討會
 - 活動公告顯示方向、類型、程度、人數、技術主題、時程、期限、地點與資格；來源缺資料時明確標示未知，不自行推測
 - `/events_now`：具「管理伺服器」權限者可立即搜尋新活動
 - `/events_status`：查看活動來源、搜尋與公告狀態
@@ -127,7 +127,7 @@ PUBLISH_INITIAL_ARTICLES=false
 6. 將完整技術細節以短鍵保存；成員按下「查看技術細節」後，由全域互動處理器讀取資料並以 ephemeral 訊息呈現，因此不會建立大量討論串，Bot 重啟後舊按鈕仍可使用。
 7. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
 
-活動雷達另以獨立流程運作：每天讀取 CTFtime 的時間範圍 API、OWASP 官方 `events.yml`、Taiwan Security Deadlines 的結構化 YAML，以及 HITCON、DEVCORE、台灣數位安全聯盟的 KKTIX Atom feed。KKTIX 活動再以同一主辦網域的 Schema.org JSON-LD 補齊精確起迄時間、地點與報名截止日；不需要 AI。每個 KKTIX 來源單輪最多補查 `MAX_KKTIX_EVENTS_PER_SOURCE=20` 個落在預看範圍內的活動。跨來源活動會合併官方網址與別名，公告依最近 deadline、再依活動開始時間排序。若其中一個來源暫時失效，其他來源仍會繼續運作並在 `/events_status` 顯示來源錯誤。
+活動雷達另以獨立流程運作：每天讀取 CTFtime 的時間範圍 API、OWASP 官方 `events.yml`、Taiwan Security Deadlines 的結構化 YAML、HITCON／DEVCORE／台灣數位安全聯盟的 KKTIX Atom feed，以及 SCIST、BambooFox 的官方公開 iCal。KKTIX 活動再以同一主辦網域的 Schema.org JSON-LD 補齊精確起迄時間、地點與報名截止日；公開日曆則使用 UID 建立穩定的 Google Calendar 活動連結。兩者都不需要 AI。SCIST 日曆混有演算法課程，因此只保留明確含資安主題的項目；BambooFox 日曆本身就是資安社群行事曆。跨來源活動會合併官方網址與別名，公告依最近 deadline、再依活動開始時間排序。若其中一個來源暫時失效，其他來源仍會繼續運作並在 `/events_status` 顯示來源錯誤。
 
 未驗證的臺灣主辦單位入口與三個週期活動仍只作候選監控名冊，不會直接解析首頁或沿用往年日期。來源取捨、公告格式、資料模型及後續升級條件記錄於 [`docs/external-source-research.md`](docs/external-source-research.md)。
 

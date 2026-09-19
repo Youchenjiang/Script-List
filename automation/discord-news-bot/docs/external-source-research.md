@@ -33,7 +33,7 @@
 實作狀態（2026-09-19）：
 
 - 標準活動模型、可解釋分類、Taiwan Security Deadlines adapter、跨來源去重與新公告格式已完成。
-- 臺灣主辦單位名冊中，HITCON、DEVCORE 與台灣數位安全聯盟已通過 KKTIX Atom／JSON-LD 實際驗證並升級為 `active`；其餘入口與 3 個週期活動仍為 `candidate`。
+- 臺灣主辦單位名冊中，HITCON、DEVCORE 與台灣數位安全聯盟已通過 KKTIX Atom／JSON-LD 實際驗證；SCIST 與 BambooFox 已通過官方公開 iCal 驗證。這 5 個來源均為 `active`，其餘入口與 3 個週期活動仍為 `candidate`。
 - 9 個 RSS／Atom 來源已登錄為 `observing`且 `delivery:false`，通用 parser 已完成，但尚未接入新聞推送。
 - 來源健康狀態與分批觀察器已完成，且 `SOURCE_OBSERVATION_ENABLED` 預設為 `false`。
 
@@ -130,11 +130,20 @@ TAIWAN_DEADLINES_URL=https://raw.githubusercontent.com/stwater20/taiwan-security
 | `teamt5` | TeamT5 | `https://teamt5.org/` | Security Camp、威脅分析師活動 | `official_page` |
 | `cybersec` | CYBERSEC | `https://cybersec.ithome.com.tw/` | 大會、議程與報名 | `official_page` |
 | `nics` | 國家資通安全研究院 | `https://www.nics.nat.gov.tw/` | 培訓、競賽及公開活動 | `official_page` |
-| `scist` | SCIST | `https://scist.org/` | 學生課程與社群活動 | `official_page` |
-| `bamboofox` | BambooFox | `https://bamboofox.cs.nycu.edu.tw/` | CTF、課程與社群活動 | `official_page` |
+| `scist` | SCIST | `https://scist.org/` | 公開日曆中的資安課程、競賽與助教活動 | `ical_calendar` |
+| `bamboofox` | BambooFox | `https://bamboofox.org/` | 官方公開日曆中的 CTF、社課、工作坊與社群活動 | `ical_calendar` |
 | `balsn` | Balsn | `https://balsn.tw/` | CTF、研究分享與活動 | `official_page` |
 
 `official_page` 初期只代表登錄與人工驗證，不代表立即爬 HTML。只有找到 RSS、iCal、JSON、KKTIX 列表或其他穩定結構化入口後，才將狀態升級為 `active`。
+
+#### 已驗證公開日曆
+
+| 來源 | 結構化入口 | 實際處理 |
+| --- | --- | --- |
+| SCIST | 首頁「SCIST 公開日曆」所嵌入的 Google Calendar iCal | 只接受標題或描述含資安、CTF、Pwn、Web Security、Reverse、Crypto、Forensics、漏洞、滲透、紅隊或藍隊的項目，避免把純演算法培訓送進資安頻道 |
+| BambooFox | 官網「複製 iCal 網址」公開的 Google Calendar iCal | 接受尚未開始的社課、工作坊、競賽及社群活動；官網與日曆均由同一社群維護 |
+
+實測日期為 2026-09-19。BambooFox 日曆當時可解析出 7 個未開始項目，包括 Git Workshop、Linux Workshop、Web Security、門禁安全與後續社課。SCIST 日曆當時沒有尚未開始且符合資安關鍵字的項目，因此回傳 0 是有效結果，不代表連線或解析失敗。iCal 通常沒有報名截止日、程度及人數，公告必須維持「未公開」，不得由活動名稱推測。
 
 #### 從 awesome-cs-training 引入
 
