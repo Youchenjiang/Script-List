@@ -17,8 +17,8 @@ function harness() {
   const config = { eventChannelId: '10', eventTimeZone: 'Asia/Taipei', eventScanHour: 9, eventWeeklyEnabled: false };
   const store = { loadEventDocument: async () => structuredClone(document),
     saveEventDocument: async (_id, value) => { document = JSON.parse(JSON.stringify(value)); } };
-  const make = () => createEventService({ channel, config, stateStore: store, now: () => current,
-    fetchEventsImpl: async () => feed });
+  const make = (options = {}) => createEventService({ channel, config, stateStore: store, now: () => current,
+    fetchEventsImpl: async () => feed, ...options });
   return { make, calls, channel, store, get document() { return document; }, setFeed: (value) => { feed = value; } };
 }
 
@@ -72,4 +72,19 @@ test('view buttons reply privately and never edit the public board', async () =>
   assert.equal(deferred.flags, 64);
   assert.match(response.content, /Example CTF/);
   assert.equal(h.calls.filter(([type]) => type === 'edit').length, 0);
+});
+
+test('personal subscriptions persist and reminders run between daily source scans', async () => {
+  const h = harness();
+  h.setFeed({ events: [{ ...event, startsAt: '2026-09-22T01:00:00Z' }], errors: [] });
+  const delivered = [];
+  const service = h.make({ sendReminderImpl: async (userId) => delivered.push(userId) });
+  await service.run();
+  const interaction = { channelId: '10', guildId: '30', user: { id: 'alice' },
+    customId: `events:sub:${keyFor(event)}`, deferReply: async () => {}, editReply: async () => {} };
+  await service.handle(interaction);
+  await service.run();
+  assert.deepEqual(delivered, ['alice']);
+  await service.handle({ ...interaction, guildId: null, channelId: 'dm', customId: `events:unsub:${keyFor(event)}` });
+  assert.deepEqual(h.document.subscriptions, {});
 });

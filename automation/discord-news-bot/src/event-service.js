@@ -2,11 +2,13 @@ const { MessageFlags } = require('discord.js');
 const { fetchSecurityEvents } = require('./event-feed');
 const { isEligibleEvent } = require('./event-eligibility');
 const { normalizeEventRecord, eventEndTime } = require('./event-model');
-const { formatCompactDate, createEventMessage } = require('./event-publisher');
+const { formatCompactDate } = require('./event-publisher');
 const { keyFor, boardMessage } = require('./event-board');
 const { publishWeekly } = require('./event-weekly');
+const { subscribe, unsubscribe, pruneSubscriptions, detailMessage, deliverReminders, sendMemberReminder } = require('./event-subscriptions');
 
-function createEventService({ channel, config, stateStore, fetchEventsImpl = fetchSecurityEvents, now = () => new Date() }) {
+function createEventService({ channel, config, stateStore, fetchEventsImpl = fetchSecurityEvents, now = () => new Date(),
+  sendReminderImpl = (userId, payload) => sendMemberReminder(channel, userId, payload) }) {
   let queue = Promise.resolve();
   let latestResult = null;
   let running = false;
@@ -45,7 +47,12 @@ function createEventService({ channel, config, stateStore, fetchEventsImpl = fet
         const today = formatCompactDate(current, config.eventTimeZone);
         const hour = Number(new Intl.DateTimeFormat('en', { timeZone: config.eventTimeZone, hour: '2-digit', hourCycle: 'h23' }).format(current));
         if (!force && (state.lastCompletedAt && formatCompactDate(new Date(state.lastCompletedAt), config.eventTimeZone) === today
-          || hour < config.eventScanHour)) return { skipped: true, reason: '等待每日活動更新', at: current.toISOString() };
+          || hour < config.eventScanHour)) {
+          const reminders = await deliverReminders({ state, config, now: current, save, send: sendReminderImpl });
+          await save(state);
+          if (latestResult) latestResult.reminders = reminders;
+          return { skipped: true, reason: '等待每日活動更新', reminders, at: current.toISOString() };
+        }
         const { events, errors } = await fetchEventsImpl(config, { now: current });
         const old = state.events || {};
         const updated = {};
@@ -61,6 +68,7 @@ function createEventService({ channel, config, stateStore, fetchEventsImpl = fet
           updated[aliasKey || keyFor(event)] = { event, verifiedAt: current.toISOString(), stale: false };
         }
         state.events = updated;
+        pruneSubscriptions(state, current);
         state.lastCheckedAt = current.toISOString();
         await save(state);
         const boardError = await updateBoard(state);
@@ -68,27 +76,40 @@ function createEventService({ channel, config, stateStore, fetchEventsImpl = fet
         const published = errors.length ? 0 : await publishWeekly({ state, channel, config, now: current, save });
         state.lastCompletedAt = current.toISOString();
         await save(state);
+        const reminders = await deliverReminders({ state, config, now: current, save, send: sendReminderImpl });
         latestResult = { checked: events.length, discovered: Object.keys(updated).filter((key) => !old[key]).length,
-          published, boardId: state.boardId, sourceErrors: [...errors, ...(boardError ? [boardError] : [])], at: state.lastCheckedAt };
+          published, reminders, boardId: state.boardId, sourceErrors: [...errors, ...(boardError ? [boardError] : [])], at: state.lastCheckedAt };
         return latestResult;
       });
     } finally { running = false; }
   }
   async function handle(interaction) {
     if (!interaction.customId?.startsWith('events:')) return false;
-    if (interaction.channelId !== config.eventChannelId || interaction.guildId !== channel.guild.id) {
+    const dmUnsubscribe = !interaction.guildId && interaction.customId.startsWith('events:unsub:');
+    if (!dmUnsubscribe && (interaction.channelId !== config.eventChannelId || interaction.guildId !== channel.guild.id)) {
       await interaction.reply({ content: '請從活動頻道使用此功能。', flags: MessageFlags.Ephemeral });
       return true;
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    await interaction.deferReply(interaction.guildId ? { flags: MessageFlags.Ephemeral } : {});
     await exclusive(async () => {
       const state = await load();
       const [, action, filter, page] = interaction.customId.split(':');
       if (action === 'view') {
-        await interaction.editReply(boardMessage(state, { timeZone: config.eventTimeZone, now: now(), filter, page: Number(page) }));
+        const visible = filter === 'mine' ? { ...state, events: Object.fromEntries(Object.entries(state.events)
+          .filter(([key]) => state.subscriptions?.[`${interaction.user.id}:${key}`])) } : state;
+        await interaction.editReply(boardMessage(visible, { timeZone: config.eventTimeZone, now: now(), filter, page: Number(page) }));
       } else if (action === 'select') {
-        const event = normalizeEventRecord(state.events[interaction.values[0]]?.event);
-        await interaction.editReply(event ? createEventMessage(event, config.eventTimeZone, now()) : { content: '活動已結束或不再列入總表。' });
+        await interaction.editReply(detailMessage(state, interaction.values[0], interaction.user.id, config, now()));
+      } else if (action === 'sub' || action === 'unsub') {
+        if (action === 'sub') {
+          try { subscribe(state, interaction.user.id, filter, now()); }
+          catch (error) { await interaction.editReply({ content: error.message }); return; }
+        } else unsubscribe(state, interaction.user.id, filter);
+        await save(state);
+        await interaction.editReply(dmUnsubscribe ? { content: '已取消此活動提醒。', components: [] }
+          : detailMessage(state, filter, interaction.user.id, config, now()));
+      } else {
+        await interaction.editReply({ content: '此操作已失效，請重新開啟活動總表。' });
       }
     });
     return true;

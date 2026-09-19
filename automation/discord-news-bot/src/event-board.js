@@ -22,8 +22,8 @@ function currentEvents(document, now) {
   }).sort((a, b) => eventStartTime(a.event) - eventStartTime(b.event));
 }
 function boardMessage(document, { timeZone = 'Asia/Taipei', now = new Date(), filter = 'all', page = 0 } = {}) {
-  if (!['all', 'ctf', 'community'].includes(filter)) filter = 'all';
-  const entries = currentEvents(document, now).filter(({ event }) => filter === 'all'
+  if (!['all', 'ctf', 'community', 'mine'].includes(filter)) filter = 'all';
+  const entries = currentEvents(document, now).filter(({ event }) => ['all', 'mine'].includes(filter)
     || (filter === 'ctf' ? isCompetition(event) : !isCompetition(event)));
   const pages = [[]];
   let length = 0;
@@ -41,6 +41,7 @@ function boardMessage(document, { timeZone = 'Asia/Taipei', now = new Date(), fi
   const components = [new ActionRowBuilder().addComponents(
     button('events:view:all:0', '全部活動'), button('events:view:ctf:0', '比賽'),
     button('events:view:community:0', '社群／課程'),
+    button('events:view:mine:0', '我的訂閱'),
   )];
   if (pages.length > 1) components.push(new ActionRowBuilder().addComponents(
     button(`events:view:${filter}:${index - 1}`, '上一頁', index === 0),
