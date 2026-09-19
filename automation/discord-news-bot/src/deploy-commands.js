@@ -8,7 +8,7 @@ function buildCommands() {
     new SlashCommandBuilder().setName('events_status').setDescription('查看資安活動推送狀態'),
     new SlashCommandBuilder()
       .setName('events_now')
-      .setDescription('立即搜尋並公告新的資安活動')
+      .setDescription('立即更新活動總表與本週週報')
       .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild),
     new SlashCommandBuilder()
       .setName('news_now')
