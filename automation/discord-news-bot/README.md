@@ -22,7 +22,8 @@
 - `/news_now`：具「管理伺服器」權限者可立即檢查
 - `/news_ai_check`：實際測試 AI 供應商連線與結構化輸出
 - `/news_status`：查看上次檢查與推送數量
-- 每日從 CTFtime 官方 API 與 OWASP 官方活動資料尋找未公告過的競賽、社群及研討會，時間統一換算為台灣時間
+- 每日從 CTFtime、OWASP 與 Taiwan Security Deadlines 尋找未公告過的競賽、培訓、社群及研討會，時間統一換算為台灣時間
+- 活動公告顯示方向、類型、程度、人數、技術主題、時程、期限、地點與資格；來源缺資料時明確標示未知，不自行推測
 - `/events_now`：具「管理伺服器」權限者可立即搜尋新活動
 - `/events_status`：查看活動來源、搜尋與公告狀態
 - `/ping`：檢查 Bot 延遲
@@ -71,6 +72,8 @@ npm start
 
 活動雷達預設每天台灣時間 09:00 後執行一次，公告新發現且未公告過的活動；服務重啟不會重複發送。`EVENT_SCAN_HOUR`、`EVENT_TIME_ZONE`、`EVENT_LOOKAHEAD_DAYS` 與 `MAX_EVENTS_PER_RUN` 可調整時間、預看天數及單日公告上限。`EVENT_CHANNEL_ID` 預設為 `1536696484286824519`，因此既有 Northflank 環境不必新增變數；若要停用則設定 `EVENTS_ENABLED=false`。
 
+九個額外 RSS／Atom 來源已先登錄為觀察來源，不會進入新聞推送。要蒐集其可用率與更新頻率時可設定 `SOURCE_OBSERVATION_ENABLED=true`；觀察器每天輪流檢查最多 `MAX_SOURCES_PER_RUN` 個最久未檢查的來源，只保存健康狀態。連續七次失敗的來源會隔離，90 天沒有新文章的來源會停止自動檢查，兩者都不會偷偷轉成正式推送來源。
+
 啟動後，具「管理伺服器」權限者需在指定新聞頻道執行：
 
 ```text
@@ -101,7 +104,7 @@ AI_BASE_URL=https://openrouter.ai/api/v1/
 
 ## PostgreSQL 與雲端部署
 
-設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations`、`news_article_details` 資料表，保存已推送文章與活動、以 Discord 伺服器／頻道識別的共用規則、AI 判斷及按鈕所需的完整技術細節。新聞與活動使用不同的 state key，不會互相覆寫。部署新版時會以可重複執行的 migration 補齊結構；未設定資料庫時則使用本機 JSON 檔案。
+設定 `DATABASE_URL` 後，Bot 會自動建立 `news_bot_state`、`news_filter_rules`、`news_article_evaluations`、`news_article_details`、`news_source_health` 資料表，保存已推送文章與活動、以 Discord 伺服器／頻道識別的共用規則、AI 判斷、按鈕所需的完整技術細節及觀察來源健康狀態。新聞與活動使用不同的 state key，不會互相覆寫。部署新版時會以可重複執行的 migration 補齊結構；未設定資料庫時則使用本機 JSON 檔案。
 
 第一次從既有本機 Bot 搬到雲端時，建議設定：
 
@@ -124,8 +127,8 @@ PUBLISH_INITIAL_ARTICLES=false
 6. 將完整技術細節以短鍵保存；成員按下「查看技術細節」後，由全域互動處理器讀取資料並以 ephemeral 訊息呈現，因此不會建立大量討論串，Bot 重啟後舊按鈕仍可使用。
 7. 透過單一執行鎖避免排程與 `/news_now` 同時重複抓取。
 
-活動雷達另以獨立流程運作：每天讀取 CTFtime 的時間範圍 API 與 OWASP 官方 `events.yml`，只保留尚未結束的活動，依開始時間排序後公告。CTF 隊伍人數只在官方活動說明明確提供時顯示；不會把報名人數誤當成隊伍上限。若其中一個來源暫時失效，仍會使用另一個來源並在 `/events_status` 顯示來源錯誤。
+活動雷達另以獨立流程運作：每天讀取 CTFtime 的時間範圍 API、OWASP 官方 `events.yml` 與 Taiwan Security Deadlines 的結構化 YAML，只保留尚未結束或仍有未來期限的活動。跨來源活動會合併官方網址與別名，公告依最近 deadline、再依活動開始時間排序。CTF 隊伍人數只在官方活動說明明確提供時顯示；不會把報名人數誤當成隊伍上限。若其中一個來源暫時失效，其他來源仍會繼續運作並在 `/events_status` 顯示來源錯誤。
 
-外部臺灣活動、社群名冊、RSS 清單與參考 Bot 的逐項研究，以及後續來源架構與標準活動資料模型，記錄於 [`docs/external-source-research.md`](docs/external-source-research.md)。
+十個臺灣主辦單位入口與三個週期活動目前只作候選監控名冊，不會直接解析首頁或沿用往年日期。來源取捨、公告格式、資料模型及後續升級條件記錄於 [`docs/external-source-research.md`](docs/external-source-research.md)。
 
-`NEWS_FEED_URL` 目前預期為 Blogger JSON Feed 格式；預設值已指向 The Hacker News。
+正式新聞管線的 `NEWS_FEED_URL` 目前仍預期為 Blogger JSON Feed 格式，預設值指向 The Hacker News。通用 RSS／Atom adapter 目前只供隔離的來源觀察器使用，尚未接入 AI 篩選與 Discord 發送。
