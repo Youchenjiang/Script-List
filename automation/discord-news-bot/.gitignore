@@ -2,4 +2,5 @@ node_modules/
 .env
 data/*
 !data/event-source-registry.json
+!data/news-source-registry.json
 npm-debug.log*

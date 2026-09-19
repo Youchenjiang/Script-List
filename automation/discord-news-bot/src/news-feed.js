@@ -71,4 +71,4 @@ async function fetchNews(feedUrl, fetchImpl = fetch) {
   return parseBloggerFeed(await response.json());
 }
 
-module.exports = { decodeHtml, fetchNews, parseBloggerFeed };
+module.exports = { decodeHtml, extractImage, fetchNews, parseBloggerFeed };
