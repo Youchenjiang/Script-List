@@ -74,7 +74,6 @@ function loadConfig() {
     eventWeeklyEnabled: readBoolean('EVENT_WEEKLY_ENABLED', true),
     eventTimeZone: readTimeZone('EVENT_TIME_ZONE', 'Asia/Taipei'),
     eventLookaheadDays: readPositiveInteger('EVENT_LOOKAHEAD_DAYS', 120),
-    maxEventsPerRun: readPositiveInteger('MAX_EVENTS_PER_RUN', 5),
     ctfTimeEventsUrl: process.env.CTFTIME_EVENTS_URL?.trim()
       || 'https://ctftime.org/api/v1/events/',
     owaspEventsUrl: process.env.OWASP_EVENTS_URL?.trim()
