@@ -126,4 +126,6 @@ PUBLISH_INITIAL_ARTICLES=false
 
 活動雷達另以獨立流程運作：每天讀取 CTFtime 的時間範圍 API 與 OWASP 官方 `events.yml`，只保留尚未結束的活動，依開始時間排序後公告。CTF 隊伍人數只在官方活動說明明確提供時顯示；不會把報名人數誤當成隊伍上限。若其中一個來源暫時失效，仍會使用另一個來源並在 `/events_status` 顯示來源錯誤。
 
+外部臺灣活動、社群名冊、RSS 清單與參考 Bot 的逐項研究，以及後續來源架構與標準活動資料模型，記錄於 [`docs/external-source-research.md`](docs/external-source-research.md)。
+
 `NEWS_FEED_URL` 目前預期為 Blogger JSON Feed 格式；預設值已指向 The Hacker News。
