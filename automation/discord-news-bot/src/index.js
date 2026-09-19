@@ -8,7 +8,7 @@ const {
   PermissionFlagsBits,
 } = require('discord.js');
 const { loadConfig } = require('./config');
-const { createEventPublisher } = require('./event-publisher');
+const { createEventService } = require('./event-service');
 const { createPublisher, createTechnicalDetailReply } = require('./publisher');
 const { formatRuleConfig } = require('./rule-options');
 const { createRuleSetupManager } = require('./rule-setup');
@@ -65,7 +65,7 @@ async function main() {
         if (!eventChannel?.isTextBased() || !('send' in eventChannel)) {
           throw new Error(`EVENT_CHANNEL_ID ${config.eventChannelId} is not a sendable text channel`);
         }
-        eventPublisher = createEventPublisher({
+        eventPublisher = createEventService({
           channel: eventChannel,
           config,
           stateStore,
@@ -122,6 +122,17 @@ async function main() {
   }
 
   client.on(Events.InteractionCreate, async (interaction) => {
+    if (interaction.customId?.startsWith('events:')) {
+      try {
+        if (eventPublisher) await eventPublisher.handle(interaction);
+        else await interaction.reply({ content: '活動功能尚未準備完成。', flags: MessageFlags.Ephemeral });
+      } catch (error) {
+        console.error(`[Events interaction] ${error.stack || error.message}`);
+        if (interaction.deferred) await interaction.editReply({ content: '操作失敗，請稍後再試。' });
+        else if (!interaction.replied) await interaction.reply({ content: '操作失敗，請稍後再試。', flags: MessageFlags.Ephemeral });
+      }
+      return;
+    }
     if (interaction.isButton() && interaction.customId.startsWith('news_detail:')) {
       const detailKey = interaction.customId.slice('news_detail:'.length);
       if (!publisher) {

@@ -1,0 +1,60 @@
+const { createHash } = require('node:crypto');
+const { ActionRowBuilder, ButtonBuilder, ButtonStyle, StringSelectMenuBuilder } = require('discord.js');
+const { normalizeEventRecord, eventEndTime, eventStartTime } = require('./event-model');
+const { createEventMessage } = require('./event-publisher');
+
+const keyFor = (event) => createHash('sha256').update(event.id).digest('hex').slice(0, 24);
+const fingerprint = (value) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
+const isCompetition = (event) => ['ctf', 'competition'].includes(event.kind);
+function button(id, label, disabled = false) {
+  return new ButtonBuilder().setCustomId(id).setLabel(label).setStyle(ButtonStyle.Secondary).setDisabled(disabled);
+}
+function compactEvent(event, timeZone, now) {
+  return createEventMessage(event, timeZone, now).content
+    .replace(/⚫ 方向未標示 · /gu, '')
+    .replace(/｜程度未標示/gu, '')
+    .replace(/｜人數未公開/gu, '');
+}
+function currentEvents(document, now) {
+  return Object.entries(document.events || {}).flatMap(([key, record]) => {
+    const event = normalizeEventRecord(record.event);
+    return event && eventEndTime(event) >= now.getTime() ? [{ key, event, stale: record.stale }] : [];
+  }).sort((a, b) => eventStartTime(a.event) - eventStartTime(b.event));
+}
+function boardMessage(document, { timeZone = 'Asia/Taipei', now = new Date(), filter = 'all', page = 0 } = {}) {
+  if (!['all', 'ctf', 'community'].includes(filter)) filter = 'all';
+  const entries = currentEvents(document, now).filter(({ event }) => filter === 'all'
+    || (filter === 'ctf' ? isCompetition(event) : !isCompetition(event)));
+  const pages = [[]];
+  let length = 0;
+  for (const entry of entries) {
+    const text = `${compactEvent(entry.event, timeZone, now)}${entry.stale ? '\n來源暫時未確認' : ''}`;
+    // Oversized source text is still available through the official link/detail button.
+    entry.text = text.length > 1400 ? `${entry.event.title.slice(0, 150)}\n詳情請選擇下方活動。` : text;
+    if (pages.at(-1).length && (length + entry.text.length > 1600 || pages.at(-1).length >= 4)) {
+      pages.push([]); length = 0;
+    }
+    pages.at(-1).push(entry); length += entry.text.length + 2;
+  }
+  const index = Math.max(0, Math.min(Number.isInteger(page) ? page : 0, pages.length - 1));
+  const selected = pages[index];
+  const components = [new ActionRowBuilder().addComponents(
+    button('events:view:all:0', '全部活動'), button('events:view:ctf:0', '比賽'),
+    button('events:view:community:0', '社群／課程'),
+  )];
+  if (pages.length > 1) components.push(new ActionRowBuilder().addComponents(
+    button(`events:view:${filter}:${index - 1}`, '上一頁', index === 0),
+    button(`events:view:${filter}:${index + 1}`, '下一頁', index === pages.length - 1),
+  ));
+  if (selected.length) components.push(new ActionRowBuilder().addComponents(
+    new StringSelectMenuBuilder().setCustomId('events:select').setPlaceholder('查看活動／訂閱提醒')
+      .addOptions(selected.map(({ key, event }) => ({ label: event.title.slice(0, 100), value: key }))),
+  ));
+  const date = document.lastCheckedAt ? new Intl.DateTimeFormat('sv-SE', { timeZone, dateStyle: 'short' }).format(new Date(document.lastCheckedAt)) : '尚未更新';
+  return {
+    content: `**資安活動總表**\n更新：${date}｜${entries.length} 場｜第 ${index + 1}/${pages.length} 頁\n\n${selected.map(({ text }) => text).join('\n\n') || '目前沒有符合條件的活動。'}`,
+    components, allowedMentions: { parse: [] },
+  };
+}
+
+module.exports = { keyFor, fingerprint, currentEvents, compactEvent, boardMessage, button };
